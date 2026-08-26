@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+trace_dir="${1:-$repo_root/.agent/traces}"
+traces=()
+while IFS= read -r trace; do traces+=("$trace"); done < <(find "$trace_dir" -maxdepth 1 -name '*.json' -type f -print 2>/dev/null | sort)
+if ((${#traces[@]} == 0)); then
+  echo '{"schemaVersion":1,"candidates":[]}'
+  exit 0
+fi
+jq -s '{schemaVersion:1,candidates:(group_by([.taskId,.command]) | map(select(length >= 3) | {taskId:.[0].taskId,command:.[0].command,observations:length,totalDurationMs:(map(.durationMs)|add),totalRawBytes:(map(.rawOutputBytes)|add),evidence:map(.rawEvidenceRef)}) | sort_by(-.observations))}' "${traces[@]}"

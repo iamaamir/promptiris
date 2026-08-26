@@ -1,6 +1,6 @@
 # Phase 1 implementation handoff
 
-Phase 1 and the implementation-governance checkpoint are complete. The baseline contains 112 accepted decisions, 20 ADRs, a canonical glossary, cohesive architecture/protocol/product contracts, a threat model, an implementation/tooling contract, an [agent-driven implementation operating model](../development/agent-operating-model.md), a [tool-aware execution contract](../development/tool-aware-execution.md), and a source-by-source research ledger. No implementation code has been started and no release-blocking product-design question remains.
+Phase 1 and the implementation-governance checkpoint are complete. The baseline contains 112 accepted decisions, 20 ADRs, a canonical glossary, cohesive architecture/protocol/product contracts, a threat model, an implementation/tooling contract, an [agent-driven implementation operating model](../development/agent-operating-model.md), a [tool-aware execution contract](../development/tool-aware-execution.md), and a source-by-source research ledger. Phase 2 has started with the [verified identity tracer and development harness](../phase-2/bootstrap.md); no release-blocking product-design question remains.
 
 ## What is fixed for v1
 

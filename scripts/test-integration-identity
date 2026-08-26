@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+cd "$repo_root"
+pnpm build >/dev/null
+output="$(cd apps/cli-go && GOCACHE="${TMPDIR:-/tmp}/meta-prompt-go-cache" go run . enhance --runtime ../runtime-node/dist/index.js --input 'identity tracer')"
+[[ "$output" == 'identity tracer' ]] || { printf 'unexpected output: %s\n' "$output" >&2; exit 1; }
+echo 'Go CLI -> Node runtime -> identity Recipe: passed'

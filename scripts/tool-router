@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"; registry="${TOOL_REGISTRY:-$root/tooling/capabilities.json}"; cd "$root"
+capability="${1:-}"; [[ -n "$capability" ]] || { echo 'usage: tool-router CAPABILITY' >&2; exit 64; }
+command -v jq >/dev/null 2>&1 || { echo 'jq is required to route capabilities' >&2; exit 69; }
+providers="$(jq -r --arg c "$capability" '.capabilities[$c].providers[]? // empty' "$registry")"
+[[ -n "$providers" ]] || { echo "unknown capability: $capability" >&2; exit 64; }
+while IFS= read -r provider; do command -v "$provider" >/dev/null 2>&1 && { echo "$provider"; exit 0; }; done <<< "$providers"
+echo "no available provider for capability: $capability" >&2; exit 69

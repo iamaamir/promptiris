@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -euo pipefail
+repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+cd "$repo_root"
+echo '## REPOSITORY'
+printf 'root: %s\nhead: %s\n' "$repo_root" "$(git rev-parse --short HEAD 2>/dev/null || echo none)"
+echo
+echo '## STATUS'
+git status --short | head -30 || true
+echo
+echo '## RECENT COMMITS'
+git log --oneline -5 2>/dev/null || true
+echo
+echo '## CHANGE SUMMARY'
+git diff --stat | head -40 || true
+echo
+echo '## ACTIVE WORK'
+state_file="$(find .agent/work -mindepth 2 -maxdepth 2 -name state.json -print 2>/dev/null | sort | tail -1)"
+if [[ -n "$state_file" ]]; then jq '{task_id,goal,stage,iteration,last_verification,next_action,lease}' "$state_file"; else echo 'none'; fi
+echo
+echo '## LAST VERIFICATION'
+last_trace="$(find .agent/traces -maxdepth 1 -name '*.json' -print 2>/dev/null | sort | tail -1)"
+if [[ -n "$last_trace" ]]; then jq '{taskId,command,exitCode,durationMs,rawEvidenceRef}' "$last_trace"; else echo 'none'; fi
+echo
+echo '## CAPABILITIES'
+jq -r '.capabilities | to_entries[] | "\(.key): \(.value.providers | join(", "))"' tooling/capabilities.json

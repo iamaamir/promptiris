@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+cd "$repo_root"
+corepack prepare pnpm@11.24.0 --activate
+pnpm install --frozen-lockfile
+mkdir -p .tools/bin
+GOBIN="$repo_root/.tools/bin" go install golang.org/x/tools/gopls@v0.23.0
+echo 'development tools are ready'

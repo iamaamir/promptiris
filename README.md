@@ -6,7 +6,7 @@ The governing philosophy is **everything is a plugin**. The kernel supplies life
 
 ## Status
 
-Meta Prompt has **completed phase 1: requirements, system design, developer experience, user experience, and research**, plus an implementation-governance checkpoint for deterministic agent-driven development. No implementation has begun. The documentation is the implementation baseline produced by the initial 30+ question grill, the autonomous closure pass, and the subsequent quality-control grill.
+Meta Prompt has **completed phase 1** and begun phase 2 with a verified identity tracer. The Go CLI launches the private Node runtime, negotiates the runtime-neutral protocol, streams standard lifecycle Events, invokes the bundled identity Recipe, and returns the original prompt. This deliberately narrow slice proves the cross-language boundary before product behavior is added.
 
 Start with:
 
@@ -17,6 +17,7 @@ Start with:
 - [Research ledger](./docs/research/ledger.md)
 - [Session checkpoint](./docs/phase-1/session-001-checkpoint.md)
 - [Implementation handoff](./docs/phase-1/implementation-handoff.md)
+- [Phase-two bootstrap evidence](./docs/phase-2/bootstrap.md)
 - [Agent-driven implementation operating model](./docs/development/agent-operating-model.md)
 - [Closed questions and deferred roadmap](./docs/phase-1/open-questions.md)
 
@@ -25,6 +26,25 @@ Start with:
 > Produce a model-neutral enhancement by default, then optionally apply a target-specific adaptation plugin.
 
 Meta Prompt is bring-your-own-model, stateless by default, fail-open for optional transformations, explicit about activation, and usable from different hosts without duplicating its kernel.
+
+## Development
+
+Requires Node 24, pnpm 11.24, and Go 1.26. Bootstrap the pinned workspace and repository-local language servers, then retrieve compact state:
+
+```sh
+./scripts/bootstrap-tools
+./scripts/agent-context
+```
+
+Use `pnpm verify` for the fast candidate pipeline. Use `pnpm verify:full` for coverage, CRAP, dead-code, public-API, and mutation evidence. Raw output stays under ignored `.agent/` paths; commands return compact references and exit codes.
+
+Run the current tracer directly with:
+
+```sh
+pnpm build
+cd apps/cli-go
+go run . enhance --runtime ../runtime-node/dist/index.js --input 'Improve this prompt'
+```
 
 ## Documentation practice
 

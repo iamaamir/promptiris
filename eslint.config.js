@@ -1,0 +1,32 @@
+import eslint from '@eslint/js';
+import tseslint from 'typescript-eslint';
+
+export default tseslint.config(
+  { ignores: ['**/dist/**', '**/coverage/**', '**/*.d.ts'] },
+  eslint.configs.recommended,
+  ...tseslint.configs.strictTypeChecked,
+  ...tseslint.configs.stylisticTypeChecked,
+  {
+    files: ['packages/**/*.ts', 'apps/runtime-node/**/*.ts'],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.lint.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    rules: {
+      complexity: ['error', 10],
+      'max-depth': ['error', 4],
+      'max-lines-per-function': ['error', { max: 40, skipBlankLines: true, skipComments: true }],
+      '@typescript-eslint/no-confusing-void-expression': 'off',
+      '@typescript-eslint/no-unnecessary-condition': 'off',
+      '@typescript-eslint/require-await': 'off',
+    },
+  },
+  {
+    files: ['**/*.test.ts'],
+    rules: {
+      'max-lines-per-function': 'off',
+    },
+  },
+);

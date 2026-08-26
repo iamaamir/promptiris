@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+cd "$repo_root"
+target="${1:-}"
+if [[ -n "$target" ]]; then
+  case "$target" in
+    *.go|apps/cli-go/*) cd apps/cli-go; GOCACHE="${TMPDIR:-/tmp}/meta-prompt-go-cache" exec go test ./... ;;
+    *) exec pnpm exec vitest run "$target" ;;
+  esac
+fi
+pnpm test:ts
+(cd apps/cli-go && GOCACHE="${TMPDIR:-/tmp}/meta-prompt-go-cache" go test ./...)

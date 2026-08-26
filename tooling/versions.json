@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "languageServers": {
+    "typescript-language-server": "6.0.0",
+    "gopls": "0.23.0"
+  },
+  "analysis": {
+    "ast-grep": "0.45.2",
+    "gitleaks": "8.30.1"
+  }
+}

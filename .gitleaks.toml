@@ -1,0 +1,6 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Documentation examples only"
+paths = ['''docs/tmp/''']

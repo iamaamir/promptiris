@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "tasks": {
+    "agent.context": "scripts/agent-context",
+    "verify.candidate": "scripts/verify-candidate",
+    "test.affected": "scripts/test-affected",
+    "report.repetition": "scripts/repetition-report",
+    "query.symbol": "scripts/lsp-query.mjs",
+    "test.integration.identity": "scripts/test-integration-identity",
+    "verify.full": "scripts/verify-candidate --full"
+  }
+}

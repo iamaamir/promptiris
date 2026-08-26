@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "capabilities": {
+    "textual_search": {
+      "providers": ["rg", "grep"],
+      "costClass": "very_low",
+      "contextClass": "low"
+    },
+    "file_discovery": {
+      "providers": ["fd", "find"],
+      "costClass": "very_low",
+      "contextClass": "low"
+    },
+    "structural_search": { "providers": ["ast-grep"], "costClass": "low", "contextClass": "low" },
+    "symbol_definition": {
+      "providers": ["scripts/lsp-query.mjs"],
+      "costClass": "low",
+      "contextClass": "low",
+      "compilerAuthoritative": true
+    },
+    "symbol_references": {
+      "providers": ["scripts/lsp-query.mjs"],
+      "costClass": "low",
+      "contextClass": "low",
+      "compilerAuthoritative": true
+    },
+    "document_symbols": {
+      "providers": ["scripts/lsp-query.mjs"],
+      "costClass": "low",
+      "contextClass": "low",
+      "compilerAuthoritative": true
+    },
+    "structured_query": { "providers": ["jq"], "costClass": "very_low", "contextClass": "low" },
+    "secret_detection": {
+      "providers": ["gitleaks"],
+      "costClass": "medium",
+      "contextClass": "low",
+      "requiredInCI": true
+    },
+    "benchmarking": {
+      "providers": ["hyperfine"],
+      "costClass": "medium",
+      "contextClass": "low",
+      "variance": "statistical"
+    },
+    "event_observation": {
+      "providers": ["watchexec", "entr"],
+      "costClass": "low",
+      "contextClass": "none",
+      "delivery": "advisory"
+    },
+    "output_reduction": { "providers": ["rtk"], "costClass": "very_low", "contextClass": "low" }
+  }
+}

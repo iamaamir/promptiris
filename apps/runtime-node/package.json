@@ -1,0 +1,19 @@
+{
+  "name": "@meta-prompt/runtime-node",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "meta-prompt-runtime": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@meta-prompt/core": "workspace:*",
+    "@meta-prompt/protocol": "workspace:*"
+  }
+}

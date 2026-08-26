@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://meta-prompt.dev/schema/harness-tool-trace-v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "traceId",
+    "taskId",
+    "command",
+    "startedAtEpochMs",
+    "durationMs",
+    "exitCode",
+    "rawOutputBytes",
+    "rawEvidenceRef",
+    "sha256"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "traceId": { "type": "string", "minLength": 1 },
+    "taskId": { "type": "string", "minLength": 1 },
+    "command": { "type": "string", "minLength": 1 },
+    "startedAtEpochMs": { "type": "number", "minimum": 0 },
+    "durationMs": { "type": "number", "minimum": 0 },
+    "exitCode": { "type": "number" },
+    "rawOutputBytes": { "type": "number", "minimum": 0 },
+    "rawEvidenceRef": { "type": "string", "minLength": 1 },
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+  }
+}

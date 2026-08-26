@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+set -u -o pipefail
+
+repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+cd "$repo_root" || exit 1
+profile="${1:---candidate}"
+failures=0
+
+run_check() {
+  local name="$1"
+  shift
+  printf '\n== %s ==\n' "$name"
+  if ./scripts/tool-trace --task "verify.$name" -- "$@"; then
+    printf 'PASS %s\n' "$name"
+  else
+    printf 'FAIL %s\n' "$name" >&2
+    failures=$((failures + 1))
+  fi
+}
+
+run_check format pnpm format:check
+run_check lint pnpm lint
+run_check shell pnpm lint:shell
+run_check schema pnpm quality:schema
+run_check generated ./scripts/check-generated
+run_check types pnpm typecheck
+run_check build pnpm build
+run_check unit pnpm test
+run_check go-vet env GOCACHE="${TMPDIR:-/tmp}/meta-prompt-go-cache" go -C apps/cli-go vet ./...
+run_check integration pnpm test:integration
+run_check lsp pnpm test:lsp
+run_check structural pnpm quality:architecture
+
+if command -v gitleaks >/dev/null 2>&1; then
+  run_check secrets gitleaks dir --no-banner --redact .
+elif [[ "$profile" == "--ci" || "$profile" == "--full" ]]; then
+  printf 'FAIL secrets: gitleaks is required for %s\n' "$profile" >&2
+  failures=$((failures + 1))
+else
+  printf '\nSKIP secrets: install gitleaks to run the local security gate\n'
+fi
+
+if [[ "$profile" == "--full" ]]; then
+  run_check go-race pnpm test:go:race
+  run_check coverage pnpm test:coverage
+  run_check crap pnpm quality:crap
+  run_check dead-code pnpm quality:dead-code
+  run_check public-api pnpm quality:api
+  run_check mutation pnpm test:mutation
+fi
+
+if (( failures > 0 )); then
+  printf '\n%d verification gate(s) failed. Evidence: .agent/logs and .agent/traces\n' "$failures" >&2
+  exit 1
+fi
+printf '\nAll %s verification gates passed.\n' "${profile#--}"

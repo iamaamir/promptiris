@@ -1,0 +1,7 @@
+id: no-internal-workspace-imports
+language: TypeScript
+severity: error
+message: Import packages through their public export, never their src directory.
+rule:
+  kind: import_statement
+  regex: '@meta-prompt/.+/src'

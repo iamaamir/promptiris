@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+cd "$repo_root"
+node scripts/lsp-query.mjs symbols packages/protocol/src/index.ts \
+  | jq -e '.provider == "typescript-language-server" and (.result | length > 0)' >/dev/null
+node scripts/lsp-query.mjs symbols apps/cli-go/main.go \
+  | jq -e '.provider == "gopls" and (.result | length > 0)' >/dev/null
+echo 'TypeScript and Go LSP symbol queries passed'

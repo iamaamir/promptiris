@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+cd "$repo_root"
+pnpm build >/dev/null
+for package in protocol plugin-sdk core testkit; do
+  mkdir -p "packages/$package/etc"
+  pnpm exec api-extractor run --local --config "packages/$package/api-extractor.json"
+done

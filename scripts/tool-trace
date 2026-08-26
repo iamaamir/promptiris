@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+set -u -o pipefail
+
+repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+task_id="unscoped"
+if [[ "${1:-}" == "--task" ]]; then
+  task_id="${2:?missing task id}"
+  shift 2
+fi
+[[ "${1:-}" == "--" ]] && shift
+(( $# > 0 )) || { echo 'usage: tool-trace [--task ID] -- COMMAND [ARG...]' >&2; exit 64; }
+
+mkdir -p "$repo_root/.agent/traces" "$repo_root/.agent/logs"
+trace_id="$(date -u +%Y%m%dT%H%M%S)-$$"
+raw="$repo_root/.agent/logs/tool-$trace_id.log"
+trace="$repo_root/.agent/traces/$trace_id.json"
+started_ms="$(node -e 'process.stdout.write(String(Date.now()))')"
+set +e
+"$@" >"$raw" 2>&1
+status=$?
+set -e
+ended_ms="$(node -e 'process.stdout.write(String(Date.now()))')"
+duration_ms=$((ended_ms - started_ms))
+bytes="$(wc -c <"$raw" | tr -d ' ')"
+digest="$(shasum -a 256 "$raw" | awk '{print $1}')"
+command_name="$(basename "$1")"
+
+jq -n --arg traceId "$trace_id" --arg taskId "$task_id" --arg command "$command_name" \
+  --arg evidenceRef ".agent/logs/tool-$trace_id.log" --arg digest "$digest" \
+  --argjson startedAtEpochMs "$started_ms" --argjson durationMs "$duration_ms" \
+  --argjson exitCode "$status" --argjson rawOutputBytes "$bytes" \
+  '{schemaVersion:1,traceId:$traceId,taskId:$taskId,command:$command,startedAtEpochMs:$startedAtEpochMs,durationMs:$durationMs,exitCode:$exitCode,rawOutputBytes:$rawOutputBytes,rawEvidenceRef:$evidenceRef,sha256:$digest}' >"$trace"
+printf 'trace=%s exit=%s duration_ms=%s bytes=%s\n' ".agent/traces/$trace_id.json" "$status" "$duration_ms" "$bytes"
+if (( status != 0 )); then tail -80 "$raw" >&2; fi
+exit "$status"
