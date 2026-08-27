@@ -103,3 +103,23 @@ test('summarizes verification runs and mutation evidence', async () => {
   assert.equal(report.quality.goCoverage.percent, 75);
   assert.equal(report.quality.goCoverage.meetsTarget, false);
 });
+
+test('ignores stale coverage outside canonical workspaces', async () => {
+  const root = await fixture();
+  const canonical = join(root, 'packages', 'core', 'coverage');
+  const stale = join(root, 'coverage');
+  await mkdir(canonical, { recursive: true });
+  await mkdir(stale, { recursive: true });
+  const covered = {
+    '/source.ts': { s: { 0: 1 }, f: { 0: 1 }, b: { 0: [1, 1] } },
+  };
+  const uncovered = {
+    '/stale.ts': { s: { 0: 0 }, f: { 0: 0 }, b: { 0: [0, 0] } },
+  };
+  await writeFile(join(canonical, 'coverage-final.json'), JSON.stringify(covered));
+  await writeFile(join(stale, 'coverage-final.json'), JSON.stringify(uncovered));
+
+  const report = await analyzeTelemetry({ root });
+  assert.equal(report.quality.coverage.reportCount, 1);
+  assert.equal(report.quality.coverage.statements.percent, 100);
+});

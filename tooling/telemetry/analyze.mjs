@@ -1,5 +1,6 @@
 import { readFile, readdir } from 'node:fs/promises';
 import { join, relative, resolve } from 'node:path';
+import { discoverWorkspaceCoverage } from '../quality/coverage-reports.mjs';
 
 const safeJson = async (path, fallback = null) => {
   try {
@@ -135,27 +136,6 @@ const parseVerificationRuns = async (path) => {
   }
 };
 
-const discoverCoverage = async (root) => {
-  const paths = [];
-  const visit = async (directory) => {
-    let entries;
-    try {
-      entries = await readdir(directory, { withFileTypes: true });
-    } catch {
-      return;
-    }
-    for (const entry of entries) {
-      if (entry.isDirectory() && !['.git', 'node_modules', '.agent', 'dist'].includes(entry.name)) {
-        await visit(join(directory, entry.name));
-      } else if (entry.isFile() && entry.name === 'coverage-final.json') {
-        paths.push(join(directory, entry.name));
-      }
-    }
-  };
-  await visit(root);
-  return paths;
-};
-
 const counterSummary = (coverage, key) => {
   const values = Object.values(coverage)
     .flatMap((entry) => Object.values(entry[key] ?? {}))
@@ -166,7 +146,7 @@ const counterSummary = (coverage, key) => {
 };
 
 const coverageSummary = async (root) => {
-  const paths = await discoverCoverage(root);
+  const paths = await discoverWorkspaceCoverage(root);
   const reports = (await Promise.all(paths.map((path) => safeJson(path, {})))).filter(Boolean);
   const merged = Object.assign({}, ...reports);
   return {

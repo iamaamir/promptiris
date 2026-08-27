@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+cd "$repo_root"
+command -v hyperfine >/dev/null 2>&1 || { echo 'hyperfine is required' >&2; exit 69; }
+mkdir -p .agent/reports
+temporary_report="$(mktemp "${TMPDIR:-/tmp}/meta-prompt-agent-context.XXXXXX")"
+trap 'rm -f "$temporary_report"' EXIT
+./scripts/tool-trace \
+  --task benchmark.agent-context \
+  --provider benchmark-runner \
+  --tools hyperfine \
+  -- hyperfine --warmup 3 --runs 20 --export-json "$temporary_report" \
+  './scripts/agent-context >/dev/null'
+mv "$temporary_report" .agent/reports/agent-context-benchmark.json

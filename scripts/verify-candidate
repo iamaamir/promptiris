@@ -32,7 +32,7 @@ run_check schema schema-validator ajv pnpm quality:schema
 run_check generated generated-diff cmp ./scripts/check-generated
 run_check types type-checker tsc pnpm typecheck
 run_check build builder tsc,pnpm pnpm build
-run_check unit test-runner vitest,go-test,node-test pnpm test
+run_check unit test-runner vitest,fast-check,go-test,node-test pnpm test
 run_check go-vet go-vet go-vet env GOCACHE="${TMPDIR:-/tmp}/meta-prompt-go-cache" go -C apps/cli-go vet ./...
 run_check integration integration-runner node,go pnpm test:integration
 run_check lsp language-server scripts/lsp-query.mjs,typescript-language-server,gopls pnpm test:lsp
@@ -50,7 +50,7 @@ fi
 
 if [[ "$profile" == "--full" ]]; then
   run_check go-race race-detector go-test pnpm test:go:race
-  run_check coverage coverage-runner vitest-v8,go-test pnpm test:coverage
+  run_check coverage coverage-runner vitest-v8,fast-check,go-test pnpm test:coverage
   run_check crap crap-analyzer typescript-compiler-api pnpm quality:crap
   run_check dead-code dead-code-analyzer knip pnpm quality:dead-code
   run_check public-api api-extractor api-extractor pnpm quality:api

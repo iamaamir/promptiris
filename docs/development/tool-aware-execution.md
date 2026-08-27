@@ -78,18 +78,20 @@ providers:
 
 The initial capability classes are intentionally small:
 
-| Capability class | Candidate implementations | Boundary |
-| --- | --- | --- |
-| Text discovery | `rg`, `fd` | Literal, regex, and path questions; not syntax relationships. |
-| Structural retrieval/change | ast-grep, pinned LSP | Tested syntax/symbol operations; rewrites require explicit effects and verification. |
-| Structured data | `jq`, `yq`, schema tools | Parse and transform data without model interpretation. |
-| Context reduction | structured reporters, RTK where measured useful | Raw output remains Evidence; reduction is never the canonical record. |
-| Deterministic validation | compiler, tests, lint, Gitleaks, CodeQL and quality tools | Exit status and structured findings drive policy. |
-| Event observation | Watchexec or platform filesystem APIs | Accelerates local feedback; repository snapshots remain authoritative. |
-| Workflow execution | versioned repository scripts/tasks | One canonical task namespace; do not make multiple task runners competing authorities. |
-| Measurement | Hyperfine, language benchmarks, timers and token telemetry | Controlled comparison and raw samples; variable results are not mislabeled deterministic. |
+| Capability class            | Candidate implementations                                  | Boundary                                                                                  |
+| --------------------------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Text discovery              | `rg`, `fd`                                                 | Literal, regex, and path questions; not syntax relationships.                             |
+| Structural retrieval/change | ast-grep, pinned LSP                                       | Tested syntax/symbol operations; rewrites require explicit effects and verification.      |
+| Structured data             | `jq`, `yq`, schema tools                                   | Parse and transform data without model interpretation.                                    |
+| Context reduction           | structured reporters, RTK where measured useful            | Raw output remains Evidence; reduction is never the canonical record.                     |
+| Deterministic validation    | compiler, tests, lint, Gitleaks, CodeQL and quality tools  | Exit status and structured findings drive policy.                                         |
+| Event observation           | Watchexec or platform filesystem APIs                      | Accelerates local feedback; repository snapshots remain authoritative.                    |
+| Workflow execution          | versioned repository scripts/tasks                         | One canonical task namespace; do not make multiple task runners competing authorities.    |
+| Measurement                 | Hyperfine, language benchmarks, timers and token telemetry | Controlled comparison and raw samples; variable results are not mislabeled deterministic. |
 
 Tool count is not a target. A Tool Adapter is admitted when it adds capability coverage or demonstrably improves correctness, total verified-task cost, output size, or portability enough to justify installation and maintenance.
+
+Resolve a provider without executing it with `./scripts/tool-router CAPABILITY`. Execute a routed capability with `./scripts/tool-router CAPABILITY -- ARG...`; execution is captured as a Tool Trace and returns an Evidence reference instead of copying successful raw output into model context.
 
 ## Routing policy
 

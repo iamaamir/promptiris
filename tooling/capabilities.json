@@ -43,6 +43,28 @@
       "contextClass": "low",
       "variance": "statistical"
     },
+    "property_testing": {
+      "providers": ["fast-check"],
+      "costClass": "medium",
+      "contextClass": "low",
+      "replay": "seed-and-path"
+    },
+    "dead_code_analysis": {
+      "providers": ["knip"],
+      "costClass": "medium",
+      "contextClass": "low"
+    },
+    "mutation_testing": {
+      "providers": ["stryker"],
+      "costClass": "high",
+      "contextClass": "low",
+      "incremental": true
+    },
+    "complexity_risk": {
+      "providers": ["typescript-compiler-api"],
+      "costClass": "medium",
+      "contextClass": "low"
+    },
     "event_observation": {
       "providers": ["watchexec", "entr"],
       "costClass": "low",

@@ -36,7 +36,7 @@ Only commands executed through `scripts/tool-trace` are observed. Interactive sh
 ## Quality interpretation
 
 - Mutation score excludes explicitly ignored and compile-error mutants from the assessed denominator and retains the full status distribution.
-- TypeScript coverage combines retained Istanbul reports and shows statements, functions, and branches separately in the API.
+- TypeScript coverage combines only canonical workspace Istanbul reports and shows statements, functions, and branches separately in the API. `pnpm test:coverage` removes prior coverage and derived CRAP evidence before collecting a new revision-bound set.
 - Go coverage is measured independently. The first recorded baseline is below the 80% target and remains a visible gap until CLI behavior tests close it.
 - CRAP reports its maximum function and every threshold violation. Protocol and core use a threshold of 15; other TypeScript uses 30.
 - Context-command benchmarks are statistical measurements, not deterministic pass/fail facts.
@@ -48,3 +48,11 @@ No quality category compensates for another. A high mutation score cannot erase 
 The dashboard groups repeated `taskId` and `providerId` pairs after three observations. These are review candidates, not self-installing automations. Promote a candidate only when its invocation, invalidation, failure fingerprint, and output reducer are stable; then register and verify the new script through the normal repository gauntlet.
 
 The dashboard itself stays direct development infrastructure. It is not a Meta Prompt Plugin and does not make the repository tooling a plugin system.
+
+## Local feedback and measurement
+
+Use `pnpm watch:verify` for advisory, debounced candidate verification after source changes. Watchexec queues one superseding run when files change during verification; the verifier remains authoritative, not the filesystem event.
+
+Use `pnpm benchmark:context` to refresh the Hyperfine report for `scripts/agent-context`. The benchmark is statistical evidence shown by the dashboard and is never a correctness gate.
+
+Fast-check properties run inside the ordinary Vitest suite with fixed seeds. Failures retain their replay seed/path, while minimized counterexamples should be promoted into example-based regression tests.

@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+cd "$repo_root"
+command -v watchexec >/dev/null 2>&1 || { echo 'watchexec is required' >&2; exit 69; }
+exec watchexec \
+  --postpone \
+  --debounce 250ms \
+  --on-busy-update queue \
+  --watch apps \
+  --watch packages \
+  --watch scripts \
+  --watch spec \
+  --watch tooling \
+  --exts go,ts,mjs,json,yaml,yml,sh \
+  -- pnpm verify

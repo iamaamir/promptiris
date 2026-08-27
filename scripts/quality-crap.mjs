@@ -1,16 +1,9 @@
-import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve, relative } from 'node:path';
 import ts from 'typescript';
+import { discoverWorkspaceCoverage } from '../tooling/quality/coverage-reports.mjs';
 
-const reports = [];
-async function discover(directory) {
-  for (const entry of await readdir(directory, { withFileTypes: true })) {
-    const path = resolve(directory, entry.name);
-    if (entry.isDirectory() && !['node_modules', '.git'].includes(entry.name)) await discover(path);
-    if (entry.isFile() && entry.name === 'coverage-final.json') reports.push(path);
-  }
-}
-await discover(resolve('.'));
+const reports = await discoverWorkspaceCoverage(resolve('.'));
 if (reports.length === 0)
   throw new Error('coverage-final.json not found; run pnpm test:coverage first');
 
