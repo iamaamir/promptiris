@@ -16,12 +16,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [javascript-typescript, go]
+        include:
+          - language: javascript-typescript
+            queries: security-and-quality,./tooling/codeql/javascript
+          - language: go
+            queries: security-and-quality
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
+          queries: ${{ matrix.queries }}
       - uses: github/codeql-action/autobuild@v4
       - uses: github/codeql-action/analyze@v4
+        with:
+          category: /language:${{ matrix.language }}

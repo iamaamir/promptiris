@@ -29,9 +29,9 @@ Schema-v2 Tool Traces distinguish four layers:
 
 Every verification run shares a `runId`. The trace stores exact raw-output and model-visible byte counts plus the raw Evidence reference and digest. Token values use `ceil(UTF-8 bytes / 4)` and are always labeled estimates; they are useful for trend and magnitude comparisons, not billing or tokenizer-exact accounting.
 
-Historical schema-v1 traces remain readable. They lack provider, run, tool, and model-visible output identity, so the dashboard marks them legacy and excludes them from exact reduction totals.
+Operational aggregates accept only schema-v2 Tool Traces. Unsupported historical formats remain outside current utilization, cost, and output-reduction decisions; Git history is the archive when their provenance is needed.
 
-Only commands executed through `scripts/tool-trace` are observed. Interactive shell calls, editor actions, private reasoning, user prompts, and model calls are not intercepted. An unobserved capability means the harness did not record it, not that nobody used the executable.
+Only commands executed through `scripts/tool-trace` are observed. Interactive shell calls, editor actions, private reasoning, user prompts, and model calls are not intercepted. The provider inventory still lists every registered provider and distinguishes active, unobserved, and CI-only states. An unobserved capability means the harness did not record it, not that nobody used the executable.
 
 ## Quality interpretation
 
@@ -54,6 +54,10 @@ The dashboard itself stays direct development infrastructure. It is not a Meta P
 ## Local feedback and measurement
 
 Use `pnpm watch:verify` for advisory, debounced candidate verification after source changes. Watchexec queues one superseding run when files change during verification; the verifier remains authoritative, not the filesystem event.
+
+`pnpm test:watcher` performs one bounded source-change observation using Watchexec. Candidate verification records it when Watchexec is installed, which keeps event automation visible without leaving a background watcher running.
+
+CodeQL runs the `security-and-quality` suite for JavaScript/TypeScript and Go on pull requests, `main`, and the weekly schedule. JavaScript/TypeScript also runs the versioned project query pack under `tooling/codeql/javascript`; its first invariant prevents Node process-launch APIs from bypassing the supervised native-plugin boundary. CodeQL remains CI-only because its database construction and analysis cost do not belong in the local candidate loop.
 
 Use `pnpm benchmark:context` to refresh the Hyperfine report for `scripts/agent-context`. The benchmark is statistical evidence shown by the dashboard and is never a correctness gate.
 

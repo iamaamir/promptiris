@@ -8,6 +8,7 @@
     "report.telemetry": "scripts/telemetry-analyze.mjs",
     "dashboard.evidence": "apps/dashboard/server.mjs",
     "query.symbol": "scripts/lsp-query.mjs",
+    "observe.source-change": "scripts/test-watcher.mjs",
     "test.integration.identity": "scripts/test-integration-identity",
     "verify.full": "scripts/verify-candidate --full"
   }

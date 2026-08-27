@@ -305,13 +305,17 @@ td:first-child {
 .state--active {
   color: var(--success);
 }
+.state--ci-only {
+  color: var(--accent);
+}
 .state--failed,
 .state--unused,
 .state--unobserved {
   color: var(--danger);
 }
 .state--low,
-.state--review {
+.state--review,
+.state--unregistered {
   color: var(--warning);
 }
 .quality-ledger {

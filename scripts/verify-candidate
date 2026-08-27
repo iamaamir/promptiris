@@ -39,6 +39,12 @@ run_check lsp language-server scripts/lsp-query.mjs,typescript-language-server,g
 run_check structural structural-analyzer ast-grep pnpm quality:architecture
 run_check telemetry telemetry-analyzer ajv,node pnpm quality:telemetry
 
+if command -v watchexec >/dev/null 2>&1; then
+  run_check watcher event-observer watchexec pnpm test:watcher
+else
+  printf '\nSKIP watcher: install watchexec to observe local filesystem automation\n'
+fi
+
 if command -v gitleaks >/dev/null 2>&1; then
   run_check secrets secret-scanner gitleaks gitleaks dir --no-banner --redact .
 elif [[ "$profile" == "--ci" || "$profile" == "--full" ]]; then

@@ -157,8 +157,8 @@ describe('defineNativePlugin', () => {
     });
   });
 
-  it('rejects JSON-RPC errors and responses without results', async () => {
-    for (const mode of ['rpc-error', 'missing-result']) {
+  it('rejects JSON-RPC errors, mismatched ids, and responses without results', async () => {
+    for (const mode of ['rpc-error', 'error-and-result', 'missing-result', 'wrong-id-invoke']) {
       const implementation = await native(mode).activate();
       await expect(implementation.invoke(invocation())).rejects.toThrow(
         'Native plugin protocol error',

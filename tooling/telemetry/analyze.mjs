@@ -26,45 +26,25 @@ const readJsonDirectory = async (directory) => {
 };
 
 const normalizeTrace = (trace) => {
-  if (trace?.schemaVersion === 2) {
-    return {
-      schemaVersion: 2,
-      traceId: trace.traceId,
-      runId: trace.runId,
-      taskId: trace.taskId,
-      providerId: trace.providerId,
-      tools: trace.tools ?? [],
-      executor: trace.executor,
-      startedAtEpochMs: trace.startedAtEpochMs,
-      durationMs: trace.durationMs,
-      exitCode: trace.exitCode,
-      rawBytes: trace.output?.rawBytes ?? 0,
-      modelVisibleBytes: trace.output?.modelVisibleBytes ?? null,
-      reducedBytes: trace.output?.reducedBytes ?? null,
-      estimatedRawTokens: trace.output?.estimatedRawTokens ?? null,
-      estimatedModelVisibleTokens: trace.output?.estimatedModelVisibleTokens ?? null,
-      estimatedTokensAvoided: trace.output?.estimatedTokensAvoided ?? null,
-      evidenceRef: trace.evidence?.ref ?? null,
-    };
-  }
+  if (trace?.schemaVersion !== 2) return null;
   return {
-    schemaVersion: 1,
-    traceId: trace?.traceId ?? 'unknown',
-    runId: 'legacy',
-    taskId: trace?.taskId ?? 'unscoped',
-    providerId: `legacy:${trace?.command ?? 'unknown'}`,
-    tools: [],
-    executor: trace?.command ?? 'unknown',
-    startedAtEpochMs: trace?.startedAtEpochMs ?? 0,
-    durationMs: trace?.durationMs ?? 0,
-    exitCode: trace?.exitCode ?? 1,
-    rawBytes: trace?.rawOutputBytes ?? 0,
-    modelVisibleBytes: null,
-    reducedBytes: null,
-    estimatedRawTokens: null,
-    estimatedModelVisibleTokens: null,
-    estimatedTokensAvoided: null,
-    evidenceRef: trace?.rawEvidenceRef ?? null,
+    schemaVersion: 2,
+    traceId: trace.traceId,
+    runId: trace.runId,
+    taskId: trace.taskId,
+    providerId: trace.providerId,
+    tools: trace.tools ?? [],
+    executor: trace.executor,
+    startedAtEpochMs: trace.startedAtEpochMs,
+    durationMs: trace.durationMs,
+    exitCode: trace.exitCode,
+    rawBytes: trace.output?.rawBytes ?? 0,
+    modelVisibleBytes: trace.output?.modelVisibleBytes ?? null,
+    reducedBytes: trace.output?.reducedBytes ?? null,
+    estimatedRawTokens: trace.output?.estimatedRawTokens ?? null,
+    estimatedModelVisibleTokens: trace.output?.estimatedModelVisibleTokens ?? null,
+    estimatedTokensAvoided: trace.output?.estimatedTokensAvoided ?? null,
+    evidenceRef: trace.evidence?.ref ?? null,
   };
 };
 
@@ -100,6 +80,7 @@ const aggregate = (items, identity) => {
         reducedBytes: sum(exact, 'reducedBytes'),
         estimatedTokensAvoided: sum(exact, 'estimatedTokensAvoided'),
         exactReductionCalls: exact.length,
+        lastObservedAtEpochMs: Math.max(...group.map((item) => item.startedAtEpochMs ?? 0)),
       };
     })
     .sort((left, right) => right.calls - left.calls || right.durationMs - left.durationMs);
@@ -226,11 +207,63 @@ const capabilityRows = (registry, observedTools) =>
       id,
       providers,
       calls,
-      utilization: calls === 0 ? 'unobserved' : calls < 3 ? 'low' : 'active',
+      utilization:
+        calls === 0 && capability.scope === 'ci-only'
+          ? 'ci-only'
+          : calls === 0
+            ? 'unobserved'
+            : calls < 3
+              ? 'low'
+              : 'active',
       costClass: capability.costClass,
       contextClass: capability.contextClass,
+      group: capability.group ?? 'Other',
+      scope: capability.scope ?? 'local-and-ci',
     };
   });
+
+const providerInventory = (registry, observedRows, observedTools, traces) => {
+  const observed = new Map(observedRows.map((row) => [row.id, row]));
+  const registered = registry?.providers ?? {};
+  const ids = new Set([...Object.keys(registered), ...observed.keys()]);
+  const latestTraceAt = Math.max(0, ...traces.map((trace) => trace.startedAtEpochMs ?? 0));
+  return [...ids]
+    .map((id) => {
+      const provider = registered[id];
+      const measurement = observed.get(id);
+      const calls = observedTools.get(id) ?? measurement?.calls ?? 0;
+      const scope = provider?.scope ?? 'unknown';
+      const isRegistered = provider !== undefined;
+      return {
+        id,
+        name: provider?.name ?? id,
+        group: provider?.group ?? 'Unregistered observations',
+        capabilities: provider?.capabilities ?? [],
+        scope,
+        requiredIn: provider?.requiredIn ?? [],
+        registered: isRegistered,
+        calls,
+        failures: measurement?.failures ?? 0,
+        durationMs: measurement?.durationMs ?? 0,
+        lastObservedAtEpochMs:
+          measurement?.lastObservedAtEpochMs ??
+          (id === 'scripts/tool-trace' && calls > 0 ? latestTraceAt : null),
+        state: !isRegistered
+          ? 'unregistered'
+          : calls > 0
+            ? 'active'
+            : scope === 'ci-only'
+              ? 'ci-only'
+              : 'unobserved',
+      };
+    })
+    .sort(
+      (left, right) =>
+        left.group.localeCompare(right.group) ||
+        left.state.localeCompare(right.state) ||
+        left.name.localeCompare(right.name),
+    );
+};
 
 const automationCandidates = (traces) =>
   aggregate(traces, (trace) => `${trace.taskId} · ${trace.providerId}`)
@@ -244,10 +277,7 @@ const automationCandidates = (traces) =>
 const deriveInsights = ({ summary, providers, tools, capabilities, quality }) => {
   const insights = [];
   const mostUsed = tools[0] ?? providers[0];
-  const exactProviders = providers.filter((provider) => !provider.id.startsWith('legacy:'));
-  const slowest = [...(exactProviders.length > 0 ? exactProviders : providers)].sort(
-    (left, right) => right.durationMs - left.durationMs,
-  )[0];
+  const slowest = [...providers].sort((left, right) => right.durationMs - left.durationMs)[0];
   const unused = capabilities.filter((capability) => capability.utilization === 'unobserved');
   if (mostUsed)
     insights.push({
@@ -291,7 +321,7 @@ const deriveInsights = ({ summary, providers, tools, capabilities, quality }) =>
 export const analyzeTelemetry = async (options = {}) => {
   const root = resolve(options.root ?? '.');
   const rawTraces = (await readJsonDirectory(join(root, '.agent/traces'))).filter(Boolean);
-  const traces = rawTraces.map(normalizeTrace);
+  const traces = rawTraces.map(normalizeTrace).filter(Boolean);
   const capabilitiesRegistry = await safeJson(join(root, 'tooling/capabilities.json'), {
     capabilities: {},
   });
@@ -301,6 +331,7 @@ export const analyzeTelemetry = async (options = {}) => {
   const observedTools = new Map(tools.map((tool) => [tool.id, tool.calls]));
   observedTools.set('scripts/tool-trace', summary.exactReductionTraceCount);
   const capabilities = capabilityRows(capabilitiesRegistry, observedTools);
+  const inventory = providerInventory(capabilitiesRegistry, tools, observedTools, traces);
   const mutationReport = await safeJson(join(root, '.agent/reports/mutation.json'));
   const mutationPolicy = await safeJson(join(root, 'tooling/quality/mutation-policy.json'));
   const quality = {
@@ -324,8 +355,7 @@ export const analyzeTelemetry = async (options = {}) => {
     generatedAt: new Date().toISOString(),
     summary: { ...summary, latestVerification: verificationRuns[0] ?? null },
     dataQuality: {
-      legacyTraceCount: traces.filter((trace) => trace.schemaVersion === 1).length,
-      exactTraceCount: traces.filter((trace) => trace.schemaVersion === 2).length,
+      exactTraceCount: traces.length,
       tokenValuesAreEstimates: true,
       tokenEstimateMethod: 'ceil(UTF-8 output bytes / 4)',
       observationScope:
@@ -336,6 +366,7 @@ export const analyzeTelemetry = async (options = {}) => {
       tools,
       tasks: aggregate(traces, (trace) => trace.taskId),
       capabilities,
+      inventory,
     },
     quality,
     verificationRuns: verificationRuns.slice(0, 30),

@@ -89,7 +89,16 @@ function handle(message) {
     if (mode === 'malformed') return sendMalformed();
     if (mode === 'rpc-error')
       return send({ jsonrpc: '2.0', id: message.id, error: { code: -32_000, message: 'fixture' } });
+    if (mode === 'error-and-result')
+      return send({
+        jsonrpc: '2.0',
+        id: message.id,
+        error: { code: -32_000, message: 'fixture' },
+        result: null,
+      });
     if (mode === 'missing-result') return send({ jsonrpc: '2.0', id: message.id });
+    if (mode === 'wrong-id-invoke')
+      return send({ jsonrpc: '2.0', id: message.id + 1, result: null });
     if (mode === 'crash') {
       process.stderr.write('secret fixture stderr\n');
       process.exit(7);

@@ -14,6 +14,7 @@ const formatBytes = (bytes) => {
 const formatDuration = (milliseconds) =>
   milliseconds < 1000 ? `${milliseconds} ms` : `${(milliseconds / 1000).toFixed(1)} s`;
 const formatNumber = (value) => new Intl.NumberFormat().format(value ?? 0);
+const formatObservedAt = (epoch) => (epoch === null ? 'Never' : new Date(epoch).toLocaleString());
 
 const replaceChildren = (id, children) => byId(id).replaceChildren(...children);
 const state = (value) => text('span', value, `state state--${String(value).toLowerCase()}`);
@@ -153,18 +154,20 @@ const renderQuality = (quality) => {
 const renderTools = (usage) => {
   replaceChildren(
     'tool-rows',
-    usage.tools.length > 0
-      ? usage.tools.map((tool) =>
+    usage.inventory.length > 0
+      ? usage.inventory.map((tool) =>
           row([
-            tool.id,
+            tool.name,
+            tool.group,
+            tool.capabilities.join(', '),
+            state(tool.state),
             formatNumber(tool.calls),
             formatNumber(tool.failures),
-            formatDuration(tool.durationMs),
-            formatBytes(tool.rawBytes),
-            tool.exactReductionCalls > 0 ? formatBytes(tool.reducedBytes) : 'Legacy / unknown',
+            formatObservedAt(tool.lastObservedAtEpochMs),
+            tool.requiredIn.join(', ') || 'optional',
           ]),
         )
-      : [row(['No schema v2 tool traces yet', '0', '0', '0 ms', '0 B', 'Unknown'])],
+      : [row(['No registered providers', '—', '—', state('unobserved'), '0', '0', 'Never', '—'])],
   );
   replaceChildren(
     'capability-rows',
@@ -199,8 +202,7 @@ const renderAutomation = (candidates) =>
 const renderProvenance = (report) => {
   const quality = report.dataQuality;
   const entries = [
-    ['Exact schema v2 traces', formatNumber(quality.exactTraceCount)],
-    ['Legacy traces', formatNumber(quality.legacyTraceCount)],
+    ['Current Tool Traces', formatNumber(quality.exactTraceCount)],
     ['Token values', quality.tokenValuesAreEstimates ? 'Estimated' : 'Measured'],
     ['Estimate method', quality.tokenEstimateMethod],
     ['Observation scope', quality.observationScope],

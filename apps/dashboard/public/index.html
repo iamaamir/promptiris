@@ -46,8 +46,8 @@
             <h2 id="overview-title">Cost of confidence</h2>
           </div>
           <p>
-            Measured totals across retained tool traces. Legacy data stays visible but never
-            masquerades as exact.
+            Measured totals across current Tool Traces. Unsupported historical formats are excluded
+            from operational decisions.
           </p>
         </div>
         <dl id="summary" class="metric-ledger"></dl>
@@ -122,23 +122,26 @@
             <h2 id="tools-title">Tool utilization</h2>
           </div>
           <p>
-            Provider identity is explicit in schema v2. A call may name several underlying tools, so
-            tool rows are utilization views rather than additive totals.
+            Every registered provider and every observed executable appears here, including tools
+            that are CI-only or have never been observed locally. Unregistered observations stay
+            visible as registry work rather than disappearing.
           </p>
         </div>
         <div class="table-scroll" tabindex="0">
           <table>
             <caption>
-              Underlying deterministic tools ordered by observed calls
+              Complete deterministic provider and executable inventory
             </caption>
             <thead>
               <tr>
-                <th scope="col">Tool</th>
+                <th scope="col">Provider</th>
+                <th scope="col">Group</th>
+                <th scope="col">Capabilities</th>
+                <th scope="col">State</th>
                 <th scope="col">Calls</th>
                 <th scope="col">Failures</th>
-                <th scope="col">Time</th>
-                <th scope="col">Raw output</th>
-                <th scope="col">Context avoided</th>
+                <th scope="col">Last observed</th>
+                <th scope="col">Required in</th>
               </tr>
             </thead>
             <tbody id="tool-rows"></tbody>

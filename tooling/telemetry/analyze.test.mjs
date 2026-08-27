@@ -19,6 +19,16 @@ const fixture = async () => {
         textual_search: { providers: ['rg'], costClass: 'very_low', contextClass: 'low' },
         output_reduction: { providers: ['rtk'], costClass: 'very_low', contextClass: 'low' },
       },
+      providers: {
+        rg: { name: 'Ripgrep', group: 'Retrieval', capabilities: ['textual_search'] },
+        rtk: { name: 'RTK', group: 'Reduction', capabilities: ['output_reduction'] },
+        codeql: {
+          name: 'CodeQL',
+          group: 'Security',
+          capabilities: ['data_flow_analysis'],
+          scope: 'ci-only',
+        },
+      },
     }),
   );
   await writeFile(
@@ -35,7 +45,7 @@ const fixture = async () => {
   return root;
 };
 
-test('separates exact v2 reductions from legacy traces', async () => {
+test('excludes unsupported historical traces from current aggregates', async () => {
   const root = await fixture();
   await writeFile(
     join(root, '.agent/traces/legacy.json'),
@@ -58,7 +68,7 @@ test('separates exact v2 reductions from legacy traces', async () => {
       runId: 'run-1',
       taskId: 'search',
       providerId: 'search-router',
-      tools: ['rg'],
+      tools: ['rg', 'unregistered-tool'],
       executor: 'rg',
       startedAtEpochMs: 2,
       durationMs: 5,
@@ -75,14 +85,19 @@ test('separates exact v2 reductions from legacy traces', async () => {
     }),
   );
   const report = await analyzeTelemetry({ root });
-  assert.equal(report.summary.traceCount, 2);
+  assert.equal(report.summary.traceCount, 1);
   assert.equal(report.summary.reducedBytes, 360);
-  assert.equal(report.dataQuality.legacyTraceCount, 1);
   assert.equal(report.dataQuality.exactTraceCount, 1);
   assert.equal(report.usage.tools[0].id, 'rg');
   assert.equal(
     report.usage.capabilities.find((item) => item.id === 'output_reduction').utilization,
     'unobserved',
+  );
+  assert.equal(report.usage.inventory.find((item) => item.id === 'rg').state, 'active');
+  assert.equal(report.usage.inventory.find((item) => item.id === 'codeql').state, 'ci-only');
+  assert.equal(
+    report.usage.inventory.find((item) => item.id === 'unregistered-tool').state,
+    'unregistered',
   );
 });
 

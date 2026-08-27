@@ -34,6 +34,8 @@ test('serves generated telemetry without caching', async () => {
   assert.ok(report.summary.traceCount >= 0);
   assert.equal(report.quality.mutation.policy.available, true);
   assert.ok(Array.isArray(report.quality.mutation.targets));
+  assert.ok(report.usage.inventory.some((provider) => provider.id === 'codeql'));
+  assert.ok(report.usage.inventory.some((provider) => provider.id === 'scripts/lsp-query.mjs'));
 });
 
 test('rejects unknown paths and mutating methods', async () => {

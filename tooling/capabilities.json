@@ -1,6 +1,268 @@
 {
   "schemaVersion": 1,
+  "providers": {
+    "rg": {
+      "name": "Ripgrep",
+      "group": "Context retrieval",
+      "capabilities": ["textual_search"],
+      "requiredIn": ["development"]
+    },
+    "grep": {
+      "name": "Grep fallback",
+      "group": "Context retrieval",
+      "capabilities": ["textual_search"],
+      "requiredIn": ["fallback"]
+    },
+    "fd": {
+      "name": "fd",
+      "group": "Context retrieval",
+      "capabilities": ["file_discovery"],
+      "requiredIn": ["development"]
+    },
+    "find": {
+      "name": "Find fallback",
+      "group": "Context retrieval",
+      "capabilities": ["file_discovery"],
+      "requiredIn": ["fallback"]
+    },
+    "ast-grep": {
+      "name": "ast-grep",
+      "group": "Code intelligence",
+      "capabilities": ["structural_search"],
+      "requiredIn": ["candidate", "ci"]
+    },
+    "scripts/lsp-query.mjs": {
+      "name": "LSP query router",
+      "group": "Code intelligence",
+      "capabilities": ["symbol_definition", "symbol_references", "document_symbols"],
+      "requiredIn": ["candidate", "ci"]
+    },
+    "typescript-language-server": {
+      "name": "TypeScript language server",
+      "group": "Code intelligence",
+      "capabilities": ["symbol_definition", "symbol_references", "document_symbols"],
+      "requiredIn": ["candidate", "ci"]
+    },
+    "gopls": {
+      "name": "Go language server",
+      "group": "Code intelligence",
+      "capabilities": ["symbol_definition", "symbol_references", "document_symbols"],
+      "requiredIn": ["candidate", "ci"]
+    },
+    "jq": {
+      "name": "jq",
+      "group": "Context retrieval",
+      "capabilities": ["structured_query"],
+      "requiredIn": ["development"]
+    },
+    "gitleaks": {
+      "name": "Gitleaks",
+      "group": "Security",
+      "capabilities": ["secret_detection"],
+      "requiredIn": ["ci", "full"]
+    },
+    "codeql": {
+      "name": "CodeQL",
+      "group": "Security",
+      "capabilities": ["data_flow_analysis"],
+      "scope": "ci-only",
+      "requiredIn": ["pull-request", "main", "scheduled"]
+    },
+    "hyperfine": {
+      "name": "Hyperfine",
+      "group": "Measurement",
+      "capabilities": ["benchmarking"],
+      "requiredIn": ["on-demand"]
+    },
+    "fast-check": {
+      "name": "Fast-check",
+      "group": "Test strength",
+      "capabilities": ["property_testing"],
+      "requiredIn": ["candidate", "full", "ci"]
+    },
+    "knip": {
+      "name": "Knip",
+      "group": "Code health",
+      "capabilities": ["dead_code_analysis"],
+      "requiredIn": ["full", "ci"]
+    },
+    "stryker": {
+      "name": "Stryker",
+      "group": "Test strength",
+      "capabilities": ["mutation_testing"],
+      "requiredIn": ["full", "ci"]
+    },
+    "typescript-compiler-api": {
+      "name": "TypeScript compiler API",
+      "group": "Code health",
+      "capabilities": ["complexity_risk"],
+      "requiredIn": ["full", "ci"]
+    },
+    "watchexec": {
+      "name": "Watchexec",
+      "group": "Event automation",
+      "capabilities": ["event_observation"],
+      "requiredIn": ["candidate", "development"]
+    },
+    "entr": {
+      "name": "entr fallback",
+      "group": "Event automation",
+      "capabilities": ["event_observation"],
+      "requiredIn": ["fallback"]
+    },
+    "scripts/tool-trace": {
+      "name": "Tool trace",
+      "group": "Evidence",
+      "capabilities": ["output_reduction"],
+      "requiredIn": ["candidate", "full", "ci"]
+    },
+    "rtk": {
+      "name": "RTK",
+      "group": "Evidence",
+      "capabilities": ["output_reduction"],
+      "requiredIn": ["optional"]
+    },
+    "prettier": {
+      "name": "Prettier",
+      "group": "Code health",
+      "capabilities": ["formatting"],
+      "requiredIn": ["candidate", "ci"]
+    },
+    "gofmt": {
+      "name": "gofmt",
+      "group": "Code health",
+      "capabilities": ["formatting"],
+      "requiredIn": ["candidate", "ci"]
+    },
+    "eslint": {
+      "name": "ESLint",
+      "group": "Code health",
+      "capabilities": ["static_lint"],
+      "requiredIn": ["candidate", "ci"]
+    },
+    "markdownlint": {
+      "name": "Markdownlint",
+      "group": "Code health",
+      "capabilities": ["static_lint"],
+      "requiredIn": ["candidate", "ci"]
+    },
+    "shellcheck": {
+      "name": "ShellCheck",
+      "group": "Code health",
+      "capabilities": ["static_lint"],
+      "requiredIn": ["candidate", "ci"]
+    },
+    "ajv": {
+      "name": "Ajv",
+      "group": "Contract verification",
+      "capabilities": ["schema_validation"],
+      "requiredIn": ["candidate", "ci"]
+    },
+    "cmp": {
+      "name": "cmp",
+      "group": "Contract verification",
+      "capabilities": ["generated_drift"],
+      "requiredIn": ["candidate", "ci"]
+    },
+    "tsc": {
+      "name": "TypeScript compiler",
+      "group": "Compilation",
+      "capabilities": ["compilation"],
+      "requiredIn": ["candidate", "ci"]
+    },
+    "go": {
+      "name": "Go toolchain",
+      "group": "Compilation",
+      "capabilities": ["compilation"],
+      "requiredIn": ["candidate", "ci"]
+    },
+    "vitest": {
+      "name": "Vitest",
+      "group": "Test execution",
+      "capabilities": ["unit_testing"],
+      "requiredIn": ["candidate", "ci"]
+    },
+    "node-test": {
+      "name": "Node test runner",
+      "group": "Test execution",
+      "capabilities": ["unit_testing"],
+      "requiredIn": ["candidate", "ci"]
+    },
+    "go-test": {
+      "name": "Go test",
+      "group": "Test execution",
+      "capabilities": ["unit_testing", "race_detection"],
+      "requiredIn": ["candidate", "full", "ci"]
+    },
+    "go-vet": {
+      "name": "Go vet",
+      "group": "Code health",
+      "capabilities": ["static_analysis"],
+      "requiredIn": ["candidate", "ci"]
+    },
+    "vitest-v8": {
+      "name": "Vitest V8 coverage",
+      "group": "Test strength",
+      "capabilities": ["coverage_measurement"],
+      "requiredIn": ["full", "ci"]
+    },
+    "api-extractor": {
+      "name": "API Extractor",
+      "group": "Contract verification",
+      "capabilities": ["api_compatibility"],
+      "requiredIn": ["full", "ci"]
+    },
+    "public-exports": {
+      "name": "Public export verifier",
+      "group": "Contract verification",
+      "capabilities": ["api_compatibility"],
+      "requiredIn": ["full", "ci"]
+    },
+    "pnpm": {
+      "name": "pnpm",
+      "group": "Workflow execution",
+      "capabilities": ["task_execution"],
+      "requiredIn": ["candidate", "full", "ci"]
+    },
+    "node": {
+      "name": "Node.js",
+      "group": "Workflow execution",
+      "capabilities": ["task_execution"],
+      "requiredIn": ["candidate", "full", "ci"]
+    }
+  },
   "capabilities": {
+    "formatting": { "providers": ["prettier", "gofmt"], "costClass": "low", "contextClass": "low" },
+    "static_lint": {
+      "providers": ["eslint", "markdownlint", "shellcheck"],
+      "costClass": "low",
+      "contextClass": "low"
+    },
+    "schema_validation": { "providers": ["ajv"], "costClass": "low", "contextClass": "low" },
+    "generated_drift": { "providers": ["cmp"], "costClass": "very_low", "contextClass": "low" },
+    "compilation": { "providers": ["tsc", "go"], "costClass": "medium", "contextClass": "low" },
+    "unit_testing": {
+      "providers": ["vitest", "node-test", "go-test"],
+      "costClass": "medium",
+      "contextClass": "low"
+    },
+    "race_detection": { "providers": ["go-test"], "costClass": "high", "contextClass": "low" },
+    "static_analysis": { "providers": ["go-vet"], "costClass": "low", "contextClass": "low" },
+    "coverage_measurement": {
+      "providers": ["vitest-v8"],
+      "costClass": "high",
+      "contextClass": "low"
+    },
+    "api_compatibility": {
+      "providers": ["api-extractor", "public-exports"],
+      "costClass": "medium",
+      "contextClass": "low"
+    },
+    "task_execution": {
+      "providers": ["pnpm", "node"],
+      "costClass": "very_low",
+      "contextClass": "low"
+    },
     "textual_search": {
       "providers": ["rg", "grep"],
       "costClass": "very_low",
@@ -12,6 +274,12 @@
       "contextClass": "low"
     },
     "structural_search": { "providers": ["ast-grep"], "costClass": "low", "contextClass": "low" },
+    "data_flow_analysis": {
+      "providers": ["codeql"],
+      "costClass": "high",
+      "contextClass": "low",
+      "scope": "ci-only"
+    },
     "symbol_definition": {
       "providers": ["scripts/lsp-query.mjs"],
       "costClass": "low",

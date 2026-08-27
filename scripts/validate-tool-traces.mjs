@@ -28,5 +28,5 @@ if (failures.length > 0) {
   process.exit(1);
 }
 console.log(
-  `validated ${checked} schema-v2 Tool Traces; ${files.length - checked} legacy traces retained`,
+  `validated ${checked} current Tool Traces; ${files.length - checked} unsupported historical traces excluded`,
 );

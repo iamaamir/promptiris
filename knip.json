@@ -10,5 +10,5 @@
   },
   "ignore": ["scripts/lsp-query.mjs"],
   "ignoreDependencies": ["@ast-grep/cli", "@microsoft/api-extractor", "typescript-language-server"],
-  "ignoreBinaries": ["go", "gofmt", "shellcheck"]
+  "ignoreBinaries": ["go", "gofmt", "shellcheck", "watchexec"]
 }

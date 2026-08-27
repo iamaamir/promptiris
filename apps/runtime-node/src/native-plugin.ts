@@ -231,10 +231,8 @@ class RpcRequest {
     // after public settlement but prevent duplicate internal containment work.
     if (this.#settled || this.#cancellationMessage !== undefined) return;
     this.#cancellationMessage = 'Native plugin protocol error';
-    if (this.#timeout !== undefined) clearTimeout(this.#timeout);
-    void stopChild(this.#options.child, this.#options.cancellationGraceMs).finally(() => {
-      this.#finishError('Native plugin protocol error');
-    });
+    clearTimeout(this.#timeout);
+    void stopChild(this.#options.child, this.#options.cancellationGraceMs);
   }
 
   #cancel(message: string): void {
@@ -242,24 +240,20 @@ class RpcRequest {
     // after public settlement but prevent duplicate internal cancellation work.
     if (this.#settled || this.#cancellationMessage !== undefined) return;
     this.#cancellationMessage = message;
-    if (this.#timeout !== undefined) clearTimeout(this.#timeout);
+    clearTimeout(this.#timeout);
     this.#write({
       jsonrpc: '2.0',
       method: 'plugin/cancel',
       params: { id: this.#options.id },
     });
     this.#grace = setTimeout(() => {
-      void stopChild(this.#options.child, this.#options.cancellationGraceMs).finally(() => {
-        this.#finishError(message);
-      });
+      void stopChild(this.#options.child, this.#options.cancellationGraceMs);
     }, this.#options.cancellationGraceMs);
   }
 
   #write(message: JsonRpcMessage): void {
     try {
-      this.#options.child.stdin.write(encodeMessage(message), (error) => {
-        if (error) this.#finishError('Native plugin process exited');
-      });
+      this.#options.child.stdin.write(encodeMessage(message));
       // Stryker disable next-line BlockStatement,StringLiteral: synchronous stream throws are a
       // defensive fallback to write-callback/process-error paths with the same normalized error.
     } catch {
