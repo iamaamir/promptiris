@@ -1,6 +1,7 @@
 import { readFile, readdir } from 'node:fs/promises';
 import { join, relative, resolve } from 'node:path';
 import { discoverWorkspaceCoverage } from '../quality/coverage-reports.mjs';
+import { mutationSummary } from '../quality/mutation-report.mjs';
 
 const safeJson = async (path, fallback = null) => {
   try {
@@ -183,28 +184,6 @@ const goCoverageSummary = async (path) => {
   }
 };
 
-const mutationSummary = (report) => {
-  if (!report?.files) return { available: false };
-  const mutants = Object.values(report.files).flatMap((file) => file.mutants ?? []);
-  const statuses = Object.fromEntries(
-    [...new Set(mutants.map((mutant) => mutant.status))]
-      .sort()
-      .map((status) => [status, mutants.filter((mutant) => mutant.status === status).length]),
-  );
-  const assessed = mutants.filter((mutant) => !['Ignored', 'CompileError'].includes(mutant.status));
-  const detected = assessed.filter((mutant) =>
-    ['Killed', 'Timeout', 'RuntimeError'].includes(mutant.status),
-  );
-  return {
-    available: true,
-    score: assessed.length === 0 ? 100 : round((detected.length / assessed.length) * 100, 2),
-    total: mutants.length,
-    assessed: assessed.length,
-    statuses,
-    thresholds: report.thresholds,
-  };
-};
-
 const crapSummary = (report) => {
   if (!report?.functions) return { available: false };
   const maximum = [...report.functions].sort((left, right) => right.crap - left.crap)[0] ?? null;
@@ -322,8 +301,10 @@ export const analyzeTelemetry = async (options = {}) => {
   const observedTools = new Map(tools.map((tool) => [tool.id, tool.calls]));
   observedTools.set('scripts/tool-trace', summary.exactReductionTraceCount);
   const capabilities = capabilityRows(capabilitiesRegistry, observedTools);
+  const mutationReport = await safeJson(join(root, '.agent/reports/mutation.json'));
+  const mutationPolicy = await safeJson(join(root, 'tooling/quality/mutation-policy.json'));
   const quality = {
-    mutation: mutationSummary(await safeJson(join(root, '.agent/reports/mutation.json'))),
+    mutation: mutationSummary(mutationReport, mutationPolicy),
     coverage: await coverageSummary(root),
     goCoverage: await goCoverageSummary(join(root, '.agent/reports/go-coverage.out')),
     crap: crapSummary(await safeJson(join(root, '.agent/reports/crap.json'))),
@@ -369,6 +350,7 @@ export const analyzeTelemetry = async (options = {}) => {
       '.agent/reports/go-coverage.out',
       '.agent/reports/agent-context-benchmark.json',
       'tooling/capabilities.json',
+      'tooling/quality/mutation-policy.json',
     ],
   };
   report.insights = deriveInsights({ summary, providers, tools, capabilities, quality });

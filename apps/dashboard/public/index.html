@@ -93,6 +93,26 @@
           </p>
         </div>
         <div id="quality-grid" class="quality-ledger"></div>
+        <h3>Mutation debt by target</h3>
+        <div class="table-scroll" tabindex="0">
+          <table>
+            <caption>
+              Mutation score and debt relative to the checked-in regression policy
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Target</th>
+                <th scope="col">Score</th>
+                <th scope="col">Survived</th>
+                <th scope="col">Uncovered</th>
+                <th scope="col">Ignored</th>
+                <th scope="col">Delta</th>
+                <th scope="col">State</th>
+              </tr>
+            </thead>
+            <tbody id="mutation-targets"></tbody>
+          </table>
+        </div>
       </section>
 
       <section id="tools" aria-labelledby="tools-title">

@@ -28,7 +28,7 @@ fi
 echo
 echo '## TELEMETRY'
 if [[ -f .agent/reports/telemetry-summary.json ]]; then
-  jq '{generatedAt,summary:{traceCount:.summary.traceCount,failedTraceCount:.summary.failedTraceCount,durationMs:.summary.durationMs,reducedBytes:.summary.reducedBytes,estimatedTokensAvoided:.summary.estimatedTokensAvoided,latestVerification:.summary.latestVerification},quality:{mutation:.quality.mutation.score,typescriptCoverage:.quality.coverage.statements.percent,goCoverage:.quality.goCoverage.percent,crapViolations:.quality.crap.violationCount}}' .agent/reports/telemetry-summary.json
+  jq '{generatedAt,summary:{traceCount:.summary.traceCount,failedTraceCount:.summary.failedTraceCount,durationMs:.summary.durationMs,reducedBytes:.summary.reducedBytes,estimatedTokensAvoided:.summary.estimatedTokensAvoided,latestVerification:.summary.latestVerification},quality:{mutation:{score:.quality.mutation.score,status:.quality.mutation.policy.status,unresolved:.quality.mutation.debt.unresolved,ignored:.quality.mutation.debt.ignored,weakestTarget:(.quality.mutation.targets|max_by(.debt)|{file,score,debt})},typescriptCoverage:.quality.coverage.statements.percent,goCoverage:.quality.goCoverage.percent,crapViolations:.quality.crap.violationCount}}' .agent/reports/telemetry-summary.json
 else
   echo 'none; run pnpm telemetry:analyze'
 fi

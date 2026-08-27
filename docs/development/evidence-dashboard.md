@@ -36,6 +36,8 @@ Only commands executed through `scripts/tool-trace` are observed. Interactive sh
 ## Quality interpretation
 
 - Mutation score excludes explicitly ignored and compile-error mutants from the assessed denominator and retains the full status distribution.
+- Mutation debt is governed by `tooling/quality/mutation-policy.json`. The policy freezes aggregate and per-target score floors plus ignored, surviving, and uncovered ceilings. `pnpm quality:mutation` fails on regressions, ungoverned targets, or targets silently removed from the report. Improving a target should tighten the reviewed baseline; worsening it may not be normalized by updating the policy in the same change without explicit Hardener evidence.
+- The dashboard reports per-target mutation debt, baseline deltas, and debt age. Aggregate mutation health never hides a weaker target.
 - TypeScript coverage combines only canonical workspace Istanbul reports and shows statements, functions, and branches separately in the API. `pnpm test:coverage` removes prior coverage and derived CRAP evidence before collecting a new revision-bound set.
 - Go coverage is measured independently. The first recorded baseline is below the 80% target and remains a visible gap until CLI behavior tests close it.
 - CRAP reports its maximum function and every threshold violation. Protocol and core use a threshold of 15; other TypeScript uses 30.

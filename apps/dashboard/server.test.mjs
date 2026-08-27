@@ -32,6 +32,8 @@ test('serves generated telemetry without caching', async () => {
   const report = JSON.parse(response.body);
   assert.equal(report.schemaVersion, 1);
   assert.ok(report.summary.traceCount >= 0);
+  assert.equal(report.quality.mutation.policy.available, true);
+  assert.ok(Array.isArray(report.quality.mutation.targets));
 });
 
 test('rejects unknown paths and mutating methods', async () => {

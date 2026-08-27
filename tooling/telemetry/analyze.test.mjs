@@ -11,12 +11,24 @@ const fixture = async () => {
   await mkdir(join(root, '.agent/traces'), { recursive: true });
   await mkdir(join(root, '.agent/reports'), { recursive: true });
   await mkdir(join(root, 'tooling'), { recursive: true });
+  await mkdir(join(root, 'tooling/quality'), { recursive: true });
   await writeFile(
     join(root, 'tooling/capabilities.json'),
     JSON.stringify({
       capabilities: {
         textual_search: { providers: ['rg'], costClass: 'very_low', contextClass: 'low' },
         output_reduction: { providers: ['rtk'], costClass: 'very_low', contextClass: 'low' },
+      },
+    }),
+  );
+  await writeFile(
+    join(root, 'tooling/quality/mutation-policy.json'),
+    JSON.stringify({
+      schemaVersion: 1,
+      baselineDate: '2026-08-28',
+      aggregate: { minScore: 50, maxIgnored: 0, maxSurvived: 1, maxNoCoverage: 0 },
+      targets: {
+        'a.ts': { minScore: 50, maxIgnored: 0, maxSurvived: 1, maxNoCoverage: 0 },
       },
     }),
   );
@@ -100,6 +112,8 @@ test('summarizes verification runs and mutation evidence', async () => {
   assert.equal(report.summary.latestVerification.telemetry.traceCount, 0);
   assert.equal(report.quality.mutation.total, 3);
   assert.equal(report.quality.mutation.score, 50);
+  assert.equal(report.quality.mutation.policy.status, 'stable');
+  assert.equal(report.quality.mutation.targets[0].survived, 1);
   assert.equal(report.quality.goCoverage.percent, 75);
   assert.equal(report.quality.goCoverage.meetsTarget, false);
 });

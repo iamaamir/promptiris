@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "baselineDate": "2026-08-28",
+  "aggregate": {
+    "minScore": 90,
+    "maxIgnored": 102,
+    "maxSurvived": 28,
+    "maxNoCoverage": 5
+  },
+  "targets": {
+    "apps/runtime-node/src/native-plugin.ts": {
+      "minScore": 82.16,
+      "maxIgnored": 80,
+      "maxSurvived": 28,
+      "maxNoCoverage": 5
+    },
+    "packages/core/src/index.ts": {
+      "minScore": 100,
+      "maxIgnored": 0,
+      "maxSurvived": 0,
+      "maxNoCoverage": 0
+    },
+    "packages/core/src/plugin-execution.ts": {
+      "minScore": 100,
+      "maxIgnored": 0,
+      "maxSurvived": 0,
+      "maxNoCoverage": 0
+    },
+    "packages/core/src/plugin-graph.ts": {
+      "minScore": 100,
+      "maxIgnored": 8,
+      "maxSurvived": 0,
+      "maxNoCoverage": 0
+    },
+    "packages/plugin-sdk/src/index.ts": {
+      "minScore": 100,
+      "maxIgnored": 5,
+      "maxSurvived": 0,
+      "maxNoCoverage": 0
+    },
+    "packages/protocol/src/index.ts": {
+      "minScore": 100,
+      "maxIgnored": 9,
+      "maxSurvived": 0,
+      "maxNoCoverage": 0
+    }
+  }
+}

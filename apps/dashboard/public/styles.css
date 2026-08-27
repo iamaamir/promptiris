@@ -337,6 +337,7 @@ td:first-child {
   font-weight: 650;
   letter-spacing: -0.03em;
 }
+#quality h3,
 #tools h3 {
   margin-top: 2.5rem;
 }

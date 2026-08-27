@@ -148,6 +148,8 @@ small Work Item
 
 The macro stages and their exit criteria are mandatory. A producer's private implementation sequence is not prescribed when the resulting values can be verified: a human may use strict TDD while a model may implement a small unit and then add its test.
 
+These names describe independent responsibilities and evidence boundaries, not a mandatory number of agents or model calls. One worker may perform several responsibilities for a small change when deterministic gates preserve separation; high-risk changes may assign distinct workers. No role is spawned merely to satisfy choreography, and no role repeats exploration or mechanical work already captured by repository Evidence.
+
 ### Specifier
 
 Turns one small intent into observable acceptance criteria, normal/failure scenarios, public-interface expectations, and a black-box QA procedure. It does not write a large file-by-file implementation plan.
@@ -164,7 +166,7 @@ Owns code structure: CRAP score, cyclomatic complexity, duplication, naming, dea
 
 Assumes the implementation covers only examples its author imagined. It attacks test and behavior weaknesses through mutation testing, property/state-model testing, fuzzing, boundaries, malformed input, cancellation, concurrency, timeouts, process faults, resource limits, security/data-flow cases, performance budgets, and cross-language differential fixtures. Randomized failures carry replay coordinates, shrink to a minimal counterexample where supported, and enter a regression corpus.
 
-No relevant surviving mutant is silent. Exclusions and equivalent-mutant classifications are explicit Evidence. Exact CRAP/mutation thresholds remain an implementation calibration decision; high-risk Kernel/protocol surfaces receive stricter profiles than presentation adapters, and the coverage floors in the tooling baseline remain minima.
+No relevant surviving mutant is silent. Exclusions and equivalent-mutant classifications are explicit Evidence. Aggregate and per-target mutation debt is compared with the checked-in regression policy; new debt, unexplained ignored-mutant growth, and silent target removal fail deterministically. Improving evidence tightens the baseline instead of creating permanent headroom. Exact CRAP/mutation thresholds remain an implementation calibration decision; high-risk Kernel/protocol surfaces receive stricter profiles than presentation adapters, and the coverage floors in the tooling baseline remain minima.
 
 ### Orthogonal quality evidence
 

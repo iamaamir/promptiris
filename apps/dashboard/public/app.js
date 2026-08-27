@@ -82,6 +82,30 @@ const qualityItem = (title, value, detail) => {
   return article;
 };
 
+const signed = (value, suffix = '') => `${value > 0 ? '+' : ''}${value}${suffix}`;
+
+const renderMutationTargets = (mutation) =>
+  replaceChildren(
+    'mutation-targets',
+    mutation.available
+      ? mutation.targets.map((target) =>
+          row([
+            target.file,
+            `${target.score}%`,
+            formatNumber(target.survived),
+            formatNumber(target.noCoverage),
+            formatNumber(target.ignored),
+            target.deltas
+              ? `${signed(target.deltas.score, 'pp')} · ${signed(
+                  target.deltas.survived + target.deltas.noCoverage,
+                )} unresolved · ${signed(target.deltas.ignored)} ignored`
+              : 'No baseline',
+            state(target.status),
+          ]),
+        )
+      : [row(['No mutation report', '—', '—', '—', '—', '—', state('unobserved')])],
+  );
+
 const renderQuality = (quality) => {
   const mutation = quality.mutation;
   const coverage = quality.coverage;
@@ -93,7 +117,7 @@ const renderQuality = (quality) => {
       'Mutation',
       mutation.available ? `${mutation.score}%` : 'Missing',
       mutation.available
-        ? `${mutation.total} total; ${mutation.statuses.Killed ?? 0} killed; ${mutation.statuses.Timeout ?? 0} timed out; ${mutation.statuses.Survived ?? 0} survived`
+        ? `${mutation.policy.status}; ${mutation.debt.unresolved} unresolved; ${mutation.debt.ignored} ignored; debt baseline age ${mutation.debt.ageDays} days`
         : 'Run the full verifier',
     ),
     qualityItem(
@@ -123,6 +147,7 @@ const renderQuality = (quality) => {
         : 'Run the context benchmark',
     ),
   ]);
+  renderMutationTargets(mutation);
 };
 
 const renderTools = (usage) => {
