@@ -31,3 +31,17 @@ Optimize for correctness and verified acceptance before efficiency. The target m
 The full operating model is [docs/development/agent-operating-model.md](docs/development/agent-operating-model.md), with the execution substrate specified in [docs/development/tool-aware-execution.md](docs/development/tool-aware-execution.md). During the documentation-only phase, inspect repository state with deterministic tools. Once implemented, `scripts/agent-context` is the standard local orientation entrypoint.
 
 Commits follow Conventional Commits. Put the required emoji after the type/scope prefix, for example `docs(agents): 📝 record the operating model`.
+
+## Agent skills
+
+### Issue tracker
+
+Work items live as local Markdown under `.scratch/<feature>/`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Use `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, and `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Use the single root `CONTEXT.md` and `docs/adr/` layout. See `docs/agents/domain.md`.
