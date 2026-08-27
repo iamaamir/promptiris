@@ -5,12 +5,19 @@ repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 cd "$repo_root" || exit 1
 profile="${1:---candidate}"
 failures=0
+run_id="verify-$(date -u +%Y%m%dT%H%M%SZ)-$$"
+started_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+started_ms="$(node -e 'process.stdout.write(String(Date.now()))')"
+gate_ids=()
 
 run_check() {
   local name="$1"
-  shift
+  local provider="$2"
+  local tools="$3"
+  shift 3
+  gate_ids+=("verify.$name")
   printf '\n== %s ==\n' "$name"
-  if ./scripts/tool-trace --task "verify.$name" -- "$@"; then
+  if ./scripts/tool-trace --task "verify.$name" --provider "$provider" --tools "$tools" --run-id "$run_id" -- "$@"; then
     printf 'PASS %s\n' "$name"
   else
     printf 'FAIL %s\n' "$name" >&2
@@ -18,21 +25,22 @@ run_check() {
   fi
 }
 
-run_check format pnpm format:check
-run_check lint pnpm lint
-run_check shell pnpm lint:shell
-run_check schema pnpm quality:schema
-run_check generated ./scripts/check-generated
-run_check types pnpm typecheck
-run_check build pnpm build
-run_check unit pnpm test
-run_check go-vet env GOCACHE="${TMPDIR:-/tmp}/meta-prompt-go-cache" go -C apps/cli-go vet ./...
-run_check integration pnpm test:integration
-run_check lsp pnpm test:lsp
-run_check structural pnpm quality:architecture
+run_check format formatters prettier,gofmt pnpm format:check
+run_check lint linters eslint,markdownlint pnpm lint
+run_check shell shell-linter shellcheck pnpm lint:shell
+run_check schema schema-validator ajv pnpm quality:schema
+run_check generated generated-diff cmp ./scripts/check-generated
+run_check types type-checker tsc pnpm typecheck
+run_check build builder tsc,pnpm pnpm build
+run_check unit test-runner vitest,go-test,node-test pnpm test
+run_check go-vet go-vet go-vet env GOCACHE="${TMPDIR:-/tmp}/meta-prompt-go-cache" go -C apps/cli-go vet ./...
+run_check integration integration-runner node,go pnpm test:integration
+run_check lsp language-server scripts/lsp-query.mjs,typescript-language-server,gopls pnpm test:lsp
+run_check structural structural-analyzer ast-grep pnpm quality:architecture
+run_check telemetry telemetry-analyzer ajv,node pnpm quality:telemetry
 
 if command -v gitleaks >/dev/null 2>&1; then
-  run_check secrets gitleaks dir --no-banner --redact .
+  run_check secrets secret-scanner gitleaks gitleaks dir --no-banner --redact .
 elif [[ "$profile" == "--ci" || "$profile" == "--full" ]]; then
   printf 'FAIL secrets: gitleaks is required for %s\n' "$profile" >&2
   failures=$((failures + 1))
@@ -41,13 +49,29 @@ else
 fi
 
 if [[ "$profile" == "--full" ]]; then
-  run_check go-race pnpm test:go:race
-  run_check coverage pnpm test:coverage
-  run_check crap pnpm quality:crap
-  run_check dead-code pnpm quality:dead-code
-  run_check public-api pnpm quality:api
-  run_check mutation pnpm test:mutation
+  run_check go-race race-detector go-test pnpm test:go:race
+  run_check coverage coverage-runner vitest-v8,go-test pnpm test:coverage
+  run_check crap crap-analyzer typescript-compiler-api pnpm quality:crap
+  run_check dead-code dead-code-analyzer knip pnpm quality:dead-code
+  run_check public-api api-extractor api-extractor pnpm quality:api
+  run_check mutation mutation-runner stryker pnpm test:mutation
 fi
+
+mkdir -p .agent/reports
+ended_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+ended_ms="$(node -e 'process.stdout.write(String(Date.now()))')"
+duration_ms=$((ended_ms - started_ms))
+status="passed"
+(( failures > 0 )) && status="failed"
+gate_ids_json="$(printf '%s\n' "${gate_ids[@]}" | jq -R . | jq -s .)"
+jq -nc \
+  --arg runId "$run_id" --arg profile "${profile#--}" --arg status "$status" \
+  --arg startedAt "$started_at" --arg endedAt "$ended_at" \
+  --argjson durationMs "$duration_ms" --argjson failedGateCount "$failures" \
+  --argjson gateTaskIds "$gate_ids_json" \
+  '{schemaVersion:1,runId:$runId,profile:$profile,status:$status,startedAt:$startedAt,endedAt:$endedAt,durationMs:$durationMs,failedGateCount:$failedGateCount,gateTaskIds:$gateTaskIds}' \
+  >>.agent/reports/verification-runs.jsonl
+node scripts/telemetry-analyze.mjs >/dev/null
 
 if (( failures > 0 )); then
   printf '\n%d verification gate(s) failed. Evidence: .agent/logs and .agent/traces\n' "$failures" >&2

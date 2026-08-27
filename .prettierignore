@@ -4,3 +4,4 @@ dist/
 coverage/
 .agent/
 .pnpm-store/
+packages/*/etc/*.api.md

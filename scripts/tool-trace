@@ -3,33 +3,97 @@ set -u -o pipefail
 
 repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 task_id="unscoped"
-if [[ "${1:-}" == "--task" ]]; then
-  task_id="${2:?missing task id}"
-  shift 2
-fi
-[[ "${1:-}" == "--" ]] && shift
-(( $# > 0 )) || { echo 'usage: tool-trace [--task ID] -- COMMAND [ARG...]' >&2; exit 64; }
+provider_id="unknown"
+run_id="standalone"
+tools_csv=""
+
+while (( $# > 0 )); do
+  case "$1" in
+    --task) task_id="${2:?missing task id}"; shift 2 ;;
+    --provider) provider_id="${2:?missing provider id}"; shift 2 ;;
+    --run-id) run_id="${2:?missing run id}"; shift 2 ;;
+    --tools) tools_csv="${2:?missing tools list}"; shift 2 ;;
+    --) shift; break ;;
+    *) break ;;
+  esac
+done
+
+(( $# > 0 )) || {
+  echo 'usage: tool-trace [--task ID] [--provider ID] [--run-id ID] [--tools CSV] -- COMMAND [ARG...]' >&2
+  exit 64
+}
 
 mkdir -p "$repo_root/.agent/traces" "$repo_root/.agent/logs"
 trace_id="$(date -u +%Y%m%dT%H%M%S)-$$"
 raw="$repo_root/.agent/logs/tool-$trace_id.log"
 trace="$repo_root/.agent/traces/$trace_id.json"
+visible="$(mktemp "${TMPDIR:-/tmp}/meta-prompt-visible.XXXXXX")"
+trap 'rm -f "$visible"' EXIT
 started_ms="$(node -e 'process.stdout.write(String(Date.now()))')"
+started_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
 set +e
 "$@" >"$raw" 2>&1
 status=$?
 set -e
+
 ended_ms="$(node -e 'process.stdout.write(String(Date.now()))')"
 duration_ms=$((ended_ms - started_ms))
-bytes="$(wc -c <"$raw" | tr -d ' ')"
+raw_bytes="$(wc -c <"$raw" | tr -d ' ')"
 digest="$(shasum -a 256 "$raw" | awk '{print $1}')"
-command_name="$(basename "$1")"
+executor="$(basename "$1")"
+evidence_ref=".agent/logs/tool-$trace_id.log"
+trace_ref=".agent/traces/$trace_id.json"
 
-jq -n --arg traceId "$trace_id" --arg taskId "$task_id" --arg command "$command_name" \
-  --arg evidenceRef ".agent/logs/tool-$trace_id.log" --arg digest "$digest" \
+printf 'trace=%s task=%s provider=%s exit=%s duration_ms=%s raw_bytes=%s evidence=%s\n' \
+  "$trace_ref" "$task_id" "$provider_id" "$status" "$duration_ms" "$raw_bytes" "$evidence_ref" >"$visible"
+if (( status != 0 )); then
+  printf '%s\n' '--- failure tail (last 80 lines) ---' >>"$visible"
+  tail -80 "$raw" >>"$visible"
+fi
+
+visible_bytes="$(wc -c <"$visible" | tr -d ' ')"
+reduced_bytes=$((raw_bytes > visible_bytes ? raw_bytes - visible_bytes : 0))
+raw_tokens=$(((raw_bytes + 3) / 4))
+visible_tokens=$(((visible_bytes + 3) / 4))
+reduced_tokens=$((raw_tokens > visible_tokens ? raw_tokens - visible_tokens : 0))
+
+jq -n \
+  --arg traceId "$trace_id" --arg runId "$run_id" --arg taskId "$task_id" \
+  --arg providerId "$provider_id" --arg toolsCsv "$tools_csv" --arg executor "$executor" \
+  --arg startedAt "$started_at" --arg evidenceRef "$evidence_ref" --arg digest "$digest" \
   --argjson startedAtEpochMs "$started_ms" --argjson durationMs "$duration_ms" \
-  --argjson exitCode "$status" --argjson rawOutputBytes "$bytes" \
-  '{schemaVersion:1,traceId:$traceId,taskId:$taskId,command:$command,startedAtEpochMs:$startedAtEpochMs,durationMs:$durationMs,exitCode:$exitCode,rawOutputBytes:$rawOutputBytes,rawEvidenceRef:$evidenceRef,sha256:$digest}' >"$trace"
-printf 'trace=%s exit=%s duration_ms=%s bytes=%s\n' ".agent/traces/$trace_id.json" "$status" "$duration_ms" "$bytes"
-if (( status != 0 )); then tail -80 "$raw" >&2; fi
+  --argjson exitCode "$status" --argjson rawOutputBytes "$raw_bytes" \
+  --argjson modelVisibleBytes "$visible_bytes" --argjson reducedOutputBytes "$reduced_bytes" \
+  --argjson estimatedRawTokens "$raw_tokens" --argjson estimatedModelVisibleTokens "$visible_tokens" \
+  --argjson estimatedTokensAvoided "$reduced_tokens" \
+  '{
+    schemaVersion: 2,
+    traceId: $traceId,
+    runId: $runId,
+    taskId: $taskId,
+    providerId: $providerId,
+    tools: ($toolsCsv | split(",") | map(select(length > 0))),
+    executor: $executor,
+    startedAt: $startedAt,
+    startedAtEpochMs: $startedAtEpochMs,
+    durationMs: $durationMs,
+    exitCode: $exitCode,
+    output: {
+      rawBytes: $rawOutputBytes,
+      modelVisibleBytes: $modelVisibleBytes,
+      reducedBytes: $reducedOutputBytes,
+      estimatedRawTokens: $estimatedRawTokens,
+      estimatedModelVisibleTokens: $estimatedModelVisibleTokens,
+      estimatedTokensAvoided: $estimatedTokensAvoided,
+      tokenEstimate: {method: "utf8_bytes_divided_by_4", version: 1}
+    },
+    evidence: {ref: $evidenceRef, sha256: $digest}
+  }' >"$trace"
+
+if (( status == 0 )); then
+  cat "$visible"
+else
+  cat "$visible" >&2
+fi
 exit "$status"

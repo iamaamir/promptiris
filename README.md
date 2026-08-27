@@ -38,6 +38,8 @@ Requires Node 24, pnpm 11.24, and Go 1.26. Bootstrap the pinned workspace and re
 
 Use `pnpm verify` for the fast candidate pipeline. Use `pnpm verify:full` for coverage, CRAP, dead-code, public-API, and mutation evidence. Raw output stays under ignored `.agent/` paths; commands return compact references and exit codes.
 
+Run `pnpm dashboard` and open `http://127.0.0.1:4173` for the local read-only evidence dashboard. It derives tool usage, verifier cost, output reduction, mutation, coverage, CRAP, recent runs, and automation candidates from `.agent` artifacts. See [Repository evidence dashboard](./docs/development/evidence-dashboard.md) for the measurement and privacy boundaries.
+
 Run the current tracer directly with:
 
 ```sh

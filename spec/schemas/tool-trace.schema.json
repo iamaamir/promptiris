@@ -1,30 +1,73 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://meta-prompt.dev/schema/harness-tool-trace-v1.json",
+  "$id": "https://meta-prompt.dev/schema/harness-tool-trace-v2.json",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "schemaVersion",
     "traceId",
+    "runId",
     "taskId",
-    "command",
+    "providerId",
+    "tools",
+    "executor",
+    "startedAt",
     "startedAtEpochMs",
     "durationMs",
     "exitCode",
-    "rawOutputBytes",
-    "rawEvidenceRef",
-    "sha256"
+    "output",
+    "evidence"
   ],
   "properties": {
-    "schemaVersion": { "const": 1 },
+    "schemaVersion": { "const": 2 },
     "traceId": { "type": "string", "minLength": 1 },
+    "runId": { "type": "string", "minLength": 1 },
     "taskId": { "type": "string", "minLength": 1 },
-    "command": { "type": "string", "minLength": 1 },
+    "providerId": { "type": "string", "minLength": 1 },
+    "tools": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "executor": { "type": "string", "minLength": 1 },
+    "startedAt": { "type": "string", "minLength": 1 },
     "startedAtEpochMs": { "type": "number", "minimum": 0 },
     "durationMs": { "type": "number", "minimum": 0 },
     "exitCode": { "type": "number" },
-    "rawOutputBytes": { "type": "number", "minimum": 0 },
-    "rawEvidenceRef": { "type": "string", "minLength": 1 },
-    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rawBytes",
+        "modelVisibleBytes",
+        "reducedBytes",
+        "estimatedRawTokens",
+        "estimatedModelVisibleTokens",
+        "estimatedTokensAvoided",
+        "tokenEstimate"
+      ],
+      "properties": {
+        "rawBytes": { "type": "number", "minimum": 0 },
+        "modelVisibleBytes": { "type": "number", "minimum": 0 },
+        "reducedBytes": { "type": "number", "minimum": 0 },
+        "estimatedRawTokens": { "type": "number", "minimum": 0 },
+        "estimatedModelVisibleTokens": { "type": "number", "minimum": 0 },
+        "estimatedTokensAvoided": { "type": "number", "minimum": 0 },
+        "tokenEstimate": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["method", "version"],
+          "properties": {
+            "method": { "const": "utf8_bytes_divided_by_4" },
+            "version": { "const": 1 }
+          }
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref", "sha256"],
+      "properties": {
+        "ref": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      }
+    }
   }
 }

@@ -8,4 +8,4 @@ if ((${#traces[@]} == 0)); then
   echo '{"schemaVersion":1,"candidates":[]}'
   exit 0
 fi
-jq -s '{schemaVersion:1,candidates:(group_by([.taskId,.command]) | map(select(length >= 3) | {taskId:.[0].taskId,command:.[0].command,observations:length,totalDurationMs:(map(.durationMs)|add),totalRawBytes:(map(.rawOutputBytes)|add),evidence:map(.rawEvidenceRef)}) | sort_by(-.observations))}' "${traces[@]}"
+jq -s '{schemaVersion:2,candidates:(map({taskId,provider:(.providerId // .command // "unknown"),durationMs,rawBytes:(.output.rawBytes // .rawOutputBytes // 0),reducedBytes:(.output.reducedBytes // 0),evidenceRef:(.evidence.ref // .rawEvidenceRef)}) | group_by([.taskId,.provider]) | map(select(length >= 3) | {taskId:.[0].taskId,provider:.[0].provider,observations:length,totalDurationMs:(map(.durationMs)|add),totalRawBytes:(map(.rawBytes)|add),totalReducedBytes:(map(.reducedBytes)|add),evidence:map(.evidenceRef)}) | sort_by(-.observations))}' "${traces[@]}"

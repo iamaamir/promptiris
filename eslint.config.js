@@ -29,4 +29,31 @@ export default tseslint.config(
       'max-lines-per-function': 'off',
     },
   },
+  {
+    ...tseslint.configs.disableTypeChecked,
+    files: ['**/*.mjs', 'apps/dashboard/public/*.js'],
+    languageOptions: {
+      ...tseslint.configs.disableTypeChecked.languageOptions,
+      globals: {
+        Buffer: 'readonly',
+        clearTimeout: 'readonly',
+        console: 'readonly',
+        fetch: 'readonly',
+        process: 'readonly',
+        setTimeout: 'readonly',
+        URL: 'readonly',
+      },
+    },
+  },
+  {
+    files: ['apps/dashboard/public/*.js'],
+    languageOptions: {
+      globals: {
+        document: 'readonly',
+        fetch: 'readonly',
+        Intl: 'readonly',
+        Node: 'readonly',
+      },
+    },
+  },
 );

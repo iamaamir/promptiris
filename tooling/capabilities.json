@@ -49,6 +49,10 @@
       "contextClass": "none",
       "delivery": "advisory"
     },
-    "output_reduction": { "providers": ["rtk"], "costClass": "very_low", "contextClass": "low" }
+    "output_reduction": {
+      "providers": ["scripts/tool-trace", "rtk"],
+      "costClass": "very_low",
+      "contextClass": "low"
+    }
   }
 }

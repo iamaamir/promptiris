@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Local evidence dashboard for Meta Prompt repository verification and development tooling."
+    />
+    <title>Meta Prompt Evidence</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/app.js" type="module"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to evidence</a>
+    <header class="masthead">
+      <div>
+        <p class="eyebrow">Repository observatory</p>
+        <h1>Meta Prompt Evidence</h1>
+        <p class="lede">
+          Operational cost, quality gates, and automation opportunities from local deterministic
+          artifacts.
+        </p>
+      </div>
+      <div class="refresh-cluster">
+        <p id="freshness" class="freshness">Loading evidence…</p>
+        <button id="refresh" type="button">Refresh now</button>
+      </div>
+    </header>
+
+    <nav class="section-nav" aria-label="Dashboard sections">
+      <a href="#overview">Overview</a>
+      <a href="#quality">Quality</a>
+      <a href="#tools">Tools</a>
+      <a href="#automation">Automation</a>
+      <a href="#provenance">Provenance</a>
+    </nav>
+
+    <main id="main" tabindex="-1">
+      <p id="status" class="status" role="status" aria-live="polite">Reading local reports.</p>
+
+      <section id="overview" aria-labelledby="overview-title">
+        <div class="section-heading">
+          <div>
+            <p class="section-index">01 / Current state</p>
+            <h2 id="overview-title">Cost of confidence</h2>
+          </div>
+          <p>
+            Measured totals across retained tool traces. Legacy data stays visible but never
+            masquerades as exact.
+          </p>
+        </div>
+        <dl id="summary" class="metric-ledger"></dl>
+        <div class="split">
+          <article aria-labelledby="insights-title">
+            <h3 id="insights-title">Material findings</h3>
+            <ol id="insights" class="finding-list"></ol>
+          </article>
+          <article aria-labelledby="runs-title">
+            <h3 id="runs-title">Recent verification</h3>
+            <div class="table-scroll" tabindex="0">
+              <table>
+                <caption>
+                  Most recent candidate and full verification runs
+                </caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Run</th>
+                    <th scope="col">Profile</th>
+                    <th scope="col">Result</th>
+                    <th scope="col">Duration</th>
+                    <th scope="col">Raw</th>
+                    <th scope="col">Avoided</th>
+                    <th scope="col">Failed</th>
+                  </tr>
+                </thead>
+                <tbody id="runs"></tbody>
+              </table>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="quality" aria-labelledby="quality-title">
+        <div class="section-heading">
+          <div>
+            <p class="section-index">02 / Verification strength</p>
+            <h2 id="quality-title">Quality evidence</h2>
+          </div>
+          <p>
+            Mutation, coverage, CRAP, and context-startup measurements are reported with their
+            availability and source.
+          </p>
+        </div>
+        <div id="quality-grid" class="quality-ledger"></div>
+      </section>
+
+      <section id="tools" aria-labelledby="tools-title">
+        <div class="section-heading">
+          <div>
+            <p class="section-index">03 / Execution layer</p>
+            <h2 id="tools-title">Tool utilization</h2>
+          </div>
+          <p>
+            Provider identity is explicit in schema v2. A call may name several underlying tools, so
+            tool rows are utilization views rather than additive totals.
+          </p>
+        </div>
+        <div class="table-scroll" tabindex="0">
+          <table>
+            <caption>
+              Underlying deterministic tools ordered by observed calls
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Tool</th>
+                <th scope="col">Calls</th>
+                <th scope="col">Failures</th>
+                <th scope="col">Time</th>
+                <th scope="col">Raw output</th>
+                <th scope="col">Context avoided</th>
+              </tr>
+            </thead>
+            <tbody id="tool-rows"></tbody>
+          </table>
+        </div>
+        <h3>Capability coverage</h3>
+        <div class="table-scroll" tabindex="0">
+          <table>
+            <caption>
+              Registered semantic capabilities and measured utilization
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Capability</th>
+                <th scope="col">Providers</th>
+                <th scope="col">Calls</th>
+                <th scope="col">State</th>
+                <th scope="col">Cost</th>
+              </tr>
+            </thead>
+            <tbody id="capability-rows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="automation" aria-labelledby="automation-title">
+        <div class="section-heading">
+          <div>
+            <p class="section-index">04 / Promotion loop</p>
+            <h2 id="automation-title">Repetition worth compiling</h2>
+          </div>
+          <p>
+            Repeated task-provider pairs are candidates, not automatic code generation. Promotion
+            still requires a stable invocation and deterministic failure reducer.
+          </p>
+        </div>
+        <div class="table-scroll" tabindex="0">
+          <table>
+            <caption>
+              Repeated execution patterns ordered by frequency and cost
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Pattern</th>
+                <th scope="col">Calls</th>
+                <th scope="col">Time</th>
+                <th scope="col">Output</th>
+                <th scope="col">Priority</th>
+              </tr>
+            </thead>
+            <tbody id="automation-rows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="provenance" aria-labelledby="provenance-title">
+        <div class="section-heading">
+          <div>
+            <p class="section-index">05 / Trust boundary</p>
+            <h2 id="provenance-title">Data provenance</h2>
+          </div>
+          <p>
+            Raw evidence stays on disk. This page receives aggregate data and references, never
+            private reasoning or user prompt content.
+          </p>
+        </div>
+        <div class="provenance-grid">
+          <article>
+            <h3>Measurement quality</h3>
+            <dl id="data-quality" class="definition-list"></dl>
+          </article>
+          <article>
+            <h3>Sources</h3>
+            <ul id="sources" class="source-list"></ul>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>Reason with models. Compute with tools. Preserve evidence.</p>
+    </footer>
+  </body>
+</html>

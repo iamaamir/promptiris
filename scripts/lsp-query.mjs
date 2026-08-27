@@ -41,7 +41,9 @@ function send(message) {
 function request(method, params) {
   const id = nextId++;
   send({ jsonrpc: '2.0', id, method, params });
-  return new Promise((resolveResult, reject) => pending.set(id, { resolve: resolveResult, reject }));
+  return new Promise((resolveResult, reject) =>
+    pending.set(id, { resolve: resolveResult, reject }),
+  );
 }
 child.stdout.on('data', (chunk) => {
   buffer = Buffer.concat([buffer, chunk]);
@@ -58,7 +60,11 @@ child.stdout.on('data', (chunk) => {
     if (message.id !== undefined && pending.has(message.id)) {
       const waiter = pending.get(message.id);
       pending.delete(message.id);
-      message.error ? waiter.reject(new Error(message.error.message)) : waiter.resolve(message.result);
+      if (message.error) {
+        waiter.reject(new Error(message.error.message));
+      } else {
+        waiter.resolve(message.result);
+      }
     }
   }
 });
@@ -67,17 +73,38 @@ const root = language === 'go' ? resolve(file, '..') : resolve('.');
 const uri = pathToFileURL(file).href;
 const text = await readFile(file, 'utf8');
 const position = { line: Number(lineArg), character: Number(characterArg) };
-const methods = { definition: 'textDocument/definition', references: 'textDocument/references', symbols: 'textDocument/documentSymbol' };
+const methods = {
+  definition: 'textDocument/definition',
+  references: 'textDocument/references',
+  symbols: 'textDocument/documentSymbol',
+};
 if (!methods[operation]) throw new Error(`unsupported LSP operation: ${operation}`);
 
 const timeout = setTimeout(() => child.kill(), 15_000);
 try {
-  await request('initialize', { processId: process.pid, rootUri: pathToFileURL(root).href, capabilities: {} });
+  await request('initialize', {
+    processId: process.pid,
+    rootUri: pathToFileURL(root).href,
+    capabilities: {},
+  });
   send({ jsonrpc: '2.0', method: 'initialized', params: {} });
-  send({ jsonrpc: '2.0', method: 'textDocument/didOpen', params: { textDocument: { uri, languageId: language, version: 1, text } } });
-  const params = operation === 'symbols' ? { textDocument: { uri } } : { textDocument: { uri }, position, ...(operation === 'references' ? { context: { includeDeclaration: true } } : {}) };
+  send({
+    jsonrpc: '2.0',
+    method: 'textDocument/didOpen',
+    params: { textDocument: { uri, languageId: language, version: 1, text } },
+  });
+  const params =
+    operation === 'symbols'
+      ? { textDocument: { uri } }
+      : {
+          textDocument: { uri },
+          position,
+          ...(operation === 'references' ? { context: { includeDeclaration: true } } : {}),
+        };
   const result = await request(methods[operation], params);
-  process.stdout.write(`${JSON.stringify({ schemaVersion: 1, provider: language === 'go' ? 'gopls' : 'typescript-language-server', operation, result }, null, 2)}\n`);
+  process.stdout.write(
+    `${JSON.stringify({ schemaVersion: 1, provider: language === 'go' ? 'gopls' : 'typescript-language-server', operation, result }, null, 2)}\n`,
+  );
   await request('shutdown', null);
   send({ jsonrpc: '2.0', method: 'exit' });
 } finally {

@@ -117,27 +117,30 @@ Every routed execution records a schema-validated Tool Trace similar to:
 
 ```json
 {
-  "taskId": "T17",
-  "agentId": "worker-3",
-  "revision": "83d21af",
-  "capability": "targeted_test",
-  "adapter": "vitest",
-  "adapterVersion": "pinned",
-  "normalizedInvocation": "test <target>",
-  "inputDigest": "sha256:...",
+  "schemaVersion": 2,
+  "traceId": "20260827T120000-1234",
+  "runId": "verify-20260827T120000Z-1200",
+  "taskId": "verify.unit",
+  "providerId": "test-runner",
+  "tools": ["vitest", "go-test", "node-test"],
+  "executor": "pnpm",
   "durationMs": 1832,
-  "exitCode": 1,
-  "rawOutputBytes": 1830042,
-  "modelOutputBytes": 18420,
-  "estimatedModelTokens": 4312,
-  "evidenceRef": ".agent/evidence/T17/test-1.json",
-  "failureFingerprint": "sha256:...",
-  "cacheHit": false,
-  "redactions": 0
+  "exitCode": 0,
+  "output": {
+    "rawBytes": 1830042,
+    "modelVisibleBytes": 204,
+    "reducedBytes": 1829838,
+    "estimatedTokensAvoided": 457459,
+    "tokenEstimate": { "method": "utf8_bytes_divided_by_4", "version": 1 }
+  },
+  "evidence": {
+    "ref": ".agent/logs/tool-20260827T120000-1234.log",
+    "sha256": "..."
+  }
 }
 ```
 
-Original and resolved invocations are retained when interception rewrites a command. Raw output is stored outside model context with access and retention policy; compact output always carries a reference and digest. Secret-bearing arguments and output fields are redacted before persistence where possible and before any model view. Collection of source/user content or external telemetry is disabled by default and requires explicit authorization.
+Raw output is stored outside model context with access and retention policy; compact output always carries a reference and digest. The current local tracer intentionally omits invocation arguments because they may contain secrets and records exact byte counts for raw and displayed output. Token counts are deterministic byte-based estimates, not tokenizer-exact values. Richer adapters may add normalized invocations, input digests, cache identity, failure fingerprints, and redaction counts as their collection boundaries mature. Collection of source/user content or external telemetry is disabled by default and requires explicit authorization.
 
 ## Harness Events and interrupt-driven agents
 
