@@ -22,6 +22,50 @@ function sendMalformed() {
   process.stdout.write(`Content-Length: ${Buffer.byteLength(body, 'utf8')}\r\n\r\n${body}`);
 }
 
+function initializeResult(requested) {
+  if (mode === 'null-initialize-result') return null;
+  const validMethods = ['plugin/invoke', 'plugin/cancel', 'plugin/shutdown'];
+  const capabilities =
+    mode === 'null-capabilities'
+      ? null
+      : mode === 'string-capabilities'
+        ? 'invalid'
+        : {
+            methods: mode === 'invalid-methods' ? 'plugin/invoke' : validMethods,
+            events: mode === 'invalid-events' ? {} : [],
+          };
+  const limits =
+    mode === 'null-limits'
+      ? null
+      : mode === 'string-limits'
+        ? 'invalid'
+        : {
+            maxFrameBytes:
+              mode === 'zero-frame-limit'
+                ? 0
+                : mode === 'oversized-frame-limit'
+                  ? 64 * 1024 * 1024
+                  : Math.min(
+                      1024 * 1024,
+                      Number.isFinite(requested.maxFrameBytes)
+                        ? requested.maxFrameBytes
+                        : 1024 * 1024,
+                    ),
+            maxDepth:
+              mode === 'zero-depth-limit'
+                ? 0
+                : mode === 'oversized-depth-limit'
+                  ? 65
+                  : Math.min(32, Number.isFinite(requested.maxDepth) ? requested.maxDepth : 32),
+          };
+  return {
+    protocolVersion: mode === 'wrong-initialize' ? '2' : '1',
+    pluginName: 'native-fixture',
+    capabilities,
+    limits,
+  };
+}
+
 function handle(message) {
   if (!message || typeof message.method !== 'string') return;
   if (message.method === 'initialize') {
@@ -29,26 +73,15 @@ function handle(message) {
     send({
       jsonrpc: mode === 'wrong-jsonrpc-initialize' ? '1.0' : '2.0',
       id: message.id,
-      result: {
-        protocolVersion: mode === 'wrong-initialize' ? '2' : '1',
-        pluginName: 'native-fixture',
-        capabilities: {
-          methods: ['plugin/invoke', 'plugin/cancel', 'plugin/shutdown'],
-          events: [],
-        },
-        limits: {
-          maxFrameBytes: Math.min(
-            1024 * 1024,
-            Number.isFinite(requested.maxFrameBytes) ? requested.maxFrameBytes : 1024 * 1024,
-          ),
-          maxDepth: Math.min(32, Number.isFinite(requested.maxDepth) ? requested.maxDepth : 32),
-        },
-      },
+      result: initializeResult(requested),
     });
     return;
   }
   if (message.method === 'plugin/invoke') {
     if (mode === 'malformed') return sendMalformed();
+    if (mode === 'rpc-error')
+      return send({ jsonrpc: '2.0', id: message.id, error: { code: -32_000, message: 'fixture' } });
+    if (mode === 'missing-result') return send({ jsonrpc: '2.0', id: message.id });
     if (mode === 'crash') {
       process.stderr.write('secret fixture stderr\n');
       process.exit(7);
@@ -57,7 +90,14 @@ function handle(message) {
     const input = message.params?.input;
     const document = {
       ...input,
-      content: [...(input?.content ?? []), { id: 'native', text: 'native' }],
+      content: [
+        ...(input?.content ?? []),
+        {
+          id: 'native',
+          text:
+            mode === 'environment' ? (process.env.META_PROMPT_TEST_VALUE ?? 'missing') : 'native',
+        },
+      ],
     };
     const response = {
       jsonrpc: mode === 'wrong-jsonrpc-invoke' ? '1.0' : '2.0',

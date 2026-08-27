@@ -6,8 +6,31 @@
 
 import type { Artifact } from '@meta-prompt/protocol';
 import type { Event as Event_2 } from '@meta-prompt/protocol';
+import type { Phase } from '@meta-prompt/protocol';
 import type { PromptDocument } from '@meta-prompt/protocol';
 import type { RunResult } from '@meta-prompt/protocol';
+
+// @public (undocumented)
+export interface AppendTextBlockOperation {
+    // (undocumented)
+    readonly block: {
+        readonly id: string;
+        readonly text: string;
+    };
+    // (undocumented)
+    readonly kind: 'append-text-block';
+}
+
+// @public (undocumented)
+export interface DeclarativeContribution {
+    // (undocumented)
+    readonly contributionId: string;
+    // (undocumented)
+    readonly operation: AppendTextBlockOperation;
+}
+
+// @public (undocumented)
+export function defineDeclarativePlugin(manifest: PluginManifest, contributions: readonly DeclarativeContribution[]): PluginRegistration;
 
 // @public (undocumented)
 export function definePlugin<T extends PluginManifest>(manifest: T): T;
@@ -16,13 +39,55 @@ export function definePlugin<T extends PluginManifest>(manifest: T): T;
 export function identityArtifact(input: PromptDocument): Artifact;
 
 // @public (undocumented)
+export interface PluginContribution {
+    // (undocumented)
+    readonly after?: readonly string[];
+    // (undocumented)
+    readonly before?: readonly string[];
+    // (undocumented)
+    readonly conflicts?: readonly string[];
+    // (undocumented)
+    readonly id: string;
+    // (undocumented)
+    readonly phase: Phase;
+    // (undocumented)
+    readonly requires?: readonly string[];
+}
+
+// @public (undocumented)
+export interface PluginImplementation {
+    // (undocumented)
+    invoke(request: PluginInvocation): Promise<unknown>;
+}
+
+// @public (undocumented)
+export interface PluginInvocation {
+    // (undocumented)
+    readonly contributionId: string;
+    // (undocumented)
+    readonly input: PromptDocument;
+    // (undocumented)
+    readonly signal: AbortSignal;
+}
+
+// @public (undocumented)
 export interface PluginManifest {
+    // (undocumented)
+    readonly contributions?: readonly PluginContribution[];
     // (undocumented)
     readonly id: string;
     // (undocumented)
     readonly type: 'recipe' | 'pipeline' | 'guard' | 'provider' | 'observer';
     // (undocumented)
     readonly version: string;
+}
+
+// @public (undocumented)
+export interface PluginRegistration {
+    // (undocumented)
+    activate(): Promise<PluginImplementation> | PluginImplementation;
+    // (undocumented)
+    readonly manifest: PluginManifest;
 }
 
 // @public (undocumented)

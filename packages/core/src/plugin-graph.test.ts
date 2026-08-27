@@ -7,6 +7,96 @@ function plugin(id: string, contributions: readonly PluginContribution[]): Plugi
 }
 
 describe('compilePluginGraph', () => {
+  it('deduplicates selected ids while retaining deterministic diagnostics', () => {
+    const result = compilePluginGraph([], ['missing', 'missing']);
+    expect(result.ok).toBe(false);
+    expect(result.diagnostics).toHaveLength(1);
+    expect(result.diagnostics[0]).toMatchObject({
+      id: 'diagnostic:missing-selected-plugin:missing',
+      code: 'missing-selected-plugin',
+      category: 'plugin-graph',
+      severity: 'error',
+      title: 'missing-selected-plugin',
+      detail: 'missing',
+    });
+    expect(Object.isFrozen(result.diagnostics[0])).toBe(true);
+  });
+
+  it('reports selected conflicts against plugin ids and contribution ids', () => {
+    const result = compilePluginGraph(
+      [plugin('example/pipeline', [{ id: 'one', phase: 'transform', conflicts: ['other'] }])],
+      ['example/pipeline', 'other'],
+    );
+    expect(result.ok).toBe(false);
+    expect(result.diagnostics.map(({ code, detail }) => ({ code, detail }))).toEqual([
+      { code: 'missing-selected-plugin', detail: 'other' },
+      { code: 'selected-conflict', detail: 'one:other' },
+    ]);
+    expect(result.contributions).toEqual([]);
+  });
+
+  it('supports before, requires, and after constraints in a valid graph', () => {
+    const result = compilePluginGraph(
+      [
+        plugin('example/pipeline', [
+          { id: 'first', phase: 'transform', before: ['last'] },
+          {
+            id: 'middle',
+            phase: 'transform',
+            requires: ['first'],
+            after: ['first'],
+            before: ['last'],
+          },
+          { id: 'last', phase: 'transform' },
+        ]),
+      ],
+      ['example/pipeline'],
+    );
+
+    expect(result.ok).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+    expect(result.contributions.map(({ contribution }) => contribution.id)).toEqual([
+      'first',
+      'middle',
+      'last',
+    ]);
+  });
+
+  it('returns an empty graph when a selected plugin has no contributions', () => {
+    const result = compilePluginGraph(
+      [{ id: 'example/empty', version: '1.0.0', type: 'pipeline' }],
+      ['example/empty'],
+    );
+
+    expect(result).toMatchObject({ ok: true, contributions: [], diagnostics: [] });
+  });
+
+  it('ignores conflicts with unselected or nonexistent contributions', () => {
+    const result = compilePluginGraph(
+      [plugin('example/pipeline', [{ id: 'only', phase: 'transform', conflicts: ['other'] }])],
+      ['example/pipeline'],
+    );
+
+    expect(result.ok).toBe(true);
+    expect(result.diagnostics).toEqual([]);
+  });
+
+  it('reports an unknown phase once without invalid relation diagnostics', () => {
+    const result = compilePluginGraph(
+      [
+        plugin('example/pipeline', [
+          { id: 'invalid', phase: 'unknown', after: ['valid'] } as unknown as PluginContribution,
+          { id: 'valid', phase: 'transform' },
+        ]),
+      ],
+      ['example/pipeline'],
+    );
+
+    expect(result.ok).toBe(false);
+    expect(result.contributions).toEqual([]);
+    expect(result.diagnostics.map(({ code }) => code)).toEqual(['unknown-phase']);
+  });
+
   it('orders selected contributions independently of discovery order', () => {
     const manifests = [
       plugin('example/render', [{ id: 'render', phase: 'render' }]),

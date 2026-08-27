@@ -33,6 +33,9 @@ describe('defineDeclarativePlugin', () => {
     });
 
     expect(JSON.parse(JSON.stringify(registration.manifest))).toEqual(registration.manifest);
+    expect(Object.isFrozen(registration)).toBe(true);
+    expect(Object.isFrozen(registration.manifest)).toBe(true);
+    expect(Object.isFrozen(implementation)).toBe(true);
     expect(output).toEqual({
       schemaVersion: '1',
       content: [
@@ -41,5 +44,28 @@ describe('defineDeclarativePlugin', () => {
       ],
     });
     expect(input).toEqual(makeTextDocument('original'));
+  });
+
+  it('rejects duplicate and missing declarative contribution definitions', async () => {
+    const manifest: PluginManifest = {
+      id: 'example/invalid-declarative',
+      version: '1.0.0',
+      type: 'pipeline',
+      contributions: [{ id: 'append', phase: 'transform' }],
+    };
+    const definition = {
+      contributionId: 'append',
+      operation: { kind: 'append-text-block' as const, block: { id: 'extra', text: 'extra' } },
+    };
+
+    expect(() => defineDeclarativePlugin(manifest, [definition, definition])).toThrow(/duplicate/i);
+    const implementation = await defineDeclarativePlugin(manifest, [definition]).activate();
+    await expect(
+      implementation.invoke({
+        contributionId: 'missing',
+        input: makeTextDocument('original'),
+        signal: new AbortController().signal,
+      }),
+    ).rejects.toThrow(/not defined/i);
   });
 });

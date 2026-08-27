@@ -71,7 +71,7 @@ describe('defineNativePlugin', () => {
   });
 
   it('rejects an invalid initialization response and terminates the process', async () => {
-    const failure = await capturedFailure(native('wrong-initialize').activate());
+    const failure = await capturedFailure(Promise.resolve(native('wrong-initialize').activate()));
 
     expect(failure).toMatch(/native plugin protocol/i);
   });
@@ -83,11 +83,53 @@ describe('defineNativePlugin', () => {
     await expect(implementation.invoke(invocation())).rejects.toThrow(/protocol/i);
   });
 
+  it('rejects initialization responses with malformed capabilities or limits', async () => {
+    const modes = [
+      'null-initialize-result',
+      'null-capabilities',
+      'string-capabilities',
+      'invalid-methods',
+      'invalid-events',
+      'null-limits',
+      'string-limits',
+      'zero-frame-limit',
+      'zero-depth-limit',
+      'oversized-frame-limit',
+      'oversized-depth-limit',
+    ];
+    for (const mode of modes) {
+      await expect(native(mode).activate()).rejects.toThrow('Native plugin protocol error');
+    }
+  });
+
+  it('passes the configured environment to the native process', async () => {
+    const implementation = await native('environment', {
+      environment: { META_PROMPT_TEST_VALUE: 'configured' },
+    }).activate();
+
+    await expect(implementation.invoke(invocation())).resolves.toMatchObject({
+      content: [{ text: 'input' }, { text: 'configured' }],
+    });
+  });
+
+  it('rejects JSON-RPC errors and responses without results', async () => {
+    for (const mode of ['rpc-error', 'missing-result']) {
+      const implementation = await native(mode).activate();
+      await expect(implementation.invoke(invocation())).rejects.toThrow(
+        'Native plugin protocol error',
+      );
+    }
+  });
+
   it('contains a missing executable error promptly', async () => {
     const started = Date.now();
 
     const failure = await capturedFailure(
-      native('happy', { command: join(tmpdir(), 'meta-prompt-command-does-not-exist') }).activate(),
+      Promise.resolve(
+        native('happy', {
+          command: join(tmpdir(), 'meta-prompt-command-does-not-exist'),
+        }).activate(),
+      ),
     );
 
     expect(failure).toMatch(/native plugin process exited/i);

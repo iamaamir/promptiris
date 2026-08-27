@@ -1,6 +1,6 @@
 # External Plugin Path
 
-Status: in-progress
+Status: complete
 
 ## Goal
 
@@ -47,6 +47,14 @@ This slice does not call a model. It establishes the execution path that later p
 - Candidate verification, mutation, coverage/CRAP, secret scanning, and the repository hardener pass.
 - A human-style QA check exercises the public host-facing path without importing internal modules.
 - Tool traces and verification evidence are recorded so the dashboard can answer cost, output-reduction, mutation, coverage, and gate-status questions.
+
+## Completion evidence
+
+- Full verifier: `verify-20260827T151632Z-51568` passed all 20 gates.
+- Mutation: 76.57% across 1,066 generated mutants; the 75% breaking threshold passed.
+- TypeScript coverage: 97.75% statements, 98.32% functions, and 93.77% branches.
+- CRAP: 160 functions analyzed, 0 violations, maximum score 9.
+- Telemetry: 59,351 estimated tokens avoided overall; the final verifier avoided an estimated 22,337 tokens.
 
 ## References
 

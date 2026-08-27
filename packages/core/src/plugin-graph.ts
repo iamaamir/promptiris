@@ -17,6 +17,12 @@ export interface CompiledPluginGraph {
 type Constraint = 'before' | 'after' | 'requires';
 type EdgeMap = Map<string, Set<string>>;
 
+function requiredMapValue<Key, Value>(map: ReadonlyMap<Key, Value>, key: Key): Value {
+  const value = map.get(key);
+  if (value === undefined) throw new Error('Internal plugin graph invariant violated');
+  return value;
+}
+
 const phases: readonly Phase[] = [
   'preflight',
   'analyze',
@@ -77,8 +83,8 @@ function uniqueContributions(
   diagnostics: Diagnostic[],
 ): Map<string, CompiledContribution> {
   const unique = new Map<string, CompiledContribution>();
-  for (const id of [...grouped.keys()].sort()) {
-    const peers = grouped.get(id) ?? [];
+  const entries = [...grouped.entries()].sort(([left], [right]) => left.localeCompare(right));
+  for (const [id, peers] of entries) {
     if (peers.length > 1) diagnostics.push(diagnostic('duplicate-contribution-id', id));
     const [node] = peers;
     if (peers.length === 1 && node !== undefined) unique.set(id, node);
@@ -180,18 +186,16 @@ function readyNodes(
   nodes: ReadonlyMap<string, CompiledContribution>,
   indegree: ReadonlyMap<string, number>,
   visited: ReadonlySet<string>,
-): string[] {
-  return [...indegree]
-    .filter(([id, degree]) => degree === 0 && !visited.has(id))
-    .map(([id]) => id)
+): CompiledContribution[] {
+  return [...nodes.values()]
+    .filter((node) => {
+      const id = node.contribution.id;
+      return indegree.get(id) === 0 && !visited.has(id);
+    })
     .sort((left, right) => {
-      const leftNode = nodes.get(left);
-      const rightNode = nodes.get(right);
-      const leftRank =
-        leftNode === undefined ? phases.length : (phaseRank(leftNode) ?? phases.length);
-      const rightRank =
-        rightNode === undefined ? phases.length : (phaseRank(rightNode) ?? phases.length);
-      return leftRank - rightRank || left.localeCompare(right);
+      const leftRank = phaseRank(left) ?? phases.length;
+      const rightRank = phaseRank(right) ?? phases.length;
+      return leftRank - rightRank || left.contribution.id.localeCompare(right.contribution.id);
     });
 }
 
@@ -199,22 +203,27 @@ function topologicalOrder(
   nodes: ReadonlyMap<string, CompiledContribution>,
   edges: ReadonlyMap<string, ReadonlySet<string>>,
   diagnostics: Diagnostic[],
-): string[] {
+): CompiledContribution[] {
   const indegree = new Map([...nodes.keys()].map((id) => [id, 0]));
   for (const targets of edges.values()) {
-    for (const target of targets) indegree.set(target, (indegree.get(target) ?? 0) + 1);
+    for (const target of targets) {
+      indegree.set(target, requiredMapValue(indegree, target) + 1);
+    }
   }
-  const order: string[] = [];
+  const order: CompiledContribution[] = [];
+  const visited = new Set<string>();
   while (order.length < nodes.size) {
-    const [next] = readyNodes(nodes, indegree, new Set(order));
+    const [next] = readyNodes(nodes, indegree, visited);
     if (next === undefined) {
-      const remaining = [...nodes.keys()].filter((id) => !order.includes(id)).sort();
+      const remaining = [...nodes.keys()].filter((id) => !visited.has(id)).sort();
       diagnostics.push(diagnostic('cycle', remaining.join(',')));
       return [];
     }
     order.push(next);
-    for (const target of edges.get(next) ?? []) {
-      indegree.set(target, (indegree.get(target) ?? 0) - 1);
+    const nextId = next.contribution.id;
+    visited.add(nextId);
+    for (const target of requiredMapValue(edges, nextId)) {
+      indegree.set(target, requiredMapValue(indegree, target) - 1);
     }
   }
   return order;
@@ -224,22 +233,8 @@ function normalizedDiagnostics(diagnostics: readonly Diagnostic[]): readonly Dia
   const unique = new Map(diagnostics.map((item) => [item.id, item]));
   return Object.freeze(
     [...unique.values()].sort(
-      (left, right) =>
-        left.code.localeCompare(right.code) ||
-        (left.detail ?? '').localeCompare(right.detail ?? ''),
+      (left, right) => left.code.localeCompare(right.code) || left.id.localeCompare(right.id),
     ),
-  );
-}
-
-function orderedContributions(
-  order: readonly string[],
-  nodes: ReadonlyMap<string, CompiledContribution>,
-): readonly CompiledContribution[] {
-  return Object.freeze(
-    order.flatMap((id) => {
-      const node = nodes.get(id);
-      return node === undefined ? [] : [node];
-    }),
   );
 }
 
@@ -256,8 +251,7 @@ export function compilePluginGraph(
   const finalDiagnostics = normalizedDiagnostics(diagnostics);
   return Object.freeze({
     ok: finalDiagnostics.length === 0,
-    contributions:
-      finalDiagnostics.length === 0 ? orderedContributions(order, nodes) : Object.freeze([]),
+    contributions: finalDiagnostics.length === 0 ? Object.freeze(order) : Object.freeze([]),
     diagnostics: finalDiagnostics,
   });
 }

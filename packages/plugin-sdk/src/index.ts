@@ -55,23 +55,63 @@ export interface PluginManifest {
   readonly type: 'recipe' | 'pipeline' | 'guard' | 'provider' | 'observer';
   readonly contributions?: readonly PluginContribution[];
 }
+
+function assertJsonScalar(value: unknown): void {
+  if (
+    value === undefined ||
+    typeof value === 'function' ||
+    typeof value === 'symbol' ||
+    typeof value === 'bigint'
+  ) {
+    throw new Error('Plugin manifest must contain only JSON data');
+  }
+  if (typeof value === 'number' && !Number.isFinite(value)) {
+    throw new Error('Plugin manifest must contain only finite JSON numbers');
+  }
+}
+
+function assertPlainObject(value: unknown): void {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return;
+  const prototype = Object.getPrototypeOf(value) as unknown;
+  if (prototype !== Object.prototype && prototype !== null) {
+    throw new Error('Plugin manifest must contain only plain JSON objects');
+  }
+}
+
+function assertJsonValue(value: unknown, active: WeakSet<object>): void {
+  assertJsonScalar(value);
+  if (typeof value !== 'object' || value === null) return;
+  assertPlainObject(value);
+  if (active.has(value)) throw new Error('Plugin manifest must not contain cycles');
+  active.add(value);
+  for (const key of Reflect.ownKeys(value)) {
+    if (typeof key === 'symbol') throw new Error('Plugin manifest keys must be strings');
+    const descriptor = Object.getOwnPropertyDescriptor(value, key);
+    if (descriptor?.enumerable !== true) continue;
+    if (!('value' in descriptor)) throw new Error('Plugin manifest must not contain accessors');
+    assertJsonValue(descriptor.value, active);
+  }
+  active.delete(value);
+}
+
+function assertDataOnly(manifest: PluginManifest): void {
+  try {
+    assertJsonValue(manifest, new WeakSet());
+  } catch {
+    throw new Error('Plugin manifest must contain only JSON data');
+  }
+}
+
+function deepFreeze<T>(value: T): T {
+  if (typeof value !== 'object' || value === null) return value;
+  for (const nested of Object.values(value)) deepFreeze(nested);
+  return Object.freeze(value);
+}
+
 /** @public */
 export function definePlugin<T extends PluginManifest>(manifest: T): T {
-  const contributions =
-    manifest.contributions === undefined
-      ? undefined
-      : Object.freeze(
-          manifest.contributions.map((contribution) =>
-            Object.freeze({
-              ...contribution,
-              requires: contribution.requires && Object.freeze([...contribution.requires]),
-              before: contribution.before && Object.freeze([...contribution.before]),
-              after: contribution.after && Object.freeze([...contribution.after]),
-              conflicts: contribution.conflicts && Object.freeze([...contribution.conflicts]),
-            }),
-          ),
-        );
-  return Object.freeze({ ...manifest, contributions });
+  assertDataOnly(manifest);
+  return deepFreeze(structuredClone(manifest));
 }
 
 function freezeDeclarativeContribution(

@@ -68,6 +68,147 @@ function customRegistration(activate: () => PluginImplementation): PluginRegistr
 }
 
 describe('executePluginPlan', () => {
+  it('emits payloads and phase statuses for a failed invocation', async () => {
+    const events: { type: string; data: unknown; dataSchema: string }[] = [];
+    const result = await executePluginPlan(
+      makeTextDocument('input'),
+      compilePluginGraph([manifest], [manifest.id]),
+      [
+        customRegistration(() => ({
+          invoke: async () => {
+            throw new Error('hidden');
+          },
+        })),
+      ],
+      createRunContext('run-event-payloads', (event) => events.push(event)),
+      { recipe: { id: 'recipe', version: '1.0.0' } },
+    );
+
+    expect(events).toEqual([
+      expect.objectContaining({ type: 'meta-prompt.phase.started', data: { phase: 'transform' } }),
+      expect.objectContaining({
+        type: 'meta-prompt.plugin.activation-started',
+        data: { pluginId: manifest.id, contributionId: 'first' },
+      }),
+      expect.objectContaining({
+        type: 'meta-prompt.plugin.activation-completed',
+        data: { pluginId: manifest.id, contributionId: 'first', status: 'success' },
+      }),
+      expect.objectContaining({
+        type: 'meta-prompt.plugin.invocation-started',
+        data: { pluginId: manifest.id, contributionId: 'first' },
+      }),
+      expect.objectContaining({
+        type: 'meta-prompt.plugin.invocation-completed',
+        data: { pluginId: manifest.id, contributionId: 'first', status: 'failed' },
+      }),
+      expect.objectContaining({
+        type: 'meta-prompt.phase.completed',
+        data: { phase: 'transform', status: 'degraded' },
+      }),
+    ]);
+    expect(events.map((event) => event.dataSchema)).toEqual([
+      'meta-prompt/event/phase-started-v1',
+      'meta-prompt/event/plugin-activation-started-v1',
+      'meta-prompt/event/plugin-activation-completed-v1',
+      'meta-prompt/event/plugin-invocation-started-v1',
+      'meta-prompt/event/plugin-invocation-completed-v1',
+      'meta-prompt/event/phase-completed-v1',
+    ]);
+    expect(Object.isFrozen(result)).toBe(true);
+    expect(Object.isFrozen(result.diagnostics)).toBe(true);
+    expect(Object.isFrozen(result.summary.completedPhases)).toBe(true);
+    expect(Object.isFrozen(result.summary.failedPhases)).toBe(true);
+    expect(result).toMatchObject({
+      schemaVersion: '1',
+      runId: 'run-event-payloads',
+      alternatives: [],
+      exposed: {},
+      assumptions: [],
+      clarifications: [],
+      summary: { traceId: 'run-event-payloads' },
+    });
+    expect(result.summary.durationMs).toBeGreaterThanOrEqual(0);
+    expect(result.summary.durationMs).toBeLessThan(10_000);
+  });
+
+  it('fails open when a graph contribution has no registration', async () => {
+    const events: string[] = [];
+    const result = await executePluginPlan(
+      makeTextDocument('input'),
+      compilePluginGraph([manifest], [manifest.id]),
+      [],
+      createRunContext('run-missing-registration', (event) => events.push(event.type)),
+      { recipe: { id: 'recipe', version: '1.0.0' } },
+    );
+
+    expect(result).toMatchObject({
+      status: 'degraded',
+      primary: { value: 'input' },
+      primaryOrigin: 'original',
+      diagnostics: [{ code: 'meta-prompt.plugin.activation-failed' }],
+      summary: { completedPhases: [], failedPhases: ['transform'] },
+    });
+    expect(events).toEqual([
+      'meta-prompt.phase.started',
+      'meta-prompt.plugin.activation-started',
+      'meta-prompt.plugin.activation-completed',
+      'meta-prompt.phase.completed',
+    ]);
+  });
+
+  it('returns the original input and no phases for a valid empty graph', async () => {
+    const input = makeTextDocument('input');
+    const result = await executePluginPlan(
+      input,
+      compilePluginGraph([{ ...manifest, contributions: [] }], [manifest.id]),
+      [],
+      createRunContext('run-empty-graph', () => undefined),
+      { recipe: { id: 'recipe', version: '1.0.0' } },
+    );
+
+    expect(result).toMatchObject({
+      status: 'success',
+      primary: { value: 'input' },
+      primaryOrigin: 'original',
+      diagnostics: [],
+      summary: { completedPhases: [], failedPhases: [] },
+    });
+    expect(input).toEqual(makeTextDocument('input'));
+  });
+
+  it('transitions across phases and records each completed phase', async () => {
+    const phases = ['preflight', 'analyze', 'transform'] as const;
+    const multiPhaseManifest: PluginManifest = {
+      ...manifest,
+      contributions: phases.map((phase) => ({ id: phase, phase })),
+    };
+    const registration: PluginRegistration = {
+      manifest: multiPhaseManifest,
+      async activate() {
+        return {
+          async invoke({ input }) {
+            return input;
+          },
+        };
+      },
+    };
+    const events: string[] = [];
+    const result = await executePluginPlan(
+      makeTextDocument('input'),
+      compilePluginGraph([multiPhaseManifest], [multiPhaseManifest.id]),
+      [registration],
+      createRunContext('run-multi-phase', (event) => events.push(event.type)),
+      { recipe: { id: 'recipe', version: '1.0.0' } },
+    );
+
+    expect(result.status).toBe('success');
+    expect(result.summary.completedPhases).toEqual(phases);
+    expect(result.summary.failedPhases).toEqual([]);
+    expect(events.filter((type) => type === 'meta-prompt.phase.started')).toHaveLength(3);
+    expect(events.filter((type) => type === 'meta-prompt.phase.completed')).toHaveLength(3);
+  });
+
   it('activates once, invokes in graph order, and emits standard lifecycle events', async () => {
     const activations = { count: 0 };
     const immutableInputs: boolean[] = [];

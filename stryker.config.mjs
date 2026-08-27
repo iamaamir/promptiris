@@ -1,5 +1,12 @@
 export default {
-  mutate: ['packages/protocol/src/index.ts', 'packages/core/src/index.ts'],
+  mutate: [
+    'packages/protocol/src/index.ts',
+    'packages/plugin-sdk/src/index.ts',
+    'packages/core/src/index.ts',
+    'packages/core/src/plugin-graph.ts',
+    'packages/core/src/plugin-execution.ts',
+    'apps/runtime-node/src/native-plugin.ts',
+  ],
   plugins: ['@stryker-mutator/vitest-runner', '@stryker-mutator/typescript-checker'],
   testRunner: 'vitest',
   checkers: ['typescript'],
