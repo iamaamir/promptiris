@@ -1,8 +1,6 @@
 # T002-04 — Independent hardener and QA acceptance
 
-Status: blocked
-
-Blocked by: T002-01, T002-02, T002-03
+Status: ready-for-agent
 
 ## Outcome
 

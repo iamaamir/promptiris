@@ -70,6 +70,9 @@ importers:
       '@meta-prompt/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@meta-prompt/plugin-sdk':
+        specifier: workspace:*
+        version: link:../../packages/plugin-sdk
       '@meta-prompt/protocol':
         specifier: workspace:*
         version: link:../../packages/protocol

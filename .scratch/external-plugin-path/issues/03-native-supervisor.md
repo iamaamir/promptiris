@@ -1,6 +1,6 @@
 # T002-03 — Bounded native plugin supervisor
 
-Status: ready-for-agent
+Status: done
 
 ## Outcome
 
@@ -19,3 +19,10 @@ Prove one supervised local native plugin can negotiate, run, cancel, fail, and t
 - Timeout, early exit, malformed frame/response, and oversized output become normalized diagnostics.
 - No failed invocation is automatically retried.
 - The engine returns the last valid artifact under the default fail-open policy.
+
+## Evidence
+
+- Red trace: `.agent/traces/20260827T102141-24041.json`.
+- Hardened targeted trace: `.agent/traces/20260827T103411-31761.json`.
+- Runtime tests: 20 passing, including real subprocess framing, crash, malformed output, timeout, cancellation race, concurrent invocation, restart, shutdown containment, and core fail-open integration.
+- Independent low-cost hardener review: pass, no remaining tracer-bullet blockers.
