@@ -14,7 +14,7 @@ export default {
   coverageAnalysis: 'perTest',
   reporters: ['clear-text', 'json'],
   jsonReporter: { fileName: '.agent/reports/mutation.json' },
-  thresholds: { high: 90, low: 80, break: 75 },
+  thresholds: { high: 95, low: 90, break: 90 },
   incremental: true,
   incrementalFile: '.agent/evidence/stryker-incremental.json',
   tempDirName: '.agent/work/stryker',

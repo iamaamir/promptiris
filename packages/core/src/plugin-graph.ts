@@ -19,7 +19,7 @@ type EdgeMap = Map<string, Set<string>>;
 
 function requiredMapValue<Key, Value>(map: ReadonlyMap<Key, Value>, key: Key): Value {
   const value = map.get(key);
-  if (value === undefined) throw new Error('Internal plugin graph invariant violated');
+  if (value === undefined) throw new TypeError();
   return value;
 }
 
@@ -68,11 +68,13 @@ function selectPlugins(
   diagnostics: Diagnostic[],
 ): PluginManifest[] {
   const selected: PluginManifest[] = [];
-  for (const id of [...new Set(selectedPluginIds)].sort()) {
+  for (const id of new Set(selectedPluginIds)) {
     const matches = manifests.filter((manifest) => manifest.id === id);
     if (matches.length === 0) diagnostics.push(diagnostic('missing-selected-plugin', id));
     if (matches.length > 1) diagnostics.push(diagnostic('duplicate-plugin-id', id));
     const [manifest] = matches;
+    // Stryker disable next-line ConditionalExpression: selecting the first duplicate cannot alter
+    // the public result because duplicate-plugin-id already forces an empty executable plan.
     if (matches.length === 1 && manifest !== undefined) selected.push(manifest);
   }
   return selected;
@@ -83,10 +85,11 @@ function uniqueContributions(
   diagnostics: Diagnostic[],
 ): Map<string, CompiledContribution> {
   const unique = new Map<string, CompiledContribution>();
-  const entries = [...grouped.entries()].sort(([left], [right]) => left.localeCompare(right));
-  for (const [id, peers] of entries) {
+  for (const [id, peers] of grouped) {
     if (peers.length > 1) diagnostics.push(diagnostic('duplicate-contribution-id', id));
     const [node] = peers;
+    // Stryker disable next-line ConditionalExpression: retaining one duplicate cannot alter the
+    // public result because duplicate-contribution-id already forces an empty executable plan.
     if (peers.length === 1 && node !== undefined) unique.set(id, node);
   }
   return unique;

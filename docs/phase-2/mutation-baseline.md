@@ -1,13 +1,16 @@
 # Mutation baseline
 
-The forced, cache-independent identity-slice run mutates `packages/core/src/index.ts` and `packages/protocol/src/index.ts`. It exists to make test sensitivity inspectable rather than inferred from coverage.
+Mutation testing covers the protocol, Plugin SDK, graph compiler, plugin execution engine, and Node native-plugin supervisor. It exists to make test sensitivity inspectable rather than inferred from line coverage.
 
-The first generated suite scored 66.67%. Assertions added for Recipe identity, full Run Result structure, lifecycle Event payloads and ordering, duration, exact frame limits, strict header parsing, multi-frame buffering, and mixed valid/invalid Prompt Document blocks raised the forced score to 92.38%. After explicit equivalent-mutant disposition, a second forced run exercised 145 generated mutants and reported 100% mutation score with no survivors or uncovered mutants.
+The external-plugin slice began at 75.94% on a forced run of 1,066 generated mutants. Contract-focused tests and code removal raised the corrected line-scoped result to 93.90%: 506 killed, two timed out, 28 survived, five had no coverage, and 412 failed TypeScript compilation. All package targets score 100%; the native supervisor scores 82.16%. The configured breaking threshold is now 90%, with 95% shown as the high band.
 
-The remaining generated survivors were reviewed rather than hidden:
+The hardening work added deterministic assertions for:
 
-- Ajv `strict`, `allErrors`, `useDefaults`, and related compiler-construction mutations do not change the exported boolean result for the current valid schema and no-default schema. Their observable non-coercion and non-removal contract is tested. This compiler-policy construction is explicitly mutation-disabled at its source with a rationale; schema compilation and conformance remain mandatory gates.
-- The `typeof` half of the lightweight shape guard is required for TypeScript narrowing and intent, but JavaScript safely boxes primitive property reads, making its generated removal behaviorally equivalent. The one operator is explicitly disabled with a source rationale.
-- The impossible missing capture branch after exactly one anchored regular-expression match was removed. `Number(undefined)` would still fail the following safe-integer guard if the invariant changed.
+- exact JSON-RPC initialize, invoke, cancel, and shutdown envelopes with monotonic IDs;
+- protocol boundary limits, invalid implementation shapes, registration identity, diagnostic metadata, event payloads, and deterministic graph ordering;
+- initialization, invocation, cancellation, forced shutdown, acknowledged-but-lingering shutdown, process crash, and malformed protocol containment;
+- shell isolation, high-volume stderr draining, abort-listener cleanup, data-only manifests, shared references, cycles, accessors, and symbol keys.
 
-The canonical machine report is `.agent/reports/mutation.json` and remains ignored because it is revision-specific evidence. CI regenerates it. Any new survivor must be killed, explicitly classified as equivalent with evidence, or cause the configured threshold to fail; it may not disappear through an unexplained exclusion.
+Dead stderr-tail buffering was removed because it had no consumer or public effect. Mutation exclusions are line-scoped and carry source rationale. They cover behaviorally equivalent compiler policy, duplicate-plan branches that are already made non-executable by diagnostics, and native lifecycle idempotency or resource cleanup whose mutation cannot change the settled public result. Broad file or region exclusions are forbidden.
+
+The canonical machine report is `.agent/reports/mutation.json` and remains ignored because it is revision-specific evidence. CI regenerates it. Any new survivor must be killed, explicitly classified as equivalent with evidence, or cause the 90% threshold to fail; it may not disappear through an unexplained exclusion.

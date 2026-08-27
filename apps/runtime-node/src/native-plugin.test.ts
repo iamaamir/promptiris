@@ -102,6 +102,51 @@ describe('defineNativePlugin', () => {
     }
   });
 
+  it('accepts the advertised protocol boundary limits', async () => {
+    const implementation = await native('boundary-limits').activate();
+
+    await expect(implementation.invoke(invocation())).resolves.toMatchObject({
+      content: [{ text: 'input' }, { text: 'native' }],
+    });
+  });
+
+  it('writes exact JSON-RPC request envelopes with monotonic ids', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'meta-prompt-native-trace-'));
+    try {
+      const marker = join(directory, 'protocol');
+      const implementation = await native('trace', {
+        args: [fixture, 'trace', marker],
+      }).activate();
+
+      await expect(implementation.invoke(invocation())).resolves.toBeDefined();
+
+      const [, ...lines] = (await readFile(marker, 'utf8')).trim().split('\n');
+      expect(lines.map((line) => JSON.parse(line) as unknown)).toStrictEqual([
+        {
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'initialize',
+          params: {
+            protocolVersion: '1',
+            limits: { maxFrameBytes: 8 * 1024 * 1024, maxDepth: 64 },
+          },
+        },
+        {
+          jsonrpc: '2.0',
+          id: 2,
+          method: 'plugin/invoke',
+          params: {
+            contributionId: 'native-transform',
+            input: makeTextDocument('input'),
+          },
+        },
+        { jsonrpc: '2.0', id: 3, method: 'plugin/shutdown', params: {} },
+      ]);
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+
   it('passes the configured environment to the native process', async () => {
     const implementation = await native('environment', {
       environment: { META_PROMPT_TEST_VALUE: 'configured' },
@@ -136,6 +181,21 @@ describe('defineNativePlugin', () => {
     expect(Date.now() - started).toBeLessThan(2_000);
   });
 
+  it('does not interpret command arguments through a shell', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'meta-prompt native shell '));
+    try {
+      const marker = join(directory, 'marker with spaces');
+      const implementation = await native('happy', {
+        args: [fixture, 'happy', marker],
+      }).activate();
+
+      await expect(implementation.invoke(invocation())).resolves.toBeDefined();
+      await expect(readFile(marker, 'utf8')).resolves.toBe('started\n');
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+
   it('contains crashes, redacts stderr, and does not retry', async () => {
     const directory = await mkdtemp(join(tmpdir(), 'meta-prompt-native-crash-'));
     try {
@@ -152,6 +212,25 @@ describe('defineNativePlugin', () => {
     } finally {
       await rm(directory, { recursive: true, force: true });
     }
+  });
+
+  it('drains high-volume stderr without exposing it or deadlocking the plugin', async () => {
+    const implementation = await native('stderr-flood', {
+      invocationTimeoutMs: 1_000,
+    }).activate();
+
+    await expect(implementation.invoke(invocation())).resolves.toMatchObject({
+      content: [{ text: 'input' }, { text: 'native' }],
+    });
+  });
+
+  it('times out initialization with a normalized error', async () => {
+    await expect(
+      native('hang-initialize', {
+        initializeTimeoutMs: 50,
+        cancellationGraceMs: 25,
+      }).activate(),
+    ).rejects.toThrow('Native plugin initialization timed out');
   });
 
   it('times out and terminates the child within a bounded interval', async () => {
@@ -186,6 +265,76 @@ describe('defineNativePlugin', () => {
     } finally {
       await rm(directory, { recursive: true, force: true });
     }
+  });
+
+  it('emits an exact cancellation notification and applies zero-duration fallback', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'meta-prompt-native-cancel-trace-'));
+    try {
+      const marker = join(directory, 'protocol');
+      const implementation = await native('trace-hang', {
+        args: [fixture, 'trace-hang', marker],
+        invocationTimeoutMs: 2_000,
+        cancellationGraceMs: 0,
+      }).activate();
+      const controller = new AbortController();
+      const started = Date.now();
+      const pending = implementation.invoke(invocation(controller.signal));
+
+      controller.abort();
+
+      await expect(pending).rejects.toThrow(/cancelled/i);
+      expect(Date.now() - started).toBeGreaterThanOrEqual(100);
+      const messages = (await readFile(marker, 'utf8'))
+        .trim()
+        .split('\n')
+        .slice(1)
+        .filter((line) => line.startsWith('{'))
+        .map((line) => JSON.parse(line) as unknown);
+      expect(messages).toStrictEqual([
+        {
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'initialize',
+          params: {
+            protocolVersion: '1',
+            limits: { maxFrameBytes: 8 * 1024 * 1024, maxDepth: 64 },
+          },
+        },
+        {
+          jsonrpc: '2.0',
+          id: 2,
+          method: 'plugin/invoke',
+          params: {
+            contributionId: 'native-transform',
+            input: makeTextDocument('input'),
+          },
+        },
+        { jsonrpc: '2.0', method: 'plugin/cancel', params: { id: 2 } },
+      ]);
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('removes its abort listener after a successful request', async () => {
+    const observed = { added: 0, removed: 0, once: false };
+    const signal = {
+      aborted: false,
+      addEventListener(type: string, _listener: unknown, options?: AddEventListenerOptions) {
+        expect(type).toBe('abort');
+        observed.added += 1;
+        observed.once = options?.once === true;
+      },
+      removeEventListener(type: string) {
+        expect(type).toBe('abort');
+        observed.removed += 1;
+      },
+    } as unknown as AbortSignal;
+    const implementation = await native('happy').activate();
+
+    await expect(implementation.invoke(invocation(signal))).resolves.toBeDefined();
+
+    expect(observed).toEqual({ added: 1, removed: 1, once: true });
   });
 
   it('does not accept a successful response after cancellation begins', async () => {
@@ -261,6 +410,16 @@ describe('defineNativePlugin', () => {
     const implementation = await native('malformed-shutdown').activate();
 
     await expect(implementation.invoke(invocation())).rejects.toThrow(/protocol/i);
+  });
+
+  it('contains a plugin that acknowledges shutdown but does not exit', async () => {
+    const implementation = await native('linger-after-shutdown', {
+      cancellationGraceMs: 25,
+    }).activate();
+
+    await expect(implementation.invoke(invocation())).rejects.toThrow(
+      'Native plugin shutdown timed out',
+    );
   });
 
   it('makes a native crash a degraded fail-open core result', async () => {

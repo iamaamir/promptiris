@@ -115,6 +115,15 @@ describe('executePluginPlan', () => {
       'meta-prompt/event/plugin-invocation-completed-v1',
       'meta-prompt/event/phase-completed-v1',
     ]);
+    expect(events.map((event) => event.data)).toStrictEqual([
+      { phase: 'transform' },
+      { pluginId: manifest.id, contributionId: 'first' },
+      { pluginId: manifest.id, contributionId: 'first', status: 'success' },
+      { pluginId: manifest.id, contributionId: 'first' },
+      { pluginId: manifest.id, contributionId: 'first', status: 'failed' },
+      { phase: 'transform', status: 'degraded' },
+    ]);
+    expect(events.every((event) => (event as { source?: string }).source === 'core')).toBe(true);
     expect(Object.isFrozen(result)).toBe(true);
     expect(Object.isFrozen(result.diagnostics)).toBe(true);
     expect(Object.isFrozen(result.summary.completedPhases)).toBe(true);
@@ -312,6 +321,39 @@ describe('executePluginPlan', () => {
     });
   });
 
+  it('rejects an activation object whose invoke member is not callable', async () => {
+    const registration: PluginRegistration = {
+      manifest,
+      activate: (() => ({ invoke: 'not-a-function' })) as unknown as PluginRegistration['activate'],
+    };
+
+    const result = await execute([registration]);
+
+    expect(result.diagnostics).toEqual([
+      expect.objectContaining({
+        id: 'diagnostic:meta-prompt.plugin.activation-failed',
+        code: 'meta-prompt.plugin.activation-failed',
+        category: 'plugin',
+      }),
+    ]);
+  });
+
+  it('selects the registration matching the compiled plugin identity', async () => {
+    let wrongActivations = 0;
+    const wrong: PluginRegistration = {
+      manifest: { ...manifest, id: 'example/wrong' },
+      activate() {
+        wrongActivations += 1;
+        throw new Error('wrong registration');
+      },
+    };
+
+    const result = await execute([wrong, declarativeRegistration({ count: 0 })]);
+
+    expect(result.status).toBe('success');
+    expect(wrongActivations).toBe(0);
+  });
+
   it('normalizes invocation failure without leaking or retrying', async () => {
     let invocations = 0;
     const registration = customRegistration(() => ({
@@ -335,6 +377,7 @@ describe('executePluginPlan', () => {
 
   it('rejects invalid plugin output without retrying', async () => {
     let invocations = 0;
+    const events: string[] = [];
     const registration = customRegistration(() => ({
       async invoke() {
         invocations += 1;
@@ -342,7 +385,13 @@ describe('executePluginPlan', () => {
       },
     }));
 
-    const result = await execute([registration]);
+    const result = await executePluginPlan(
+      makeTextDocument('input'),
+      compilePluginGraph([manifest], [manifest.id]),
+      [registration],
+      createRunContext('run-invalid-output', (event) => events.push(event.type)),
+      { recipe: { id: 'recipe', version: '1.0.0' } },
+    );
 
     expect(invocations).toBe(1);
     expect(result).toMatchObject({
@@ -351,6 +400,7 @@ describe('executePluginPlan', () => {
       primaryOrigin: 'original',
       diagnostics: [{ code: 'meta-prompt.plugin.invalid-output' }],
     });
+    expect(events).toContain('meta-prompt.plugin.invocation-completed');
   });
 
   it('preserves the last valid transformed artifact after a later failure', async () => {
@@ -391,7 +441,16 @@ describe('executePluginPlan', () => {
       status: 'degraded',
       primary: { value: 'input' },
       primaryOrigin: 'original',
-      diagnostics: [{ code: 'meta-prompt.recipe.compile-failed' }],
+      diagnostics: [
+        {
+          schemaVersion: '1',
+          id: 'diagnostic:meta-prompt.recipe.compile-failed',
+          code: 'meta-prompt.recipe.compile-failed',
+          category: 'configuration',
+          severity: 'error',
+          title: 'meta-prompt.recipe.compile-failed',
+        },
+      ],
     });
   });
 });

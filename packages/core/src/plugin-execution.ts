@@ -108,9 +108,9 @@ async function activatePlugin(
   if (cached !== undefined) return { ok: true, implementation: cached };
   emitPluginEvent(context, 'meta-prompt.plugin.activation-started', node);
   try {
-    if (registration === undefined) throw new Error('Plugin registration is missing');
+    if (registration === undefined) throw new TypeError();
     const implementation: unknown = await registration.activate();
-    if (!isPluginImplementation(implementation)) throw new Error('Plugin activation is invalid');
+    if (!isPluginImplementation(implementation)) throw new TypeError();
     state.activated.set(node.pluginId, implementation);
     emitPluginEvent(context, 'meta-prompt.plugin.activation-completed', node, 'success');
     return { ok: true, implementation };

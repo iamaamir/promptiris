@@ -22,6 +22,15 @@ describe('compilePluginGraph', () => {
     expect(Object.isFrozen(result.diagnostics[0])).toBe(true);
   });
 
+  it('orders diagnostics with the same code by their stable identity', () => {
+    const result = compilePluginGraph([], ['z-missing', 'a-missing']);
+
+    expect(result.diagnostics.map(({ id }) => id)).toEqual([
+      'diagnostic:missing-selected-plugin:a-missing',
+      'diagnostic:missing-selected-plugin:z-missing',
+    ]);
+  });
+
   it('reports selected conflicts against plugin ids and contribution ids', () => {
     const result = compilePluginGraph(
       [plugin('example/pipeline', [{ id: 'one', phase: 'transform', conflicts: ['other'] }])],
@@ -94,7 +103,9 @@ describe('compilePluginGraph', () => {
 
     expect(result.ok).toBe(false);
     expect(result.contributions).toEqual([]);
-    expect(result.diagnostics.map(({ code }) => code)).toEqual(['unknown-phase']);
+    expect(result.diagnostics.map(({ code, detail }) => ({ code, detail }))).toEqual([
+      { code: 'unknown-phase', detail: 'invalid:unknown' },
+    ]);
   });
 
   it('orders selected contributions independently of discovery order', () => {
@@ -169,15 +180,61 @@ describe('compilePluginGraph', () => {
     expect(first).toEqual(second);
     expect(first.ok).toBe(false);
     expect(first.contributions).toEqual([]);
-    expect(first.diagnostics.map(({ code }) => code)).toEqual([
-      'cycle',
-      'duplicate-contribution-id',
-      'missing-referenced-contribution',
-      'missing-selected-plugin',
-      'reversed-cross-phase-edge',
-      'selected-conflict',
-      'unknown-phase',
+    expect(first.diagnostics.map(({ code, detail }) => ({ code, detail }))).toEqual([
+      {
+        code: 'cycle',
+        detail: 'cycle-a,cycle-b',
+      },
+      { code: 'duplicate-contribution-id', detail: 'duplicate' },
+      { code: 'missing-referenced-contribution', detail: 'missing-reference:absent' },
+      { code: 'missing-selected-plugin', detail: 'absent-plugin' },
+      { code: 'reversed-cross-phase-edge', detail: 'reversed:render' },
+      { code: 'selected-conflict', detail: 'render:one' },
+      { code: 'unknown-phase', detail: 'invalid:unknown' },
     ]);
+  });
+
+  it('rejects reversed before constraints across phases', () => {
+    const result = compilePluginGraph(
+      [
+        plugin('example/reversed-before', [
+          { id: 'render', phase: 'render', before: ['transform'] },
+          { id: 'transform', phase: 'transform' },
+        ]),
+      ],
+      ['example/reversed-before'],
+    );
+
+    expect(result.diagnostics.map(({ code, detail }) => ({ code, detail }))).toEqual([
+      { code: 'reversed-cross-phase-edge', detail: 'render:transform' },
+    ]);
+  });
+
+  it('reports only the unvisited nodes in a deterministic cycle detail', () => {
+    const result = compilePluginGraph(
+      [
+        plugin('example/cycle', [
+          { id: 'done', phase: 'preflight' },
+          { id: 'z-cycle', phase: 'transform', after: ['a-cycle'] },
+          { id: 'a-cycle', phase: 'transform', after: ['z-cycle'] },
+        ]),
+      ],
+      ['example/cycle'],
+    );
+
+    expect(result.diagnostics.map(({ code, detail }) => ({ code, detail }))).toEqual([
+      { code: 'cycle', detail: 'a-cycle,z-cycle' },
+    ]);
+  });
+
+  it('accepts arbitrary plugin identities when no conflict was declared', () => {
+    const result = compilePluginGraph(
+      [plugin('Stryker was here', [{ id: 'only', phase: 'transform' }])],
+      ['Stryker was here'],
+    );
+
+    expect(result.ok).toBe(true);
+    expect(result.diagnostics).toEqual([]);
   });
 
   it('rejects duplicate selected plugin identities', () => {

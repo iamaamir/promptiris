@@ -45,18 +45,22 @@ function initializeResult(requested) {
                 ? 0
                 : mode === 'oversized-frame-limit'
                   ? 64 * 1024 * 1024
-                  : Math.min(
-                      1024 * 1024,
-                      Number.isFinite(requested.maxFrameBytes)
-                        ? requested.maxFrameBytes
-                        : 1024 * 1024,
-                    ),
+                  : mode === 'boundary-limits'
+                    ? requested.maxFrameBytes
+                    : Math.min(
+                        1024 * 1024,
+                        Number.isFinite(requested.maxFrameBytes)
+                          ? requested.maxFrameBytes
+                          : 1024 * 1024,
+                      ),
             maxDepth:
               mode === 'zero-depth-limit'
                 ? 0
                 : mode === 'oversized-depth-limit'
                   ? 65
-                  : Math.min(32, Number.isFinite(requested.maxDepth) ? requested.maxDepth : 32),
+                  : mode === 'boundary-limits'
+                    ? requested.maxDepth
+                    : Math.min(32, Number.isFinite(requested.maxDepth) ? requested.maxDepth : 32),
           };
   return {
     protocolVersion: mode === 'wrong-initialize' ? '2' : '1',
@@ -68,7 +72,11 @@ function initializeResult(requested) {
 
 function handle(message) {
   if (!message || typeof message.method !== 'string') return;
+  if ((mode === 'trace' || mode === 'trace-hang') && markerFile) {
+    fs.appendFileSync(markerFile, `${JSON.stringify(message)}\n`);
+  }
   if (message.method === 'initialize') {
+    if (mode === 'hang-initialize') return;
     const requested = message.params?.limits ?? {};
     send({
       jsonrpc: mode === 'wrong-jsonrpc-initialize' ? '1.0' : '2.0',
@@ -86,7 +94,7 @@ function handle(message) {
       process.stderr.write('secret fixture stderr\n');
       process.exit(7);
     }
-    if (mode === 'hang') return;
+    if (mode === 'hang' || mode === 'trace-hang') return;
     const input = message.params?.input;
     const document = {
       ...input,
@@ -104,18 +112,36 @@ function handle(message) {
       id: message.id,
       result: document,
     };
+    if (mode === 'stderr-flood') {
+      let remainingChunks = 128;
+      const flood = () => {
+        while (remainingChunks > 0) {
+          remainingChunks -= 1;
+          if (!process.stderr.write(Buffer.alloc(64 * 1024, 'x'))) {
+            process.stderr.once('drain', flood);
+            return;
+          }
+        }
+        send(response);
+      };
+      flood();
+      return;
+    }
     if (mode === 'late-success') setTimeout(() => send(response), 25);
     else send(response);
     return;
   }
   if (message.method === 'plugin/cancel') {
-    if (mode === 'hang' && markerFile) fs.appendFileSync(markerFile, 'cancelled\n');
+    if ((mode === 'hang' || mode === 'trace-hang') && markerFile) {
+      fs.appendFileSync(markerFile, 'cancelled\n');
+    }
     return;
   }
   if (message.method === 'plugin/shutdown') {
     if (mode === 'ignore-shutdown') return;
     if (mode === 'malformed-shutdown') return sendMalformed();
     send({ jsonrpc: '2.0', id: message.id, result: null });
+    if (mode === 'linger-after-shutdown') return;
     process.stdout.once('drain', () => process.exit(0));
     setImmediate(() => process.exit(0));
   }

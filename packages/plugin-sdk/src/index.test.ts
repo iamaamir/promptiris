@@ -111,6 +111,21 @@ describe('plugin SDK primitives', () => {
     expect(() => definePlugin({ ...base, extension: accessor })).toThrow(/only JSON data/i);
   });
 
+  it('accepts shared JSON references without mistaking aliases for cycles', () => {
+    const shared = { value: 'shared' };
+    const manifest = definePlugin({
+      id: 'example/shared-reference',
+      version: '1.0.0',
+      type: 'guard' as const,
+      extension: { first: shared, second: shared },
+    });
+
+    expect(manifest.extension).toEqual({
+      first: { value: 'shared' },
+      second: { value: 'shared' },
+    });
+  });
+
   it('renders identity artifacts from all text blocks', () => {
     const document = makeTextDocument('first');
     document.content.push({ id: 'second', text: 'second' });

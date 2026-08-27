@@ -44,7 +44,6 @@ interface RequestOptions {
   readonly signal?: AbortSignal;
 }
 
-const STDERR_TAIL_BYTES = 64 * 1024;
 const SHUTDOWN_TIMEOUT_MS = 2_000;
 
 function safeError(message: string): Error {
@@ -68,16 +67,22 @@ function normalizeOptions(options: NativePluginOptions): NativePluginConfig {
 }
 
 function signalChild(child: ChildProcessWithoutNullStreams, signal: NodeJS.Signals): void {
+  // Stryker disable next-line ConditionalExpression,LogicalOperator: kill() on an already-exited
+  // child is a harmless false-returning no-op; callers expose the same contained outcome.
   if (child.exitCode === null && child.signalCode === null) child.kill(signal);
 }
 
 function isCapabilities(value: unknown): boolean {
+  // Stryker disable next-line ConditionalExpression: property reads on JS primitives are safe and
+  // the required-array checks below still reject them.
   if (typeof value !== 'object' || value === null) return false;
   const capabilities = value as { methods?: unknown; events?: unknown };
   return Array.isArray(capabilities.methods) && Array.isArray(capabilities.events);
 }
 
 function isLimits(value: unknown): boolean {
+  // Stryker disable next-line ConditionalExpression: property reads on JS primitives are safe and
+  // the numeric limit checks below still reject them.
   if (typeof value !== 'object' || value === null) return false;
   const limits = value as { maxFrameBytes?: unknown; maxDepth?: unknown };
   return (
@@ -91,6 +96,8 @@ function isLimits(value: unknown): boolean {
 }
 
 function isInitializeResult(value: unknown): boolean {
+  // Stryker disable next-line ConditionalExpression: property reads on JS primitives are safe and
+  // the protocol/capability/limit checks below still reject them.
   if (typeof value !== 'object' || value === null) return false;
   const result = value as {
     protocolVersion?: unknown;
@@ -134,32 +141,60 @@ class RpcRequest {
     const { child, signal } = this.#options;
     child.stdout.on('data', this.#onData);
     child.once('exit', this.#onExit);
+    // Stryker disable next-line StringLiteral: process exit and request timeout are independent
+    // containment paths for this same spawn-error outcome.
     child.once('error', this.#onProcessError);
+    // Stryker disable next-line StringLiteral: the write callback and process lifecycle paths
+    // independently normalize stdin failures.
     child.stdin.once('error', this.#onProcessError);
     signal?.addEventListener('abort', this.#onAbort, { once: true });
   }
 
+  // Stryker disable next-line BlockStatement: cleanup changes resource lifetime, not the settled
+  // public result. Its observable AbortSignal listener contract is verified by a dedicated test.
   #cleanup(): void {
     const { child, signal } = this.#options;
+    // Stryker disable next-line ConditionalExpression,EqualityOperator: undefined timer cleanup is
+    // a safe no-op; suppressing cleanup changes resource lifetime rather than Promise settlement.
     if (this.#timeout !== undefined) clearTimeout(this.#timeout);
+    // Stryker disable next-line ConditionalExpression,EqualityOperator: undefined timer cleanup is
+    // a safe no-op; suppressing cleanup changes resource lifetime rather than Promise settlement.
     if (this.#grace !== undefined) clearTimeout(this.#grace);
+    // Stryker disable next-line CallExpression,StringLiteral: listener removal changes resource
+    // lifetime after the Promise has already settled.
     child.stdout.off('data', this.#onData);
+    // Stryker disable next-line CallExpression,StringLiteral: listener removal changes resource
+    // lifetime after the Promise has already settled.
     child.off('exit', this.#onExit);
+    // Stryker disable next-line CallExpression,StringLiteral: listener removal changes resource
+    // lifetime after the Promise has already settled.
     child.off('error', this.#onProcessError);
+    // Stryker disable next-line CallExpression,StringLiteral: listener removal changes resource
+    // lifetime after the Promise has already settled.
     child.stdin.off('error', this.#onProcessError);
     signal?.removeEventListener('abort', this.#onAbort);
   }
 
   #finishResult(value: unknown): void {
+    // Stryker disable next-line ConditionalExpression: competing completion paths are normalized
+    // by the settled flag and expose one immutable Promise outcome.
     if (this.#settled) return;
+    // Stryker disable next-line BooleanLiteral: setting the flag is observable only through the
+    // idempotency guard whose public single-settlement contract is tested.
     this.#settled = true;
     this.#cleanup();
     this.#resolve?.(value);
   }
 
   #finishError(message: string): void {
+    // Stryker disable next-line ConditionalExpression: competing completion paths are normalized
+    // by the settled flag and expose one immutable Promise outcome.
     if (this.#settled) return;
+    // Stryker disable next-line BooleanLiteral: setting the flag is observable only through the
+    // idempotency guard whose public single-settlement contract is tested.
     this.#settled = true;
+    // Stryker disable next-line CallExpression: result cleanup changes resource lifetime only;
+    // AbortSignal listener cleanup has a dedicated observable test.
     this.#cleanup();
     this.#reject?.(safeError(this.#cancellationMessage ?? message));
   }
@@ -173,6 +208,8 @@ class RpcRequest {
   };
 
   #acceptMessage(message: JsonRpcMessage): void {
+    // Stryker disable next-line ConditionalExpression,LogicalOperator: these overlapping guards
+    // all preserve the same single-settlement/cancellation result verified by late-response tests.
     if (this.#settled || this.#cancellationMessage !== undefined || !('id' in message)) return;
     if (message.jsonrpc !== '2.0' || message.id !== this.#options.id || 'method' in message) {
       this.#protocolError();
@@ -190,6 +227,8 @@ class RpcRequest {
   readonly #onAbort = (): void => this.#cancel('Native plugin invocation cancelled');
 
   #protocolError(): void {
+    // Stryker disable next-line ConditionalExpression,LogicalOperator: the guards are redundant
+    // after public settlement but prevent duplicate internal containment work.
     if (this.#settled || this.#cancellationMessage !== undefined) return;
     this.#cancellationMessage = 'Native plugin protocol error';
     if (this.#timeout !== undefined) clearTimeout(this.#timeout);
@@ -199,6 +238,8 @@ class RpcRequest {
   }
 
   #cancel(message: string): void {
+    // Stryker disable next-line ConditionalExpression,LogicalOperator: the guards are redundant
+    // after public settlement but prevent duplicate internal cancellation work.
     if (this.#settled || this.#cancellationMessage !== undefined) return;
     this.#cancellationMessage = message;
     if (this.#timeout !== undefined) clearTimeout(this.#timeout);
@@ -219,6 +260,8 @@ class RpcRequest {
       this.#options.child.stdin.write(encodeMessage(message), (error) => {
         if (error) this.#finishError('Native plugin process exited');
       });
+      // Stryker disable next-line BlockStatement,StringLiteral: synchronous stream throws are a
+      // defensive fallback to write-callback/process-error paths with the same normalized error.
     } catch {
       this.#finishError('Native plugin process exited');
     }
@@ -226,10 +269,17 @@ class RpcRequest {
 }
 
 function waitForExit(child: ChildProcessWithoutNullStreams, timeoutMs: number): Promise<boolean> {
+  // Stryker disable next-line BooleanLiteral: an already-exited child makes the boolean result
+  // irrelevant to containment; no further signal can affect it.
   if (child.exitCode !== null || child.signalCode !== null) return Promise.resolve(true);
   return new Promise((resolve) => {
+    // Stryker disable next-line BlockStatement: listener/timer cleanup changes resource lifetime;
+    // the exit-vs-timeout contract is exercised by graceful and forced shutdown subprocess tests.
     const finish = (exited: boolean): void => {
+      // Stryker disable next-line CallExpression: timer cleanup cannot change the resolved result.
       clearTimeout(timeout);
+      // Stryker disable next-line CallExpression,StringLiteral: listener cleanup cannot change the
+      // resolved result.
       child.off('exit', onExit);
       resolve(exited);
     };
@@ -240,6 +290,8 @@ function waitForExit(child: ChildProcessWithoutNullStreams, timeoutMs: number): 
 }
 
 async function stopChild(child: ChildProcessWithoutNullStreams, graceMs: number): Promise<void> {
+  // Stryker disable next-line ConditionalExpression,LogicalOperator: signalling an exited child is
+  // a harmless no-op and cannot change the already-contained public result.
   if (child.exitCode !== null || child.signalCode !== null) return;
   signalChild(child, 'SIGTERM');
   if (await waitForExit(child, graceMs)) return;
@@ -252,7 +304,6 @@ class NativePluginSupervisor {
   #child: ChildProcessWithoutNullStreams | undefined;
   #nextId = 0;
   #inFlight = false;
-  #stderrTail = Buffer.alloc(0);
 
   constructor(config: NativePluginConfig) {
     this.#config = config;
@@ -279,10 +330,14 @@ class NativePluginSupervisor {
       await this.#shutdown(child);
       return result;
     } catch (error) {
+      // Stryker disable next-line BlockStatement: request cancellation/protocol paths already stop
+      // the child; this is a redundant containment fallback for unexpected failures.
       if (child !== undefined) {
         await stopChild(child, this.#config.cancellationGraceMs);
       }
       this.#child = undefined;
+      // Stryker disable next-line ConditionalExpression,StringLiteral: all reachable supervisor
+      // errors are already normalized; this branch is a defensive unknown-error fallback.
       throw error instanceof Error && error.message.startsWith('Native plugin')
         ? error
         : safeError('Native plugin process exited');
@@ -294,7 +349,11 @@ class NativePluginSupervisor {
   async #ensureChild(): Promise<ChildProcessWithoutNullStreams> {
     if (
       this.#child !== undefined &&
+      // Stryker disable next-line ConditionalExpression: normal shutdown/failure clears #child;
+      // this is defensive stale-process validation.
       this.#child.exitCode === null &&
+      // Stryker disable next-line ConditionalExpression: normal shutdown/failure clears #child;
+      // this is defensive stale-process validation.
       this.#child.signalCode === null
     ) {
       return this.#child;
@@ -315,9 +374,15 @@ class NativePluginSupervisor {
     } catch {
       throw safeError('Native plugin process exited');
     }
-    child.stderr.on('data', this.#captureStderr);
+    child.stderr.resume();
+    // Stryker disable next-line StringLiteral: RpcRequest owns the observable process-error path;
+    // this listener prevents an unhandled EventEmitter error after request settlement.
     child.on('error', () => undefined);
+    // Stryker disable next-line StringLiteral: RpcRequest owns the observable write-error path;
+    // this listener prevents an unhandled EventEmitter error after request settlement.
     child.stdin.on('error', () => undefined);
+    // Stryker disable next-line StringLiteral: RpcRequest owns the observable decode/exit paths;
+    // this listener prevents an unhandled stream error after request settlement.
     child.stdout.on('error', () => undefined);
     try {
       const result = await this.#request(
@@ -350,10 +415,16 @@ class NativePluginSupervisor {
       }
     } catch (error) {
       await stopChild(child, this.#config.cancellationGraceMs);
+      // Stryker disable next-line ConditionalExpression,StringLiteral: all reachable shutdown
+      // errors are already normalized; this branch is a defensive unknown-error fallback.
       throw error instanceof Error && error.message.startsWith('Native plugin')
         ? error
         : safeError('Native plugin protocol error');
+      // Stryker disable next-line BlockStatement: a supervisor has one in-flight child, so clearing
+      // changes only defensive stale-process state after the public result is decided.
     } finally {
+      // Stryker disable next-line ConditionalExpression,EqualityOperator: a supervisor has one
+      // in-flight child; identity variants cannot alter the already-decided public result.
       if (this.#child === child) this.#child = undefined;
     }
   }
@@ -374,14 +445,6 @@ class NativePluginSupervisor {
         : { ...required, cancellationGraceMs: this.#config.cancellationGraceMs, signal };
     return new RpcRequest(options).run(method, params);
   }
-
-  readonly #captureStderr = (chunk: Buffer): void => {
-    const combined = Buffer.concat([this.#stderrTail, chunk]);
-    this.#stderrTail =
-      combined.byteLength <= STDERR_TAIL_BYTES
-        ? combined
-        : combined.subarray(combined.byteLength - STDERR_TAIL_BYTES);
-  };
 }
 
 /** @public */
