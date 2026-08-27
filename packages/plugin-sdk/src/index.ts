@@ -1,4 +1,14 @@
-import type { Artifact, Event, PromptDocument, RunResult } from '@meta-prompt/protocol';
+import type { Artifact, Event, Phase, PromptDocument, RunResult } from '@meta-prompt/protocol';
+
+/** @public */
+export interface PluginContribution {
+  readonly id: string;
+  readonly phase: Phase;
+  readonly requires?: readonly string[];
+  readonly before?: readonly string[];
+  readonly after?: readonly string[];
+  readonly conflicts?: readonly string[];
+}
 
 /** @public */
 export interface RunContext {
@@ -18,10 +28,25 @@ export interface PluginManifest {
   readonly id: string;
   readonly version: string;
   readonly type: 'recipe' | 'pipeline' | 'guard' | 'provider' | 'observer';
+  readonly contributions?: readonly PluginContribution[];
 }
 /** @public */
 export function definePlugin<T extends PluginManifest>(manifest: T): T {
-  return Object.freeze(manifest);
+  const contributions =
+    manifest.contributions === undefined
+      ? undefined
+      : Object.freeze(
+          manifest.contributions.map((contribution) =>
+            Object.freeze({
+              ...contribution,
+              requires: contribution.requires && Object.freeze([...contribution.requires]),
+              before: contribution.before && Object.freeze([...contribution.before]),
+              after: contribution.after && Object.freeze([...contribution.after]),
+              conflicts: contribution.conflicts && Object.freeze([...contribution.conflicts]),
+            }),
+          ),
+        );
+  return Object.freeze({ ...manifest, contributions });
 }
 /** @public */
 export function identityArtifact(input: PromptDocument): Artifact {

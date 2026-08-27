@@ -1,6 +1,11 @@
 import { randomUUID } from 'node:crypto';
 import type { Event, PromptDocument, RunResult } from '@meta-prompt/protocol';
 import { identityArtifact, type Recipe, type RunContext } from '@meta-prompt/plugin-sdk';
+export {
+  compilePluginGraph,
+  type CompiledContribution,
+  type CompiledPluginGraph,
+} from './plugin-graph.js';
 
 /** @public */
 export const identityRecipe: Recipe = {
