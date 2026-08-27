@@ -1,8 +1,6 @@
 # T002-03 — Bounded native plugin supervisor
 
-Status: blocked
-
-Blocked by: T002-01 public contract
+Status: ready-for-agent
 
 ## Outcome
 

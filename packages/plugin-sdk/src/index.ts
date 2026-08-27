@@ -18,6 +18,31 @@ export interface RunContext {
   ): void;
 }
 /** @public */
+export interface PluginInvocation {
+  readonly contributionId: string;
+  readonly input: PromptDocument;
+  readonly signal: AbortSignal;
+}
+/** @public */
+export interface PluginImplementation {
+  invoke(request: PluginInvocation): Promise<unknown>;
+}
+/** @public */
+export interface PluginRegistration {
+  readonly manifest: PluginManifest;
+  activate(): Promise<PluginImplementation> | PluginImplementation;
+}
+/** @public */
+export interface AppendTextBlockOperation {
+  readonly kind: 'append-text-block';
+  readonly block: { readonly id: string; readonly text: string };
+}
+/** @public */
+export interface DeclarativeContribution {
+  readonly contributionId: string;
+  readonly operation: AppendTextBlockOperation;
+}
+/** @public */
 export interface Recipe {
   readonly id: string;
   readonly version: string;
@@ -47,6 +72,57 @@ export function definePlugin<T extends PluginManifest>(manifest: T): T {
           ),
         );
   return Object.freeze({ ...manifest, contributions });
+}
+
+function freezeDeclarativeContribution(
+  contribution: DeclarativeContribution,
+): DeclarativeContribution {
+  return Object.freeze({
+    contributionId: contribution.contributionId,
+    operation: Object.freeze({
+      kind: contribution.operation.kind,
+      block: Object.freeze({ ...contribution.operation.block }),
+    }),
+  });
+}
+
+function applyDeclarativeContribution(
+  request: PluginInvocation,
+  contributions: ReadonlyMap<string, DeclarativeContribution>,
+): PromptDocument {
+  const contribution = contributions.get(request.contributionId);
+  if (contribution?.operation.kind !== 'append-text-block') {
+    throw new Error('Declarative contribution is not defined');
+  }
+  return {
+    schemaVersion: '1',
+    content: [
+      ...request.input.content.map((block) => ({ ...block })),
+      { ...contribution.operation.block },
+    ],
+  };
+}
+
+/** @public */
+export function defineDeclarativePlugin(
+  manifest: PluginManifest,
+  contributions: readonly DeclarativeContribution[],
+): PluginRegistration {
+  const frozen = contributions.map(freezeDeclarativeContribution);
+  const indexed = new Map(
+    frozen.map((contribution) => [contribution.contributionId, contribution]),
+  );
+  if (indexed.size !== frozen.length) throw new Error('Duplicate declarative contribution id');
+  return Object.freeze({
+    manifest: definePlugin(manifest),
+    async activate(): Promise<PluginImplementation> {
+      return Object.freeze({
+        async invoke(request: PluginInvocation): Promise<unknown> {
+          return applyDeclarativeContribution(request, indexed);
+        },
+      });
+    },
+  });
 }
 /** @public */
 export function identityArtifact(input: PromptDocument): Artifact {

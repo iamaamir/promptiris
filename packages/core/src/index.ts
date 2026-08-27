@@ -6,6 +6,7 @@ export {
   type CompiledContribution,
   type CompiledPluginGraph,
 } from './plugin-graph.js';
+export { executePluginPlan, type ExecutionOptions } from './plugin-execution.js';
 
 /** @public */
 export const identityRecipe: Recipe = {
