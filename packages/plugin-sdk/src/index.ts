@@ -1,4 +1,16 @@
-import type { Artifact, Event, Phase, PromptDocument, RunResult } from '@meta-prompt/protocol';
+import type {
+  Artifact,
+  Event,
+  JsonValue,
+  NamespacedId,
+  Patch,
+  Phase,
+  PromptDocument,
+  Provenance,
+  ResourceReference,
+  RunResult,
+  SchemaReference,
+} from '@meta-prompt/protocol';
 
 /** @public */
 export interface PluginContribution {
@@ -21,11 +33,27 @@ export interface RunContext {
 export interface PluginInvocation {
   readonly contributionId: string;
   readonly input: PromptDocument;
+  readonly revision: number;
   readonly signal: AbortSignal;
 }
 /** @public */
+export interface ArtifactProposal {
+  readonly kind: NamespacedId;
+  readonly mediaType: string;
+  readonly value: JsonValue | ResourceReference;
+  readonly dataSchema?: SchemaReference;
+  readonly digest?: string;
+  readonly classification: 'public' | 'internal' | 'sensitive';
+  readonly extensions?: Readonly<Record<NamespacedId, JsonValue>>;
+}
+/** @public */
+export interface PluginOutput {
+  readonly patches?: readonly Patch[];
+  readonly artifacts?: readonly ArtifactProposal[];
+}
+/** @public */
 export interface PluginImplementation {
-  invoke(request: PluginInvocation): Promise<unknown>;
+  invoke(request: PluginInvocation): Promise<PluginOutput>;
 }
 /** @public */
 export interface PluginRegistration {
@@ -135,16 +163,20 @@ function freezeDeclarativeContribution(
 function applyDeclarativeContribution(
   request: PluginInvocation,
   contributions: ReadonlyMap<string, DeclarativeContribution>,
-): PromptDocument {
+  pluginId: string,
+): PluginOutput {
   const contribution = contributions.get(request.contributionId);
   if (contribution?.operation.kind !== 'append-text-block') {
     throw new Error('Declarative contribution is not defined');
   }
   return {
-    schemaVersion: '1',
-    content: [
-      ...request.input.content.map((block) => ({ ...block })),
-      { ...contribution.operation.block },
+    patches: [
+      {
+        schemaVersion: '1',
+        id: `${pluginId}:${request.contributionId}`,
+        baseRevision: request.revision,
+        operations: [{ type: 'insert-content-block', block: { ...contribution.operation.block } }],
+      },
     ],
   };
 }
@@ -163,20 +195,32 @@ export function defineDeclarativePlugin(
     manifest: definePlugin(manifest),
     async activate(): Promise<PluginImplementation> {
       return Object.freeze({
-        async invoke(request: PluginInvocation): Promise<unknown> {
-          return applyDeclarativeContribution(request, indexed);
+        async invoke(request: PluginInvocation): Promise<PluginOutput> {
+          return applyDeclarativeContribution(request, indexed, manifest.id);
         },
       });
     },
   });
 }
 /** @public */
-export function identityArtifact(input: PromptDocument): Artifact {
+export function identityArtifact(
+  input: PromptDocument,
+  provenance: Provenance = {
+    pluginId: 'meta-prompt/core',
+    contributionId: 'identity',
+    invocationId: 'identity',
+    phase: 'render',
+    parentArtifactIds: [],
+    patchIds: [],
+  },
+): Artifact {
   return {
     schemaVersion: '1',
     id: 'artifact:identity',
     kind: 'meta-prompt/prompt',
     mediaType: 'text/plain',
     value: input.content.map((block) => block.text).join('\n'),
+    provenance,
+    classification: 'public',
   };
 }

@@ -4,6 +4,7 @@ export default {
     'packages/plugin-sdk/src/index.ts',
     'packages/core/src/index.ts',
     'packages/core/src/plugin-graph.ts',
+    'packages/core/src/transformation-state.ts',
     'packages/core/src/plugin-execution.ts',
     'apps/runtime-node/src/native-plugin.ts',
   ],

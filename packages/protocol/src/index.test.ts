@@ -6,7 +6,9 @@ import {
   isPromptDocument,
   makeTextDocument,
   MAX_FRAME_BYTES,
+  validateJsonValue,
   validatePromptDocument,
+  validatePatch,
 } from './index.js';
 describe('Content-Length protocol', () => {
   it('round trips fragmented frames', () => {
@@ -30,6 +32,161 @@ describe('Content-Length protocol', () => {
     expect(validatePromptDocument({ ...valid, extra: true })).toBe(false);
     expect(
       validatePromptDocument({ schemaVersion: '1', content: [{ id: 42, text: 'hello' }] }),
+    ).toBe(false);
+  });
+  it('enforces sha256 digests and patch preconditions', () => {
+    const digest = `sha256:${'a'.repeat(64)}`;
+    expect(
+      validatePromptDocument({
+        schemaVersion: '1',
+        content: [{ id: 'input', text: 'x' }],
+        context: [{ uri: 'urn:x', digest }],
+      }),
+    ).toBe(true);
+    expect(
+      validatePromptDocument({
+        schemaVersion: '1',
+        content: [{ id: 'input', text: 'x' }],
+        context: [{ uri: 'urn:x', digest: 'bad' }],
+      }),
+    ).toBe(false);
+    expect(
+      validatePatch({
+        schemaVersion: '1',
+        id: 'p',
+        baseRevision: 0,
+        operations: [{ type: 'remove-content-block', blockId: 'input', expectedDigest: digest }],
+      }),
+    ).toBe(true);
+    expect(
+      validatePatch({
+        schemaVersion: '1',
+        id: 'p',
+        baseRevision: 0,
+        operations: [{ type: 'remove-content-block', blockId: 'input' }],
+      }),
+    ).toBe(false);
+  });
+  it('validates rich Prompt Documents without confusing context and input', () => {
+    const document = {
+      schemaVersion: '1',
+      content: [{ id: 'input', text: 'keep TOKEN' }],
+      context: [
+        { id: 'context', text: 'host supplied' },
+        {
+          uri: 'file:///tmp/reference.txt',
+          mediaType: 'text/plain',
+          digest: `sha256:${'a'.repeat(64)}`,
+        },
+      ],
+      constraints: [{ id: 'host/intent', kind: 'meta-prompt/semantic', value: { retain: true } }],
+      protections: [
+        {
+          id: 'host/token',
+          selector: {
+            blockId: 'input',
+            revision: 0,
+            range: { unit: 'unicode-scalar', start: 5, end: 10 },
+            quote: { exact: 'TOKEN' },
+          },
+        },
+      ],
+      extensions: { 'host/metadata': { source: 'test', ordinal: 1 } },
+    } as const;
+
+    expect(validatePromptDocument(document)).toBe(true);
+    expect(isPromptDocument(document)).toBe(true);
+  });
+  it('rejects malformed rich Prompt Document members', () => {
+    const base = makeTextDocument('input');
+
+    expect(validatePromptDocument({ ...base, extensions: { unowned: true } })).toBe(false);
+    expect(validatePromptDocument({ ...base, extensions: { 'host/value': undefined } })).toBe(
+      false,
+    );
+    expect(
+      validatePromptDocument({
+        ...base,
+        protections: [
+          {
+            id: 'host/value',
+            selector: {
+              blockId: 'input-1',
+              revision: 0,
+              range: { unit: 'unicode-scalar', start: 0, end: 1, extra: true },
+              quote: { exact: 'i' },
+            },
+          },
+        ],
+      }),
+    ).toBe(false);
+  });
+  it('validates the complete typed Patch union', () => {
+    const digest = `sha256:${'b'.repeat(64)}`;
+    const patch = {
+      schemaVersion: '1',
+      id: 'patch-1',
+      baseRevision: 0,
+      operations: [
+        {
+          type: 'replace-text',
+          selector: {
+            blockId: 'input',
+            revision: 0,
+            range: { unit: 'unicode-scalar', start: 0, end: 1 },
+            quote: { exact: 'a' },
+          },
+          text: 'A',
+        },
+        { type: 'insert-content-block', block: { id: 'second', text: 'second' } },
+        {
+          type: 'replace-content-block',
+          blockId: 'second',
+          expectedDigest: digest,
+          block: { id: 'second', text: 'replacement' },
+        },
+        { type: 'remove-content-block', blockId: 'second', expectedDigest: digest },
+        { type: 'set-namespaced-extension', key: 'example/plugin/state', value: [1, true] },
+      ],
+    } as const;
+
+    expect(validatePatch(patch)).toBe(true);
+  });
+  it('recognizes portable JSON values without accepting JavaScript-only values', () => {
+    expect(validateJsonValue({ nested: [null, true, 1, 'text'] })).toBe(true);
+    expect(validateJsonValue(undefined)).toBe(false);
+    expect(validateJsonValue(() => undefined)).toBe(false);
+    expect(validateJsonValue(Number.POSITIVE_INFINITY)).toBe(false);
+  });
+  it.each([
+    ['unknown operation', { type: 'execute-code' }],
+    ['shallow selector', { type: 'replace-text', selector: {}, text: 'x' }],
+    [
+      'nested selector extension',
+      {
+        type: 'replace-text',
+        selector: {
+          blockId: 'input',
+          revision: 0,
+          range: { unit: 'unicode-scalar', start: 0, end: 1, fuzzy: true },
+          quote: { exact: 'a' },
+        },
+        text: 'x',
+      },
+    ],
+    ['missing digest', { type: 'remove-content-block', blockId: 'input' }],
+    [
+      'invalid extension namespace',
+      { type: 'set-namespaced-extension', key: 'unowned', value: true },
+    ],
+  ])('rejects a Patch with %s', (_label, operation) => {
+    expect(
+      validatePatch({
+        schemaVersion: '1',
+        id: 'patch-1',
+        baseRevision: 0,
+        operations: [operation],
+      }),
     ).toBe(false);
   });
   it.each([

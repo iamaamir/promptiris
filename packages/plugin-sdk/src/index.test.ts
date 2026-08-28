@@ -138,6 +138,15 @@ describe('plugin SDK primitives', () => {
       kind: 'meta-prompt/prompt',
       mediaType: 'text/plain',
       value: 'first\nsecond',
+      provenance: {
+        pluginId: 'meta-prompt/core',
+        contributionId: 'identity',
+        invocationId: 'identity',
+        phase: 'render',
+        parentArtifactIds: [],
+        patchIds: [],
+      },
+      classification: 'public',
     });
     expect(Object.isFrozen(artifact)).toBe(false);
   });

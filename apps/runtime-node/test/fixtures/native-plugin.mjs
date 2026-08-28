@@ -104,22 +104,31 @@ function handle(message) {
       process.exit(7);
     }
     if (mode === 'hang' || mode === 'trace-hang') return;
-    const input = message.params?.input;
-    const document = {
-      ...input,
-      content: [
-        ...(input?.content ?? []),
+    const output = {
+      patches: [
         {
-          id: 'native',
-          text:
-            mode === 'environment' ? (process.env.META_PROMPT_TEST_VALUE ?? 'missing') : 'native',
+          schemaVersion: '1',
+          id: 'fixture/native:transform',
+          baseRevision: message.params?.revision,
+          operations: [
+            {
+              type: 'insert-content-block',
+              block: {
+                id: 'native',
+                text:
+                  mode === 'environment'
+                    ? (process.env.META_PROMPT_TEST_VALUE ?? 'missing')
+                    : 'native',
+              },
+            },
+          ],
         },
       ],
     };
     const response = {
       jsonrpc: mode === 'wrong-jsonrpc-invoke' ? '1.0' : '2.0',
       id: message.id,
-      result: document,
+      result: output,
     };
     if (mode === 'stderr-flood') {
       let remainingChunks = 128;

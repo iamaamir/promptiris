@@ -186,6 +186,24 @@ describe('executePluginPlan', () => {
     expect(input).toEqual(makeTextDocument('input'));
   });
 
+  it('rejects artifact proposals with missing identity or invalid classification', async () => {
+    for (const artifact of [
+      { kind: 'example/output', mediaType: '', value: 'x', classification: 'public' },
+      { kind: 'output', mediaType: 'text/plain', value: 'x', classification: 'public' },
+      { kind: 'example/output', mediaType: 'text/plain', value: 'x', classification: 'private' },
+    ]) {
+      const result = await execute([
+        customRegistration(() => ({
+          invoke: async () => ({ artifacts: [artifact] }) as never,
+        })),
+      ]);
+      expect(result.diagnostics).toEqual([
+        expect.objectContaining({ code: 'meta-prompt.plugin.invalid-output' }),
+      ]);
+      expect(result.primaryOrigin).toBe('original');
+    }
+  });
+
   it('transitions across phases and records each completed phase', async () => {
     const phases = ['preflight', 'analyze', 'transform'] as const;
     const multiPhaseManifest: PluginManifest = {
@@ -196,8 +214,8 @@ describe('executePluginPlan', () => {
       manifest: multiPhaseManifest,
       async activate() {
         return {
-          async invoke({ input }) {
-            return input;
+          async invoke() {
+            return {};
           },
         };
       },
@@ -295,8 +313,8 @@ describe('executePluginPlan', () => {
   it('accepts a valid implementation with an unrelated code property', async () => {
     const registration = customRegistration(() => ({
       code: 'plugin-owned-metadata',
-      async invoke({ input }) {
-        return input;
+      async invoke() {
+        return {};
       },
     }));
 
@@ -381,7 +399,7 @@ describe('executePluginPlan', () => {
     const registration = customRegistration(() => ({
       async invoke() {
         invocations += 1;
-        return { schemaVersion: '1', content: [{ id: 42, text: 'invalid' }] };
+        return { schemaVersion: '1', content: [{ id: 42, text: 'invalid' }] } as never;
       },
     }));
 
@@ -406,14 +424,19 @@ describe('executePluginPlan', () => {
   it('preserves the last valid transformed artifact after a later failure', async () => {
     let invocations = 0;
     const registration = customRegistration(() => ({
-      async invoke({ contributionId, input }) {
+      async invoke({ contributionId, revision }) {
         invocations += 1;
         if (contributionId === 'second') throw new Error('later failure');
-        const document: PromptDocument = {
-          schemaVersion: '1',
-          content: [...input.content, { id: 'first', text: 'first' }],
+        return {
+          patches: [
+            {
+              schemaVersion: '1',
+              id: 'example/plugin:first',
+              baseRevision: revision,
+              operations: [{ type: 'insert-content-block', block: { id: 'first', text: 'first' } }],
+            },
+          ],
         };
-        return document;
       },
     }));
 
@@ -451,6 +474,208 @@ describe('executePluginPlan', () => {
           title: 'meta-prompt.recipe.compile-failed',
         },
       ],
+    });
+  });
+
+  it('stamps Artifact provenance and exposes only Recipe-authorized public kinds', async () => {
+    const registration = customRegistration(() => ({
+      async invoke({ contributionId }) {
+        if (contributionId === 'second') return {};
+        return {
+          artifacts: [
+            {
+              kind: 'example/output',
+              mediaType: 'text/plain',
+              value: 'enhanced',
+              dataSchema: { uri: 'https://example.test/output.schema.json' },
+              digest: `sha256:${'a'.repeat(64)}`,
+              classification: 'public',
+              extensions: { 'example/plugin/state': { confidence: 1 } },
+            },
+            {
+              kind: 'example/alternate',
+              mediaType: 'text/plain',
+              value: 'alternate',
+              classification: 'public',
+            },
+            {
+              kind: 'example/internal',
+              mediaType: 'application/json',
+              value: { hidden: true },
+              classification: 'internal',
+            },
+            {
+              kind: 'example/sensitive',
+              mediaType: 'text/plain',
+              value: 'secret',
+              classification: 'sensitive',
+            },
+            {
+              kind: 'example/unselected',
+              mediaType: 'text/plain',
+              value: 'not selected',
+              classification: 'public',
+            },
+          ],
+        };
+      },
+    }));
+
+    const result = await executePluginPlan(
+      makeTextDocument('input'),
+      compilePluginGraph([manifest], [manifest.id]),
+      [registration],
+      createRunContext('run-artifacts', () => undefined),
+      {
+        recipe: { id: 'recipe', version: '1.0.0' },
+        artifacts: {
+          primaryKind: 'example/output',
+          alternativeKinds: ['example/output', 'example/alternate'],
+          exposedKinds: ['example/output', 'example/internal'],
+        },
+      },
+    );
+
+    expect(result.primary).toEqual({
+      schemaVersion: '1',
+      id: 'artifact:run-artifacts:0',
+      kind: 'example/output',
+      mediaType: 'text/plain',
+      value: 'enhanced',
+      dataSchema: { uri: 'https://example.test/output.schema.json' },
+      digest: `sha256:${'a'.repeat(64)}`,
+      classification: 'public',
+      provenance: {
+        pluginId: 'example/plugin',
+        contributionId: 'first',
+        invocationId: 'run-artifacts:example/plugin:first',
+        phase: 'transform',
+        parentArtifactIds: [],
+        patchIds: [],
+      },
+      extensions: { 'example/plugin/state': { confidence: 1 } },
+    });
+    expect(result.primaryOrigin).toBe('transformed');
+    expect(result.alternatives).toEqual([
+      expect.objectContaining({ kind: 'example/alternate', value: 'alternate' }),
+    ]);
+    expect(result.exposed).toEqual({ 'example/output': [result.primary] });
+    expect(JSON.stringify(result)).not.toContain('hidden');
+    expect(JSON.stringify(result)).not.toContain('secret');
+    expect(result.alternatives).not.toContainEqual(
+      expect.objectContaining({ kind: 'example/unselected' }),
+    );
+  });
+
+  it('normalizes rejected typed Patches and preserves the last accepted document', async () => {
+    const registration = customRegistration(() => ({
+      async invoke() {
+        return {
+          patches: [
+            {
+              schemaVersion: '1',
+              id: 'stale',
+              baseRevision: 1,
+              operations: [{ type: 'insert-content-block', block: { id: 'never', text: 'never' } }],
+            },
+          ],
+        };
+      },
+    }));
+
+    const result = await execute([registration]);
+
+    expect(result).toMatchObject({
+      status: 'degraded',
+      primary: { value: 'input' },
+      primaryOrigin: 'original',
+      diagnostics: [{ code: 'meta-prompt.patch.stale-revision' }],
+    });
+  });
+
+  it('rejects Artifact extensions outside the producing Plugin namespace', async () => {
+    const registration = customRegistration(() => ({
+      async invoke() {
+        return {
+          artifacts: [
+            {
+              kind: 'example/output',
+              mediaType: 'text/plain',
+              value: 'hidden',
+              classification: 'public',
+              extensions: { 'other/plugin/state': true },
+            },
+          ],
+        };
+      },
+    }));
+
+    const result = await execute([registration]);
+
+    expect(result).toMatchObject({
+      status: 'degraded',
+      primary: { value: 'input' },
+      diagnostics: [{ code: 'meta-prompt.plugin.invalid-output' }],
+    });
+  });
+
+  it.each([
+    ['null output', null],
+    ['unknown output member', { extra: true }],
+    ['non-array patches', { patches: {} }],
+    ['null Artifact', { artifacts: [null] }],
+    [
+      'missing Artifact identity',
+      { artifacts: [{ mediaType: 'text/plain', value: 'x', classification: 'public' }] },
+    ],
+    [
+      'invalid Artifact classification',
+      {
+        artifacts: [
+          { kind: 'example/output', mediaType: 'text/plain', value: 'x', classification: 'secret' },
+        ],
+      },
+    ],
+    [
+      'non-JSON Artifact value',
+      {
+        artifacts: [
+          {
+            kind: 'example/output',
+            mediaType: 'text/plain',
+            value: undefined,
+            classification: 'public',
+          },
+        ],
+      },
+    ],
+    [
+      'non-JSON Artifact extension',
+      {
+        artifacts: [
+          {
+            kind: 'example/output',
+            mediaType: 'text/plain',
+            value: 'x',
+            classification: 'public',
+            extensions: { 'example/plugin/state': undefined },
+          },
+        ],
+      },
+    ],
+  ])('normalizes %s as invalid Plugin output', async (_label, output) => {
+    const registration = customRegistration(() => ({
+      async invoke() {
+        return output as never;
+      },
+    }));
+
+    const result = await execute([registration]);
+
+    expect(result).toMatchObject({
+      status: 'degraded',
+      primary: { value: 'input' },
+      diagnostics: [{ code: 'meta-prompt.plugin.invalid-output' }],
     });
   });
 });

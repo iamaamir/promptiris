@@ -7,15 +7,35 @@
 // @public (undocumented)
 export interface Artifact {
     // (undocumented)
+    classification: 'public' | 'internal' | 'sensitive';
+    // (undocumented)
+    dataSchema?: SchemaReference;
+    // (undocumented)
+    digest?: string;
+    // (undocumented)
+    extensions?: Record<NamespacedId, JsonValue>;
+    // (undocumented)
     id: string;
     // (undocumented)
-    kind: string;
+    kind: NamespacedId;
     // (undocumented)
     mediaType: string;
     // (undocumented)
+    provenance: Provenance;
+    // (undocumented)
     schemaVersion: '1';
     // (undocumented)
-    value: unknown;
+    value: JsonValue | ResourceReference;
+}
+
+// @public (undocumented)
+export interface Constraint {
+    // (undocumented)
+    id: NamespacedId;
+    // (undocumented)
+    kind: NamespacedId;
+    // (undocumented)
+    value: JsonValue;
 }
 
 // @public (undocumented)
@@ -103,6 +123,16 @@ export interface InitializeResult {
 }
 
 // @public (undocumented)
+export interface InsertContentBlock {
+    // (undocumented)
+    beforeBlockId?: string;
+    // (undocumented)
+    block: TextBlock;
+    // (undocumented)
+    type: 'insert-content-block';
+}
+
+// @public (undocumented)
 export function isPromptDocument(value: unknown): value is PromptDocument;
 
 // @public (undocumented)
@@ -147,6 +177,11 @@ export interface JsonRpcResponse<T = unknown> {
 }
 
 // @public (undocumented)
+export type JsonValue = null | boolean | number | string | JsonValue[] | {
+    [key: string]: JsonValue;
+};
+
+// @public (undocumented)
 export interface LockedRecipeReference {
     // (undocumented)
     id: string;
@@ -161,14 +196,112 @@ export function makeTextDocument(text: string): PromptDocument;
 export const MAX_FRAME_BYTES: number;
 
 // @public (undocumented)
+export type NamespacedId = `${string}/${string}`;
+
+// @public (undocumented)
+export interface Patch {
+    // (undocumented)
+    baseRevision: number;
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    operations: PatchOperation[];
+    // (undocumented)
+    schemaVersion: '1';
+}
+
+// @public (undocumented)
+export type PatchOperation = ReplaceText | InsertContentBlock | ReplaceContentBlock | RemoveContentBlock | SetNamespacedExtension;
+
+// @public (undocumented)
 export type Phase = 'preflight' | 'analyze' | 'transform' | 'adapt' | 'validate' | 'render';
 
 // @public (undocumented)
 export interface PromptDocument {
     // (undocumented)
+    constraints?: Constraint[];
+    // (undocumented)
     content: TextBlock[];
     // (undocumented)
+    context?: (TextBlock | ResourceReference)[];
+    // (undocumented)
+    extensions?: Record<NamespacedId, JsonValue>;
+    // (undocumented)
+    protections?: Protection[];
+    // (undocumented)
     schemaVersion: '1';
+}
+
+// @public (undocumented)
+export interface Protection {
+    // (undocumented)
+    id: NamespacedId;
+    // (undocumented)
+    reason?: string;
+    // (undocumented)
+    selector: TextSelector;
+}
+
+// @public (undocumented)
+export interface Provenance {
+    // (undocumented)
+    contributionId: string;
+    // (undocumented)
+    invocationId: string;
+    // (undocumented)
+    modelCallRef?: string;
+    // (undocumented)
+    parentArtifactIds: string[];
+    // (undocumented)
+    patchIds: string[];
+    // (undocumented)
+    phase: Phase;
+    // (undocumented)
+    pluginId: string;
+}
+
+// @public (undocumented)
+export interface RemoveContentBlock {
+    // (undocumented)
+    blockId: string;
+    // (undocumented)
+    expectedDigest: string;
+    // (undocumented)
+    type: 'remove-content-block';
+}
+
+// @public (undocumented)
+export interface ReplaceContentBlock {
+    // (undocumented)
+    block: TextBlock;
+    // (undocumented)
+    blockId: string;
+    // (undocumented)
+    expectedDigest: string;
+    // (undocumented)
+    type: 'replace-content-block';
+}
+
+// @public (undocumented)
+export interface ReplaceText {
+    // (undocumented)
+    selector: TextSelector;
+    // (undocumented)
+    text: string;
+    // (undocumented)
+    type: 'replace-text';
+}
+
+// @public (undocumented)
+export interface ResourceReference {
+    // (undocumented)
+    digest?: string;
+    // (undocumented)
+    mediaType?: string;
+    // (undocumented)
+    name?: string;
+    // (undocumented)
+    uri: string;
 }
 
 // @public (undocumented)
@@ -213,12 +346,54 @@ export interface RunStartParams {
 }
 
 // @public (undocumented)
+export interface SchemaReference {
+    // (undocumented)
+    uri: string;
+}
+
+// @public (undocumented)
+export interface SetNamespacedExtension {
+    // (undocumented)
+    key: NamespacedId;
+    // (undocumented)
+    type: 'set-namespaced-extension';
+    // (undocumented)
+    value: JsonValue;
+}
+
+// @public (undocumented)
 export interface TextBlock {
     // (undocumented)
     id: string;
     // (undocumented)
     text: string;
 }
+
+// @public (undocumented)
+export interface TextSelector {
+    // (undocumented)
+    blockId: string;
+    // (undocumented)
+    quote: {
+        exact: string;
+        prefix?: string;
+        suffix?: string;
+    };
+    // (undocumented)
+    range: {
+        unit: 'unicode-scalar';
+        start: number;
+        end: number;
+    };
+    // (undocumented)
+    revision: number;
+}
+
+// @public (undocumented)
+export function validateJsonValue(value: unknown): value is JsonValue;
+
+// @public (undocumented)
+export function validatePatch(value: unknown): value is Patch;
 
 // @public (undocumented)
 export function validatePromptDocument(value: unknown): value is PromptDocument;

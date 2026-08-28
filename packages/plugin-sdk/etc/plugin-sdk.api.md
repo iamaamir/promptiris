@@ -6,9 +6,15 @@
 
 import type { Artifact } from '@meta-prompt/protocol';
 import type { Event as Event_2 } from '@meta-prompt/protocol';
+import type { JsonValue } from '@meta-prompt/protocol';
+import type { NamespacedId } from '@meta-prompt/protocol';
+import type { Patch } from '@meta-prompt/protocol';
 import type { Phase } from '@meta-prompt/protocol';
 import type { PromptDocument } from '@meta-prompt/protocol';
+import type { Provenance } from '@meta-prompt/protocol';
+import type { ResourceReference } from '@meta-prompt/protocol';
 import type { RunResult } from '@meta-prompt/protocol';
+import type { SchemaReference } from '@meta-prompt/protocol';
 
 // @public (undocumented)
 export interface AppendTextBlockOperation {
@@ -19,6 +25,24 @@ export interface AppendTextBlockOperation {
     };
     // (undocumented)
     readonly kind: 'append-text-block';
+}
+
+// @public (undocumented)
+export interface ArtifactProposal {
+    // (undocumented)
+    readonly classification: 'public' | 'internal' | 'sensitive';
+    // (undocumented)
+    readonly dataSchema?: SchemaReference;
+    // (undocumented)
+    readonly digest?: string;
+    // (undocumented)
+    readonly extensions?: Readonly<Record<NamespacedId, JsonValue>>;
+    // (undocumented)
+    readonly kind: NamespacedId;
+    // (undocumented)
+    readonly mediaType: string;
+    // (undocumented)
+    readonly value: JsonValue | ResourceReference;
 }
 
 // @public (undocumented)
@@ -36,7 +60,7 @@ export function defineDeclarativePlugin(manifest: PluginManifest, contributions:
 export function definePlugin<T extends PluginManifest>(manifest: T): T;
 
 // @public (undocumented)
-export function identityArtifact(input: PromptDocument): Artifact;
+export function identityArtifact(input: PromptDocument, provenance?: Provenance): Artifact;
 
 // @public (undocumented)
 export interface PluginContribution {
@@ -57,7 +81,7 @@ export interface PluginContribution {
 // @public (undocumented)
 export interface PluginImplementation {
     // (undocumented)
-    invoke(request: PluginInvocation): Promise<unknown>;
+    invoke(request: PluginInvocation): Promise<PluginOutput>;
 }
 
 // @public (undocumented)
@@ -66,6 +90,8 @@ export interface PluginInvocation {
     readonly contributionId: string;
     // (undocumented)
     readonly input: PromptDocument;
+    // (undocumented)
+    readonly revision: number;
     // (undocumented)
     readonly signal: AbortSignal;
 }
@@ -80,6 +106,14 @@ export interface PluginManifest {
     readonly type: 'recipe' | 'pipeline' | 'guard' | 'provider' | 'observer';
     // (undocumented)
     readonly version: string;
+}
+
+// @public (undocumented)
+export interface PluginOutput {
+    // (undocumented)
+    readonly artifacts?: readonly ArtifactProposal[];
+    // (undocumented)
+    readonly patches?: readonly Patch[];
 }
 
 // @public (undocumented)

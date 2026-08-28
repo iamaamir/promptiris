@@ -1,8 +1,8 @@
 # Phase 2 development bootstrap
 
-## Accepted slice
+## Accepted slices
 
-The first tracer bullet is operational: a Cobra-based Go CLI starts the private Node runtime over Content-Length-framed JSON-RPC, initializes protocol v1, runs the explicit bundled identity Recipe, receives namespaced standard Events, and returns a Run Result. It intentionally performs no model call and no enhancement yet.
+Three tracer bullets are operational. A Cobra-based Go CLI starts the private Node runtime over Content-Length-framed JSON-RPC, initializes protocol v1, runs the explicit bundled identity Recipe, receives namespaced standard Events, and returns a Run Result. A supervised native Plugin crosses the same boundary. The immutable transformation-state slice now accepts typed, revision-aware Patches and Artifact proposals, applies them atomically, enforces exact protections, and exposes only Recipe-authorized public Artifacts. These slices intentionally perform no model call and no enhancement yet.
 
 The implementation preserves the product boundary—behavior remains Recipe and Plugin supplied—but the repository development harness is direct infrastructure, not another Plugin system. Scripts, pinned tools, compiler configuration, and CI jobs are allowed to remain boring and replaceable.
 
@@ -22,7 +22,7 @@ The candidate profile verifies formatting, lint and complexity rules, portable J
 
 The Hardener profile adds package-specific coverage floors (95% for protocol/core and 85% for other shipped TypeScript), measured Go coverage, CRAP analysis, Knip dead-code/dependency analysis, checked-in API Extractor reports, and Stryker mutation testing. Protocol framing also has deterministic property tests with a recorded seed. The Node stdio entrypoint is the only line-level coverage exclusion because it is process wiring exercised by the Go-to-Node integration test; the runtime server remains covered directly. Go coverage is reported independently and currently remains a visible improvement target rather than a merge threshold.
 
-Current calibrated mutation thresholds are 90 high, 80 low, and 75 build-breaking. Survivors remain present in the JSON report for disposition; no exclusion or survivor is silently converted into success.
+The mutation build-breaking threshold and every governed file baseline are at least 90%. The current transformation-state tracer baseline is 94.28% aggregate. Survivors remain present in the JSON report for disposition; no exclusion or survivor is silently converted into success.
 
 ## Reorientation
 

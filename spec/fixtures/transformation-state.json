@@ -1,0 +1,128 @@
+{
+  "selectorCases": [
+    {
+      "name": "ascii",
+      "text": "hello world",
+      "currentRevision": 1,
+      "selector": {
+        "blockId": "input",
+        "revision": 1,
+        "range": { "unit": "unicode-scalar", "start": 6, "end": 11 },
+        "quote": { "exact": "world", "prefix": "hello ", "suffix": "" }
+      },
+      "scalarValid": true,
+      "graphemeValid": true
+    },
+    {
+      "name": "astral-unicode",
+      "text": "go 🚀 now",
+      "currentRevision": 2,
+      "selector": {
+        "blockId": "input",
+        "revision": 2,
+        "range": { "unit": "unicode-scalar", "start": 3, "end": 4 },
+        "quote": { "exact": "🚀" }
+      },
+      "scalarValid": true,
+      "graphemeValid": true
+    },
+    {
+      "name": "combining-mark-inside-grapheme",
+      "text": "café",
+      "currentRevision": 0,
+      "selector": {
+        "blockId": "input",
+        "revision": 0,
+        "range": { "unit": "unicode-scalar", "start": 4, "end": 5 },
+        "quote": { "exact": "́" }
+      },
+      "scalarValid": true,
+      "graphemeValid": false
+    },
+    {
+      "name": "stale-revision",
+      "text": "hello",
+      "currentRevision": 2,
+      "selector": {
+        "blockId": "input",
+        "revision": 1,
+        "range": { "unit": "unicode-scalar", "start": 0, "end": 5 },
+        "quote": { "exact": "hello" }
+      },
+      "scalarValid": false,
+      "graphemeValid": false
+    },
+    {
+      "name": "quote-mismatch",
+      "text": "hello",
+      "currentRevision": 0,
+      "selector": {
+        "blockId": "input",
+        "revision": 0,
+        "range": { "unit": "unicode-scalar", "start": 0, "end": 5 },
+        "quote": { "exact": "world" }
+      },
+      "scalarValid": false,
+      "graphemeValid": false
+    }
+  ],
+  "overlapCases": [
+    {
+      "name": "protected-overlap",
+      "protection": {
+        "blockId": "input",
+        "revision": 0,
+        "range": { "unit": "unicode-scalar", "start": 2, "end": 5 },
+        "quote": { "exact": "cde" }
+      },
+      "edit": {
+        "blockId": "input",
+        "revision": 0,
+        "range": { "unit": "unicode-scalar", "start": 4, "end": 6 },
+        "quote": { "exact": "ef" }
+      },
+      "expected": true
+    },
+    {
+      "name": "different-blocks",
+      "protection": {
+        "blockId": "first",
+        "revision": 0,
+        "range": { "unit": "unicode-scalar", "start": 0, "end": 1 },
+        "quote": { "exact": "a" }
+      },
+      "edit": {
+        "blockId": "second",
+        "revision": 0,
+        "range": { "unit": "unicode-scalar", "start": 0, "end": 1 },
+        "quote": { "exact": "b" }
+      },
+      "expected": false
+    }
+  ],
+  "rebaseCases": [
+    {
+      "name": "edit-before-selector",
+      "selector": {
+        "blockId": "input",
+        "revision": 0,
+        "range": { "unit": "unicode-scalar", "start": 3, "end": 6 },
+        "quote": { "exact": "def" }
+      },
+      "edit": {
+        "blockId": "input",
+        "revision": 0,
+        "range": { "unit": "unicode-scalar", "start": 0, "end": 1 },
+        "quote": { "exact": "a" }
+      },
+      "replacement": "XYZ",
+      "nextRevision": 1,
+      "expected": {
+        "blockId": "input",
+        "revision": 1,
+        "range": { "unit": "unicode-scalar", "start": 5, "end": 8 },
+        "quote": { "exact": "def" }
+      }
+    }
+  ]
+}

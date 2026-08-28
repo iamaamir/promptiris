@@ -22,6 +22,7 @@ const allowedKeywords = new Set([
   'oneOf',
   'pattern',
   'properties',
+  'propertyNames',
   'required',
   'title',
   'type',

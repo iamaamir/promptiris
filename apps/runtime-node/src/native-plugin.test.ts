@@ -30,6 +30,7 @@ function invocation(signal = new AbortController().signal) {
   return {
     contributionId: 'native-transform',
     input: makeTextDocument('input'),
+    revision: 0,
     signal,
   };
 }
@@ -54,7 +55,7 @@ describe('defineNativePlugin', () => {
       const implementation = await registration.activate();
       await expect(readFile(marker, 'utf8')).resolves.toBe('started\n');
       await expect(implementation.invoke(invocation())).resolves.toMatchObject({
-        content: [{ text: 'input' }, { text: 'native' }],
+        patches: [{ operations: [{ block: { text: 'native' } }] }],
       });
     } finally {
       await rm(directory, { recursive: true, force: true });
@@ -106,7 +107,7 @@ describe('defineNativePlugin', () => {
     const implementation = await native('boundary-limits').activate();
 
     await expect(implementation.invoke(invocation())).resolves.toMatchObject({
-      content: [{ text: 'input' }, { text: 'native' }],
+      patches: [{ operations: [{ block: { text: 'native' } }] }],
     });
   });
 
@@ -138,6 +139,7 @@ describe('defineNativePlugin', () => {
           params: {
             contributionId: 'native-transform',
             input: makeTextDocument('input'),
+            revision: 0,
           },
         },
         { jsonrpc: '2.0', id: 3, method: 'plugin/shutdown', params: {} },
@@ -153,7 +155,7 @@ describe('defineNativePlugin', () => {
     }).activate();
 
     await expect(implementation.invoke(invocation())).resolves.toMatchObject({
-      content: [{ text: 'input' }, { text: 'configured' }],
+      patches: [{ operations: [{ block: { text: 'configured' } }] }],
     });
   });
 
@@ -220,7 +222,7 @@ describe('defineNativePlugin', () => {
     }).activate();
 
     await expect(implementation.invoke(invocation())).resolves.toMatchObject({
-      content: [{ text: 'input' }, { text: 'native' }],
+      patches: [{ operations: [{ block: { text: 'native' } }] }],
     });
   });
 
@@ -307,6 +309,7 @@ describe('defineNativePlugin', () => {
           params: {
             contributionId: 'native-transform',
             input: makeTextDocument('input'),
+            revision: 0,
           },
         },
         { jsonrpc: '2.0', method: 'plugin/cancel', params: { id: 2 } },

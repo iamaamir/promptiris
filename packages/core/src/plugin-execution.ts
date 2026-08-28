@@ -1,36 +1,56 @@
 import {
-  validatePromptDocument,
+  validateJsonValue,
+  validatePatch,
+  type Artifact,
   type Diagnostic,
+  type NamespacedId,
   type Phase,
   type PromptDocument,
   type RunResult,
 } from '@meta-prompt/protocol';
 import {
   identityArtifact,
+  type ArtifactProposal,
   type PluginImplementation,
   type PluginInvocation,
+  type PluginOutput,
   type PluginRegistration,
   type RunContext,
 } from '@meta-prompt/plugin-sdk';
 import type { CompiledContribution, CompiledPluginGraph } from './plugin-graph.js';
+import {
+  applyPatch,
+  createTransformationState,
+  type TransformationState,
+} from './transformation-state.js';
+
+/** @public */
+export interface ArtifactExposurePolicy {
+  readonly primaryKind?: NamespacedId;
+  readonly alternativeKinds?: readonly NamespacedId[];
+  readonly exposedKinds?: readonly NamespacedId[];
+}
 
 /** @public */
 export interface ExecutionOptions {
   readonly recipe: { readonly id: string; readonly version: string };
   readonly signal?: AbortSignal;
+  readonly artifacts?: ArtifactExposurePolicy;
 }
 
 interface ExecutionState {
-  current: PromptDocument;
+  current: TransformationState;
   readonly activated: Map<string, PluginImplementation>;
   readonly diagnostics: Diagnostic[];
+  readonly artifacts: Artifact[];
+  readonly patchIds: string[];
   readonly completedPhases: Phase[];
   readonly failedPhases: Phase[];
   transformed: boolean;
 }
 
 type InvocationOutcome =
-  | { readonly ok: true; readonly document: PromptDocument }
+  | { readonly ok: true; readonly output: PluginOutput }
   | { readonly ok: false; readonly diagnostic: Diagnostic };
 type ActivationOutcome =
   | { readonly ok: true; readonly implementation: PluginImplementation }
@@ -45,12 +65,6 @@ function coreDiagnostic(code: string, category = 'plugin'): Diagnostic {
     severity: 'error',
     title: code,
   });
-}
-
-function immutableDocument(input: PromptDocument): PromptDocument {
-  const content = input.content.map((block) => Object.freeze({ ...block }));
-  Object.freeze(content);
-  return Object.freeze({ schemaVersion: '1', content });
 }
 
 function emitPluginEvent(
@@ -98,6 +112,44 @@ function isPluginImplementation(value: unknown): value is PluginImplementation {
   );
 }
 
+function isArtifactClassification(value: unknown): value is ArtifactProposal['classification'] {
+  return value === 'public' || value === 'internal' || value === 'sensitive';
+}
+
+function hasArtifactIdentity(proposal: Partial<ArtifactProposal>): boolean {
+  return (
+    typeof proposal.kind === 'string' &&
+    proposal.kind.includes('/') &&
+    typeof proposal.mediaType === 'string' &&
+    proposal.mediaType.length > 0
+  );
+}
+
+function isArtifactProposal(value: unknown): value is ArtifactProposal {
+  if (typeof value !== 'object' || value === null) return false;
+  const proposal = value as Partial<ArtifactProposal>;
+  return (
+    hasArtifactIdentity(proposal) &&
+    isArtifactClassification(proposal.classification) &&
+    validateJsonValue(proposal.value) &&
+    (proposal.extensions === undefined || validateJsonValue(proposal.extensions))
+  );
+}
+
+function isPluginOutput(value: unknown): value is PluginOutput {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return false;
+  const keys = Object.keys(value);
+  if (keys.some((key) => key !== 'patches' && key !== 'artifacts')) return false;
+  const output = value as Partial<PluginOutput>;
+  const patchesValid =
+    output.patches === undefined ||
+    (Array.isArray(output.patches) && output.patches.every((patch) => validatePatch(patch)));
+  const artifactsValid =
+    output.artifacts === undefined ||
+    (Array.isArray(output.artifacts) && output.artifacts.every(isArtifactProposal));
+  return patchesValid && artifactsValid;
+}
+
 async function activatePlugin(
   registration: PluginRegistration | undefined,
   node: CompiledContribution,
@@ -134,12 +186,133 @@ async function invokePlugin(
     emitPluginEvent(context, 'meta-prompt.plugin.invocation-completed', node, 'failed');
     return { ok: false, diagnostic: coreDiagnostic('meta-prompt.plugin.invocation-failed') };
   }
-  if (!validatePromptDocument(output)) {
+  if (!isPluginOutput(output)) {
     emitPluginEvent(context, 'meta-prompt.plugin.invocation-completed', node, 'failed');
     return { ok: false, diagnostic: coreDiagnostic('meta-prompt.plugin.invalid-output') };
   }
   emitPluginEvent(context, 'meta-prompt.plugin.invocation-completed', node, 'success');
-  return { ok: true, document: immutableDocument(output) };
+  return { ok: true, output };
+}
+
+function ownsNamespace(pluginId: string, key: string): boolean {
+  return key === pluginId || key.startsWith(`${pluginId}/`);
+}
+
+function artifactNamespacesValid(
+  pluginId: string,
+  artifacts: readonly ArtifactProposal[],
+): boolean {
+  return artifacts.every((artifact) =>
+    Object.keys(artifact.extensions ?? {}).every((key) => ownsNamespace(pluginId, key)),
+  );
+}
+
+function stampArtifact(
+  proposal: ArtifactProposal,
+  node: CompiledContribution,
+  context: RunContext,
+  ordinal: number,
+  patchIds: readonly string[],
+): Artifact {
+  return Object.freeze({
+    schemaVersion: '1',
+    id: `artifact:${context.runId}:${String(ordinal)}`,
+    kind: proposal.kind,
+    mediaType: proposal.mediaType,
+    value: structuredClone(proposal.value),
+    ...(proposal.dataSchema === undefined ? {} : { dataSchema: { ...proposal.dataSchema } }),
+    ...(proposal.digest === undefined ? {} : { digest: proposal.digest }),
+    provenance: {
+      pluginId: node.pluginId,
+      contributionId: node.contribution.id,
+      invocationId: `${context.runId}:${node.pluginId}:${node.contribution.id}`,
+      phase: node.contribution.phase,
+      parentArtifactIds: [],
+      patchIds: [...patchIds],
+    },
+    classification: proposal.classification,
+    ...(proposal.extensions === undefined
+      ? {}
+      : { extensions: structuredClone(proposal.extensions) }),
+  });
+}
+
+function acceptOutput(
+  output: PluginOutput,
+  node: CompiledContribution,
+  state: ExecutionState,
+  context: RunContext,
+): Diagnostic | undefined {
+  const artifacts = output.artifacts ?? [];
+  if (!artifactNamespacesValid(node.pluginId, artifacts)) {
+    return coreDiagnostic('meta-prompt.plugin.invalid-output');
+  }
+  const patchIds: string[] = [];
+  for (const patch of output.patches ?? []) {
+    const applied = applyPatch(state.current, patch, node.pluginId);
+    if (!applied.ok) return coreDiagnostic(`meta-prompt.patch.${applied.code}`, 'transformation');
+    state.current = applied.state;
+    state.transformed = true;
+    patchIds.push(patch.id);
+    state.patchIds.push(patch.id);
+  }
+  for (const artifact of artifacts) {
+    state.artifacts.push(stampArtifact(artifact, node, context, state.artifacts.length, patchIds));
+  }
+  return undefined;
+}
+
+function publicArtifacts(state: ExecutionState): readonly Artifact[] {
+  return state.artifacts.filter((artifact) => artifact.classification === 'public');
+}
+
+function firstArtifactOfKind(
+  artifacts: readonly Artifact[],
+  kind: NamespacedId | undefined,
+): Artifact | undefined {
+  return kind === undefined ? undefined : artifacts.find((artifact) => artifact.kind === kind);
+}
+
+function exposedArtifacts(
+  artifacts: readonly Artifact[],
+  kinds: readonly NamespacedId[],
+): Record<string, Artifact[]> {
+  const exposed: Record<string, Artifact[]> = {};
+  for (const kind of kinds) {
+    const matching = artifacts.filter((artifact) => artifact.kind === kind);
+    if (matching.length > 0) exposed[kind] = matching;
+  }
+  return exposed;
+}
+
+function fallbackArtifact(state: ExecutionState, context: RunContext): Artifact {
+  return identityArtifact(state.current.document, {
+    pluginId: 'meta-prompt/core',
+    contributionId: 'result-fallback',
+    invocationId: `${context.runId}:result`,
+    phase: 'render',
+    parentArtifactIds: [],
+    patchIds: [...state.patchIds],
+  });
+}
+
+function resultArtifacts(
+  state: ExecutionState,
+  context: RunContext,
+  policy: ArtifactExposurePolicy | undefined,
+): { primary: Artifact; alternatives: Artifact[]; exposed: Record<string, Artifact[]> } {
+  const visible = publicArtifacts(state);
+  const primary =
+    firstArtifactOfKind(visible, policy?.primaryKind) ?? fallbackArtifact(state, context);
+  const alternatives = visible.filter(
+    (artifact) =>
+      artifact.id !== primary.id && (policy?.alternativeKinds ?? []).includes(artifact.kind),
+  );
+  return {
+    primary,
+    alternatives,
+    exposed: exposedArtifacts(visible, policy?.exposedKinds ?? []),
+  };
 }
 
 async function executeContribution(
@@ -157,7 +330,12 @@ async function executeContribution(
   }
   const outcome = await invokePlugin(
     activation.implementation,
-    { contributionId: node.contribution.id, input: immutableDocument(state.current), signal },
+    {
+      contributionId: node.contribution.id,
+      input: state.current.document,
+      revision: state.current.revision,
+      signal,
+    },
     node,
     context,
   );
@@ -165,8 +343,11 @@ async function executeContribution(
     state.diagnostics.push(outcome.diagnostic);
     return false;
   }
-  state.current = outcome.document;
-  state.transformed = true;
+  const rejected = acceptOutput(outcome.output, node, state, context);
+  if (rejected !== undefined) {
+    state.diagnostics.push(rejected);
+    return false;
+  }
   return true;
 }
 
@@ -179,6 +360,7 @@ function createResult(
   const diagnostics = [...state.diagnostics];
   const completedPhases = [...state.completedPhases];
   const failedPhases = [...state.failedPhases];
+  const artifacts = resultArtifacts(state, context, options.artifacts);
   Object.freeze(diagnostics);
   Object.freeze(completedPhases);
   Object.freeze(failedPhases);
@@ -187,10 +369,13 @@ function createResult(
     runId: context.runId,
     recipe: options.recipe,
     status: state.diagnostics.length === 0 ? 'success' : 'degraded',
-    primary: identityArtifact(state.current),
-    primaryOrigin: state.transformed ? 'transformed' : 'original',
-    alternatives: [],
-    exposed: {},
+    primary: artifacts.primary,
+    primaryOrigin:
+      artifacts.primary.kind !== 'meta-prompt/prompt' || state.transformed
+        ? 'transformed'
+        : 'original',
+    alternatives: artifacts.alternatives,
+    exposed: artifacts.exposed,
     assumptions: [],
     clarifications: [],
     diagnostics,
@@ -242,9 +427,11 @@ export async function executePluginPlan(
 ): Promise<RunResult> {
   const started = Date.now();
   const state: ExecutionState = {
-    current: immutableDocument(input),
+    current: createTransformationState(input),
     activated: new Map(),
     diagnostics: [],
+    artifacts: [],
+    patchIds: [],
     completedPhases: [],
     failedPhases: [],
     transformed: false,

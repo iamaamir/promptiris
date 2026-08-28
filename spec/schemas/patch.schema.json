@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://meta-prompt.dev/schema/patch-v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "id", "baseRevision", "operations"],
+  "properties": {
+    "schemaVersion": { "const": "1" },
+    "id": { "type": "string", "minLength": 1 },
+    "baseRevision": { "type": "integer", "minimum": 0 },
+    "operations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 128,
+      "items": {
+        "oneOf": [
+          { "$ref": "#/$defs/replaceText" },
+          { "$ref": "#/$defs/insertContentBlock" },
+          { "$ref": "#/$defs/replaceContentBlock" },
+          { "$ref": "#/$defs/removeContentBlock" },
+          { "$ref": "#/$defs/setNamespacedExtension" }
+        ]
+      }
+    }
+  },
+  "$defs": {
+    "namespacedId": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9._-]*/[A-Za-z][A-Za-z0-9._-]*(?:/[A-Za-z0-9._-]+)*$"
+    },
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "jsonValue": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "boolean" },
+        { "type": "number" },
+        { "type": "string" },
+        { "type": "array", "items": { "$ref": "#/$defs/jsonValue" } },
+        { "type": "object", "additionalProperties": { "$ref": "#/$defs/jsonValue" } }
+      ]
+    },
+    "textBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "text"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "text": { "type": "string" }
+      }
+    },
+    "selector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["blockId", "revision", "range", "quote"],
+      "properties": {
+        "blockId": { "type": "string", "minLength": 1 },
+        "revision": { "type": "integer", "minimum": 0 },
+        "range": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["unit", "start", "end"],
+          "properties": {
+            "unit": { "const": "unicode-scalar" },
+            "start": { "type": "integer", "minimum": 0 },
+            "end": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "quote": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["exact"],
+          "properties": {
+            "exact": { "type": "string" },
+            "prefix": { "type": "string" },
+            "suffix": { "type": "string" }
+          }
+        }
+      }
+    },
+    "replaceText": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "selector", "text"],
+      "properties": {
+        "type": { "const": "replace-text" },
+        "selector": { "$ref": "#/$defs/selector" },
+        "text": { "type": "string" }
+      }
+    },
+    "insertContentBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "block"],
+      "properties": {
+        "type": { "const": "insert-content-block" },
+        "block": { "$ref": "#/$defs/textBlock" },
+        "beforeBlockId": { "type": "string", "minLength": 1 }
+      }
+    },
+    "replaceContentBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "blockId", "expectedDigest", "block"],
+      "properties": {
+        "type": { "const": "replace-content-block" },
+        "blockId": { "type": "string", "minLength": 1 },
+        "expectedDigest": { "$ref": "#/$defs/digest" },
+        "block": { "$ref": "#/$defs/textBlock" }
+      }
+    },
+    "removeContentBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "blockId", "expectedDigest"],
+      "properties": {
+        "type": { "const": "remove-content-block" },
+        "blockId": { "type": "string", "minLength": 1 },
+        "expectedDigest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "setNamespacedExtension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "key", "value"],
+      "properties": {
+        "type": { "const": "set-namespaced-extension" },
+        "key": { "$ref": "#/$defs/namespacedId" },
+        "value": { "$ref": "#/$defs/jsonValue" }
+      }
+    }
+  }
+}

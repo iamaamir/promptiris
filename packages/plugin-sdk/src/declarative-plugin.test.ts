@@ -29,6 +29,7 @@ describe('defineDeclarativePlugin', () => {
     const output = await implementation.invoke({
       contributionId: 'append-two',
       input,
+      revision: 0,
       signal: new AbortController().signal,
     });
 
@@ -37,10 +38,13 @@ describe('defineDeclarativePlugin', () => {
     expect(Object.isFrozen(registration.manifest)).toBe(true);
     expect(Object.isFrozen(implementation)).toBe(true);
     expect(output).toEqual({
-      schemaVersion: '1',
-      content: [
-        { id: 'input-1', text: 'original' },
-        { id: 'two', text: 'two' },
+      patches: [
+        {
+          schemaVersion: '1',
+          id: 'example/declarative:append-two',
+          baseRevision: 0,
+          operations: [{ type: 'insert-content-block', block: { id: 'two', text: 'two' } }],
+        },
       ],
     });
     expect(input).toEqual(makeTextDocument('original'));
@@ -64,6 +68,7 @@ describe('defineDeclarativePlugin', () => {
       implementation.invoke({
         contributionId: 'missing',
         input: makeTextDocument('original'),
+        revision: 0,
         signal: new AbortController().signal,
       }),
     ).rejects.toThrow(/not defined/i);

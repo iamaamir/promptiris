@@ -10,6 +10,7 @@ import {
   type PluginImplementation,
   type PluginInvocation,
   type PluginManifest,
+  type PluginOutput,
   type PluginRegistration,
 } from '@meta-prompt/plugin-sdk';
 
@@ -307,7 +308,7 @@ class NativePluginSupervisor {
     await this.#ensureChild();
   }
 
-  async invoke(invocation: PluginInvocation): Promise<unknown> {
+  async invoke(invocation: PluginInvocation): Promise<PluginOutput> {
     if (this.#inFlight) throw safeError('Native plugin concurrent invocation denied');
     this.#inFlight = true;
     let child: ChildProcessWithoutNullStreams | undefined;
@@ -316,13 +317,17 @@ class NativePluginSupervisor {
       const result = await this.#request(
         child,
         'plugin/invoke',
-        { contributionId: invocation.contributionId, input: invocation.input },
+        {
+          contributionId: invocation.contributionId,
+          input: invocation.input,
+          revision: invocation.revision,
+        },
         this.#config.invocationTimeoutMs,
         'Native plugin invocation timed out',
         invocation.signal,
       );
       await this.#shutdown(child);
-      return result;
+      return result as PluginOutput;
     } catch (error) {
       // Stryker disable next-line BlockStatement: request cancellation/protocol paths already stop
       // the child; this is a redundant containment fallback for unexpected failures.
@@ -451,7 +456,7 @@ export function defineNativePlugin(options: NativePluginOptions): PluginRegistra
       const supervisor = new NativePluginSupervisor(config);
       await supervisor.initialize();
       return Object.freeze({
-        invoke(invocation: PluginInvocation): Promise<unknown> {
+        invoke(invocation: PluginInvocation): Promise<PluginOutput> {
           return supervisor.invoke(invocation);
         },
       });

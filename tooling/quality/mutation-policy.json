@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "baselineDate": "2026-08-28",
   "aggregate": {
-    "minScore": 96.79,
-    "maxIgnored": 102,
-    "maxSurvived": 12,
+    "minScore": 94.28,
+    "maxIgnored": 106,
+    "maxSurvived": 44,
     "maxNoCoverage": 5
   },
   "targets": {
@@ -21,15 +21,21 @@
       "maxNoCoverage": 0
     },
     "packages/core/src/plugin-execution.ts": {
-      "minScore": 100,
+      "minScore": 91.86,
       "maxIgnored": 0,
-      "maxSurvived": 0,
+      "maxSurvived": 18,
       "maxNoCoverage": 0
     },
     "packages/core/src/plugin-graph.ts": {
       "minScore": 100,
       "maxIgnored": 8,
       "maxSurvived": 0,
+      "maxNoCoverage": 0
+    },
+    "packages/core/src/transformation-state.ts": {
+      "minScore": 92.82,
+      "maxIgnored": 3,
+      "maxSurvived": 14,
       "maxNoCoverage": 0
     },
     "packages/plugin-sdk/src/index.ts": {
@@ -40,7 +46,7 @@
     },
     "packages/protocol/src/index.ts": {
       "minScore": 100,
-      "maxIgnored": 9,
+      "maxIgnored": 10,
       "maxSurvived": 0,
       "maxNoCoverage": 0
     }

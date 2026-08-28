@@ -6,6 +6,10 @@
 
 import type { Diagnostic } from '@meta-prompt/protocol';
 import type { Event as Event_2 } from '@meta-prompt/protocol';
+import { JsonValue } from '@meta-prompt/protocol';
+import { NamespacedId } from '@meta-prompt/protocol';
+import { Patch } from '@meta-prompt/protocol';
+import { PatchOperation } from '@meta-prompt/protocol';
 import type { PluginContribution } from '@meta-prompt/plugin-sdk';
 import type { PluginManifest } from '@meta-prompt/plugin-sdk';
 import { PluginRegistration } from '@meta-prompt/plugin-sdk';
@@ -13,6 +17,35 @@ import { PromptDocument } from '@meta-prompt/protocol';
 import { Recipe } from '@meta-prompt/plugin-sdk';
 import { RunContext } from '@meta-prompt/plugin-sdk';
 import { RunResult } from '@meta-prompt/protocol';
+import { TextBlock } from '@meta-prompt/protocol';
+
+// @public (undocumented)
+export interface AppliedPatch {
+    // (undocumented)
+    readonly baseRevision: number;
+    // (undocumented)
+    readonly changes: readonly PatchChange[];
+    // (undocumented)
+    readonly patchId: string;
+    // (undocumented)
+    readonly revision: number;
+}
+
+// @public (undocumented)
+export function applyPatch(state: TransformationState, patch: Patch, pluginId: string): PatchResult;
+
+// @public (undocumented)
+export interface ArtifactExposurePolicy {
+    // (undocumented)
+    readonly alternativeKinds?: readonly NamespacedId[];
+    // (undocumented)
+    readonly exposedKinds?: readonly NamespacedId[];
+    // (undocumented)
+    readonly primaryKind?: NamespacedId;
+}
+
+// @public (undocumented)
+export function blockDigest(block: Pick<TextBlock, 'text'>): string;
 
 // @public (undocumented)
 export interface CompiledContribution {
@@ -39,10 +72,15 @@ export function compilePluginGraph(manifests: readonly PluginManifest[], selecte
 export function createRunContext(runId: string, emit: (event: Event_2) => void): RunContext;
 
 // @public (undocumented)
+export function createTransformationState(document: PromptDocument, revision?: number): TransformationState;
+
+// @public (undocumented)
 export function executePluginPlan(input: PromptDocument, graph: CompiledPluginGraph, registrations: readonly PluginRegistration[], context: RunContext, options: ExecutionOptions): Promise<RunResult>;
 
 // @public (undocumented)
 export interface ExecutionOptions {
+    // (undocumented)
+    readonly artifacts?: ArtifactExposurePolicy;
     // (undocumented)
     readonly recipe: {
         readonly id: string;
@@ -54,6 +92,42 @@ export interface ExecutionOptions {
 
 // @public (undocumented)
 export const identityRecipe: Recipe;
+
+// @public (undocumented)
+export interface PatchChange {
+    // (undocumented)
+    readonly after?: JsonValue;
+    // (undocumented)
+    readonly before?: JsonValue;
+    // (undocumented)
+    readonly blockId?: string;
+    // (undocumented)
+    readonly operationIndex: number;
+    // (undocumented)
+    readonly type: PatchOperation['type'];
+}
+
+// @public (undocumented)
+export type PatchFailureCode = 'invalid-patch' | 'stale-revision' | 'stale-selector' | 'unknown-block' | 'invalid-selector' | 'quote-mismatch' | 'protected-span' | 'precondition-failed' | 'duplicate-block' | 'invalid-namespace' | 'conflicting-operations' | 'invalid-document';
+
+// @public (undocumented)
+export type PatchResult = {
+    readonly ok: true;
+    readonly state: TransformationState;
+    readonly applied: AppliedPatch;
+} | {
+    readonly ok: false;
+    readonly code: PatchFailureCode;
+    readonly detail: string;
+};
+
+// @public (undocumented)
+export interface TransformationState {
+    // (undocumented)
+    readonly document: Readonly<PromptDocument>;
+    // (undocumented)
+    readonly revision: number;
+}
 
 // (No @packageDocumentation comment for this package)
 
