@@ -3,9 +3,9 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { compilePluginGraph, createRunContext, executePluginPlan } from '@meta-prompt/core';
-import { makeTextDocument } from '@meta-prompt/protocol';
-import type { PluginManifest } from '@meta-prompt/plugin-sdk';
+import { compilePluginGraph, createRunContext, executePluginPlan } from '@promptiris/core';
+import { makeTextDocument } from '@promptiris/protocol';
+import type { PluginManifest } from '@promptiris/plugin-sdk';
 import { defineNativePlugin } from './native-plugin.js';
 
 const fixture = fileURLToPath(new URL('../test/fixtures/native-plugin.mjs', import.meta.url));
@@ -438,7 +438,7 @@ describe('defineNativePlugin', () => {
       status: 'degraded',
       primary: { value: 'input' },
       primaryOrigin: 'original',
-      diagnostics: [{ code: 'meta-prompt.plugin.invocation-failed' }],
+      diagnostics: [{ code: 'promptiris.plugin.invocation-failed' }],
     });
   });
 });

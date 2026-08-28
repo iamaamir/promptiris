@@ -1,6 +1,6 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
-import type { PluginManifest } from '@meta-prompt/plugin-sdk';
+import type { PluginManifest } from '@promptiris/plugin-sdk';
 import { compilePluginGraph } from './index.js';
 
 const identifier = fc.stringMatching(/^[a-z][a-z0-9]{0,7}$/);

@@ -1,5 +1,5 @@
 id: no-internal-workspace-imports
 valid:
-  - import { makeTextDocument } from '@meta-prompt/protocol'
+  - import { makeTextDocument } from '@promptiris/protocol'
 invalid:
-  - import { hidden } from '@meta-prompt/protocol/src/internal.js'
+  - import { hidden } from '@promptiris/protocol/src/internal.js'

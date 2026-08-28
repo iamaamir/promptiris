@@ -42,7 +42,7 @@ evals/                          public corpus, rubrics, runners, and reports
 docs/
 ```
 
-Public npm packages are `@meta-prompt/protocol`, `@meta-prompt/core`, `@meta-prompt/plugin-sdk`, `@meta-prompt/testkit`, `@meta-prompt/devtools`, `@meta-prompt/builtins`, and `@meta-prompt/adapter-pi`. The Node application remains private. `@meta-prompt/cli` plus generated OS/CPU payloads is distribution machinery, not another Kernel API.
+Public npm packages are `@promptiris/protocol`, `@promptiris/core`, `@promptiris/plugin-sdk`, `@promptiris/testkit`, `@promptiris/devtools`, `@promptiris/builtins`, and `@promptiris/adapter-pi`. The Node application remains private. `@promptiris/cli` plus generated OS/CPU payloads is distribution machinery, not another Kernel API.
 
 Every package has explicit `exports`; source/internal paths are not exported. The SDK is a peer dependency for third-party Plugins. Official packages use exact internal versions in release artifacts, while third-party peer ranges follow their tested SDK/protocol range.
 
@@ -50,14 +50,14 @@ Every package has explicit `exports`; source/internal paths are not exported. Th
 
 A first Plugin should be runnable in ten minutes without Kernel knowledge:
 
-1. `meta-prompt dev init-plugin <directory>` copies a versioned minimal template for declarative or native form.
+1. `promptiris dev init-plugin <directory>` copies a versioned minimal template for declarative or native form.
 2. The author declares a namespaced ID, contributions, capabilities, schemas, dependencies, Permission Hints, and lazy activation in one manifest.
 3. `definePlugin(...)` provides local type inference without global module augmentation.
-4. `meta-prompt dev test-plugin <directory>` runs manifest/schema checks, lifecycle and cancellation conformance, undeclared-output checks, concurrency/reentrancy checks when claimed, and failure-injection fixtures.
-5. `meta-prompt run <recipe> --plugin <directory> --trace` starts a fresh development Engine with the local Plugin explicitly activated—watching/reload never changes an already-running graph.
-6. `meta-prompt inspect` displays the resolved graph, locked versions, capabilities, configuration provenance, permissions, and output contract before execution.
+4. `promptiris dev test-plugin <directory>` runs manifest/schema checks, lifecycle and cancellation conformance, undeclared-output checks, concurrency/reentrancy checks when claimed, and failure-injection fixtures.
+5. `promptiris run <recipe> --plugin <directory> --trace` starts a fresh development Engine with the local Plugin explicitly activated—watching/reload never changes an already-running graph.
+6. `promptiris inspect` displays the resolved graph, locked versions, capabilities, configuration provenance, permissions, and output contract before execution.
 
-The optional `@meta-prompt/devtools` Observer is the standard development/debugging Plugin requested by the product design. It renders the Event tree, phase timings, graph, Patches, protected-selector checks, configuration trace, safe Diagnostic causes, diff, and sanitized support bundle. It is disabled by default, cannot affect a Result, and captures content only after separate explicit opt-in. `@meta-prompt/testkit` supplies fake Providers, deterministic clocks/IDs, event collectors, fixture builders, crash/timeout/invalid-frame injection, and shared conformance suites.
+The optional `@promptiris/devtools` Observer is the standard development/debugging Plugin requested by the product design. It renders the Event tree, phase timings, graph, Patches, protected-selector checks, configuration trace, safe Diagnostic causes, diff, and sanitized support bundle. It is disabled by default, cannot affect a Result, and captures content only after separate explicit opt-in. `@promptiris/testkit` supplies fake Providers, deterministic clocks/IDs, event collectors, fixture builders, crash/timeout/invalid-frame injection, and shared conformance suites.
 
 ## User and host experience invariants
 
@@ -114,4 +114,4 @@ Coverage is a floor, not proof: protocol/Kernel safety packages require at least
 
 CRAP/complexity analysis and mutation testing are first-class Cleaner/Hardener evidence rather than optional reports. Exact package thresholds and performance budgets are calibrated during the first tracer bullets; high-risk protocol/Kernel surfaces receive the strictest profile. Candidate checks operate on affected code, integration checks reuse fresh Evidence and rerun invalidated dependency closures, and scheduled/release checks deliberately prove long-running or whole-bundle properties from controlled clean environments.
 
-Quality providers use replaceable Tool or Verifier Adapters registered with the [tool-aware execution layer](./tool-aware-execution.md), but quality governance is not delegated to them. They are not Meta Prompt Plugins, and the standalone verifier never loads them through the runtime it is verifying. Each provider declares stable identity/version, applicability, inputs, output schema, cost class, cache/invalidation rules, sensitivity, and finding codes. The repository verifier selects the Quality Profile, validates Evidence freshness, dispatches standard Harness Events/diagnostics, and decides gate status. An adapter cannot waive another check, invent a private event channel, convert failure into success, or grant merge authority.
+Quality providers use replaceable Tool or Verifier Adapters registered with the [tool-aware execution layer](./tool-aware-execution.md), but quality governance is not delegated to them. They are not Prompt Iris Plugins, and the standalone verifier never loads them through the runtime it is verifying. Each provider declares stable identity/version, applicability, inputs, output schema, cost class, cache/invalidation rules, sensitivity, and finding codes. The repository verifier selects the Quality Profile, validates Evidence freshness, dispatches standard Harness Events/diagnostics, and decides gate status. An adapter cannot waive another check, invent a private event channel, convert failure into success, or grant merge authority.

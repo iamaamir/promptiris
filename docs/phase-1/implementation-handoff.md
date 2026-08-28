@@ -42,7 +42,7 @@ These are verification tasks, not unresolved product choices:
 - prove npm optional platform payload installation/upgrade/offline behavior on every tuple;
 - obtain signing identities or mark unsigned beta channels visibly;
 - calibrate the orthogonal Quality Profiles—including CRAP, mutation, property/state-model/fuzz, differential/API compatibility, runtime adversity, security/supply-chain, performance/resource, evidence-integrity, and source-blind QA evidence—from the first real tracer bullets without silently weakening the agreed coverage floors or quality hierarchy;
-- prove that Tool and Verifier Adapters declare stable inputs/outputs, applicability, cost, cache/invalidation, sensitivity, and finding codes while remaining independent from Meta Prompt Plugins/runtime and while the repository verifier retains standard Harness Events/diagnostics, Evidence validation, and merge authority;
+- prove that Tool and Verifier Adapters declare stable inputs/outputs, applicability, cost, cache/invalidation, sensitivity, and finding codes while remaining independent from Prompt Iris Plugins/runtime and while the repository verifier retains standard Harness Events/diagnostics, Evidence validation, and merge authority;
 - prove capability-first routing, raw/compact Tool Trace integrity, event idempotency/supersession, and the read-only Automation Miner on real accepted tasks before permitting any Automation Candidate to enter the gauntlet;
 - validate Context Graph/Orientation Packet schemas, Evidence invalidation, task leases, source-blind QA isolation, and secret-safe artifact retention; and
 - prove that parallel worktrees, Candidate Evidence reuse, and the integration queue cannot accept stale or cross-revision results.

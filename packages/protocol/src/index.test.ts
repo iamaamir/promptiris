@@ -79,7 +79,7 @@ describe('Content-Length protocol', () => {
           digest: `sha256:${'a'.repeat(64)}`,
         },
       ],
-      constraints: [{ id: 'host/intent', kind: 'meta-prompt/semantic', value: { retain: true } }],
+      constraints: [{ id: 'host/intent', kind: 'promptiris/semantic', value: { retain: true } }],
       protections: [
         {
           id: 'host/token',

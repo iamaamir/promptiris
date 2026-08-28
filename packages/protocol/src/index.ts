@@ -173,7 +173,7 @@ export interface InitializeParams {
 /** @public */
 export interface InitializeResult {
   protocolVersion: '1';
-  serverName: 'meta-prompt-runtime';
+  serverName: 'promptiris-runtime';
   capabilities: { methods: string[]; events: string[] };
   limits: { maxFrameBytes: number; maxDepth: number };
 }
@@ -217,7 +217,7 @@ const digestPattern = '^sha256:[0-9a-f]{64}$';
 
 const promptDocumentSchema = {
   $schema: 'https://json-schema.org/draft/2020-12/schema',
-  $id: 'https://meta-prompt.dev/schema/prompt-document-v1.json',
+  $id: 'urn:promptiris:schema:prompt-document:v1',
   type: 'object',
   additionalProperties: false,
   required: ['schemaVersion', 'content'],
@@ -335,7 +335,7 @@ const promptDocumentSchema = {
 
 const patchSchema = {
   $schema: 'https://json-schema.org/draft/2020-12/schema',
-  $id: 'https://meta-prompt.dev/schema/patch-v1.json',
+  $id: 'urn:promptiris:schema:patch:v1',
   type: 'object',
   additionalProperties: false,
   required: ['schemaVersion', 'id', 'baseRevision', 'operations'],

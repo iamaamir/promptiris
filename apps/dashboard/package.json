@@ -1,5 +1,5 @@
 {
-  "name": "@meta-prompt/dashboard",
+  "name": "@promptiris/dashboard",
   "private": true,
   "type": "module",
   "scripts": {

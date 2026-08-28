@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { makeTextDocument } from '@meta-prompt/protocol';
+import { makeTextDocument } from '@promptiris/protocol';
 import { definePlugin, identityArtifact } from './index.js';
 
 describe('plugin SDK primitives', () => {
@@ -135,11 +135,11 @@ describe('plugin SDK primitives', () => {
     expect(artifact).toEqual({
       schemaVersion: '1',
       id: 'artifact:identity',
-      kind: 'meta-prompt/prompt',
+      kind: 'promptiris/prompt',
       mediaType: 'text/plain',
       value: 'first\nsecond',
       provenance: {
-        pluginId: 'meta-prompt/core',
+        pluginId: 'promptiris/core',
         contributionId: 'identity',
         invocationId: 'identity',
         phase: 'render',

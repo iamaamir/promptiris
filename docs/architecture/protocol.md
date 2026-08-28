@@ -29,7 +29,7 @@ Resource loaders may derive text or other Artifacts; modality Plugins may later 
 
 ### Patch contract
 
-Plugins return typed Meta Prompt Patches rather than arbitrary JSON Patch documents or mutable Prompt Documents:
+Plugins return typed Prompt Iris Patches rather than arbitrary JSON Patch documents or mutable Prompt Documents:
 
 ```ts
 interface Patch {
@@ -137,7 +137,7 @@ TypeScript uses a raw-schema-first `defineSchema`/`Infer` API and may use TypeBo
 
 ## Configuration
 
-Human-authored configuration uses `meta-prompt.config.jsonc`; the generated `meta-prompt.lock.json` is strict machine data. There is no executable JavaScript or TypeScript configuration in v1. SDK consumers can pass a programmatic object; Hosts may parse native formats and pass the resulting object.
+Human-authored configuration uses `promptiris.config.jsonc`; the generated `promptiris.lock.json` is strict machine data. There is no executable JavaScript or TypeScript configuration in v1. SDK consumers can pass a programmatic object; Hosts may parse native formats and pass the resulting object.
 
 Resolution, from lowest to highest precedence:
 

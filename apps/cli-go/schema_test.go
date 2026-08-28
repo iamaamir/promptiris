@@ -8,10 +8,10 @@ import (
 func TestRunResultSchemaValidation(t *testing.T) {
 	valid := json.RawMessage(`{
 		"schemaVersion":"1","runId":"run-1",
-		"recipe":{"id":"meta-prompt/identity","version":"1.0.0"},"status":"success",
-		"primary":{"schemaVersion":"1","id":"artifact:identity","kind":"meta-prompt/prompt",
+		"recipe":{"id":"promptiris/identity","version":"1.0.0"},"status":"success",
+		"primary":{"schemaVersion":"1","id":"artifact:identity","kind":"promptiris/prompt",
 			"mediaType":"text/plain","value":"input","classification":"public",
-			"provenance":{"pluginId":"meta-prompt/core","contributionId":"identity",
+			"provenance":{"pluginId":"promptiris/core","contributionId":"identity",
 				"invocationId":"run-1:identity","phase":"render","parentArtifactIds":[],"patchIds":[]}},
 		"primaryOrigin":"original",
 		"alternatives":[],"exposed":{},"assumptions":[],"clarifications":[],

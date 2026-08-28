@@ -4,7 +4,7 @@ Status: complete
 
 ## Goal
 
-Prove the first non-identity vertical slice of Meta Prompt's plugin-first microkernel. A host explicitly selects local plugins; the kernel compiles a deterministic lifecycle graph, activates implementations lazily, invokes declarative or supervised native contributions, and returns a fail-open result with normalized diagnostics when a contribution fails.
+Prove the first non-identity vertical slice of Prompt Iris's plugin-first microkernel. A host explicitly selects local plugins; the kernel compiles a deterministic lifecycle graph, activates implementations lazily, invokes declarative or supervised native contributions, and returns a fail-open result with normalized diagnostics when a contribution fails.
 
 This slice does not call a model. It establishes the execution path that later prompt transformers, guards, providers, memory, and host adapters will use without privileged APIs.
 

@@ -1,6 +1,6 @@
 # Tool-aware execution and automation promotion
 
-This document specifies the deterministic execution substrate used by repository-development agents and orchestrators. It is not Meta Prompt runtime behavior. A **Meta Prompt Plugin** participates in a Run; a **Tool Adapter** wraps a development executable for the repository harness. Tool Adapters are extensible but are never called Plugins.
+This document specifies the deterministic execution substrate used by repository-development agents and orchestrators. It is not Prompt Iris runtime behavior. A **Prompt Iris Plugin** participates in a Run; a **Tool Adapter** wraps a development executable for the repository harness. Tool Adapters are extensible but are never called Plugins.
 
 ## Operating principle
 
@@ -43,7 +43,7 @@ The deterministic controller bypasses model reasoning for known event-to-task ma
 
 **Tool Trace** is an operational record of a routed execution: task/revision identity, capability, adapter/version, normalized invocation, input/configuration digests, effects, timing, exit status, cache use, output sizes, Evidence references, redaction, and failure fingerprint. It contains no private reasoning trace.
 
-**Harness Event** is a schema-validated repository-development event that may invalidate Evidence or trigger an Automation Task. It is separate from Meta Prompt runtime Events.
+**Harness Event** is a schema-validated repository-development event that may invalidate Evidence or trigger an Automation Task. It is separate from Prompt Iris runtime Events.
 
 **Automation Candidate** is a proposed deterministic workflow derived from repeated Tool Traces. It has no execution authority until implemented, tested, hardened, reviewed, and registered.
 

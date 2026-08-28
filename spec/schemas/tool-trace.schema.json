@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://meta-prompt.dev/schema/harness-tool-trace-v2.json",
+  "$id": "urn:promptiris:schema:harness-tool-trace:v2",
   "type": "object",
   "additionalProperties": false,
   "required": [

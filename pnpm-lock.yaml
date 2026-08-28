@@ -67,28 +67,28 @@ importers:
 
   apps/runtime-node:
     dependencies:
-      '@meta-prompt/core':
+      '@promptiris/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@meta-prompt/plugin-sdk':
+      '@promptiris/plugin-sdk':
         specifier: workspace:*
         version: link:../../packages/plugin-sdk
-      '@meta-prompt/protocol':
+      '@promptiris/protocol':
         specifier: workspace:*
         version: link:../../packages/protocol
 
   packages/core:
     dependencies:
-      '@meta-prompt/plugin-sdk':
+      '@promptiris/plugin-sdk':
         specifier: workspace:*
         version: link:../plugin-sdk
-      '@meta-prompt/protocol':
+      '@promptiris/protocol':
         specifier: workspace:*
         version: link:../protocol
 
   packages/plugin-sdk:
     dependencies:
-      '@meta-prompt/protocol':
+      '@promptiris/protocol':
         specifier: workspace:*
         version: link:../protocol
 
@@ -100,10 +100,10 @@ importers:
 
   packages/testkit:
     dependencies:
-      '@meta-prompt/core':
+      '@promptiris/core':
         specifier: workspace:*
         version: link:../core
-      '@meta-prompt/protocol':
+      '@promptiris/protocol':
         specifier: workspace:*
         version: link:../protocol
 

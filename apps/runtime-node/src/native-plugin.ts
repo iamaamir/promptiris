@@ -4,7 +4,7 @@ import {
   MAX_FRAME_BYTES,
   encodeMessage,
   type JsonRpcMessage,
-} from '@meta-prompt/protocol';
+} from '@promptiris/protocol';
 import {
   definePlugin,
   type PluginImplementation,
@@ -12,7 +12,7 @@ import {
   type PluginManifest,
   type PluginOutput,
   type PluginRegistration,
-} from '@meta-prompt/plugin-sdk';
+} from '@promptiris/plugin-sdk';
 
 /** @public */
 export interface NativePluginOptions {

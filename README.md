@@ -1,12 +1,12 @@
-# Meta Prompt
+# Prompt Iris
 
-Meta Prompt is a model-neutral, host-neutral framework for transforming natural-language input into a more useful artifact. Prompt enhancement is its first built-in recipe, not the boundary of the product: a recipe may produce a prompt, a typed extraction, a domain-specific structure, or another declared artifact.
+Prompt Iris is a model-neutral, host-neutral framework for transforming natural-language input into a more useful artifact. Prompt enhancement is its first built-in recipe, not the boundary of the product: a recipe may produce a prompt, a typed extraction, a domain-specific structure, or another declared artifact.
 
 The governing philosophy is **everything is a plugin**. The kernel supplies lifecycle and safety mechanics; providers, transformations, guards, renderers, observers, recipes, and host integrations supply behavior.
 
 ## Status
 
-Meta Prompt has **completed phase 1** and begun phase 2 with a verified identity tracer. The Go CLI launches the private Node runtime, negotiates the runtime-neutral protocol, streams standard lifecycle Events, invokes the bundled identity Recipe, and returns the original prompt. This deliberately narrow slice proves the cross-language boundary before product behavior is added.
+Prompt Iris has **completed phase 1** and begun phase 2 with a verified identity tracer. The Go CLI launches the private Node runtime, negotiates the runtime-neutral protocol, streams standard lifecycle Events, invokes the bundled identity Recipe, and returns the original prompt. This deliberately narrow slice proves the cross-language boundary before product behavior is added.
 
 Start with:
 
@@ -25,7 +25,7 @@ Start with:
 
 > Produce a model-neutral enhancement by default, then optionally apply a target-specific adaptation plugin.
 
-Meta Prompt is bring-your-own-model, stateless by default, fail-open for optional transformations, explicit about activation, and usable from different hosts without duplicating its kernel.
+Prompt Iris is bring-your-own-model, stateless by default, fail-open for optional transformations, explicit about activation, and usable from different hosts without duplicating its kernel.
 
 ## Development
 

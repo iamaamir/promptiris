@@ -82,8 +82,8 @@ export const createDashboardServer = (options = {}) => {
 const isMain = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 if (isMain) {
   const host = '127.0.0.1';
-  const port = Number(process.env.META_PROMPT_DASHBOARD_PORT ?? 4173);
+  const port = Number(process.env.PROMPTIRIS_DASHBOARD_PORT ?? 4173);
   createDashboardServer().listen(port, host, () => {
-    process.stdout.write(`Meta Prompt evidence dashboard: http://${host}:${port}\n`);
+    process.stdout.write(`Prompt Iris evidence dashboard: http://${host}:${port}\n`);
   });
 }

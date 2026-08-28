@@ -1,6 +1,6 @@
-# Meta Prompt
+# Prompt Iris
 
-Meta Prompt is the bounded context concerned with compiling an input through an explicitly selected transformation composition and returning a traceable result. This glossary defines its domain language; implementation details live elsewhere.
+Prompt Iris is the bounded context concerned with compiling an input through an explicitly selected transformation composition and returning a traceable result. This glossary defines its domain language; implementation details live elsewhere.
 
 ## Language
 
@@ -50,7 +50,7 @@ _Avoid_: Enhancer, agent
 
 **Plugin**:
 A namespaced, versioned contribution that declares capabilities and participates in a defined extension plane. Installing a Plugin does not activate it.
-_Avoid_: Extension when referring to a Meta Prompt contribution
+_Avoid_: Extension when referring to a Prompt Iris contribution
 
 **Pipeline Plugin**:
 A Plugin that analyzes or changes a Prompt Document during a Run by returning Artifacts, patches, diagnostics, or events.
@@ -73,7 +73,7 @@ A Plugin that subscribes to standard events without affecting the transformation
 _Avoid_: Logger when it may export traces or metrics
 
 **Host Adapter**:
-A Plugin outside the transformation pipeline that maps a host's input, context, progress, confirmation, fallback, and output semantics to the Meta Prompt SDK.
+A Plugin outside the transformation pipeline that maps a host's input, context, progress, confirmation, fallback, and output semantics to the Prompt Iris SDK.
 _Avoid_: Pipeline Plugin, Host
 
 **Recipe**:
@@ -156,7 +156,7 @@ _Avoid_: Role, entitlement
 
 - “Prompt” can mean the original Input, a Prompt Document, or a rendered Artifact. Use the precise term.
 - “Error” can mean a protocol fault, an operational Diagnostic, or a Debug Record. These travel through different channels.
-- “Extension” refers to a host ecosystem package such as a Pi extension; use Plugin for Meta Prompt contributions and Host Adapter for the bridge.
+- “Extension” refers to a host ecosystem package such as a Pi extension; use Plugin for Prompt Iris contributions and Host Adapter for the bridge.
 - “Enhance with memory” is a Recipe composition, not a second Plugin allowed to shadow the default enhance identity.
 - “Protected” means exact textual enforcement by the Kernel; meaning-level preservation is a Semantic Constraint evaluated by Guards.
 

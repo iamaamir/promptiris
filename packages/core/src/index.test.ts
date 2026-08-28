@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { identityRecipe, createRunContext } from './index.js';
-import { makeTextDocument } from '@meta-prompt/protocol';
+import { makeTextDocument } from '@promptiris/protocol';
 describe('identity recipe', () => {
   afterEach(() => vi.restoreAllMocks());
 
@@ -11,11 +11,11 @@ describe('identity recipe', () => {
       makeTextDocument('hello'),
       createRunContext('run-1', (event) => events.push(event)),
     );
-    expect(identityRecipe).toMatchObject({ id: 'meta-prompt/identity', version: '1.0.0' });
+    expect(identityRecipe).toMatchObject({ id: 'promptiris/identity', version: '1.0.0' });
     expect(result).toMatchObject({
       schemaVersion: '1',
       runId: 'run-1',
-      recipe: { id: 'meta-prompt/identity', version: '1.0.0' },
+      recipe: { id: 'promptiris/identity', version: '1.0.0' },
       status: 'success',
       primary: { value: 'hello' },
       primaryOrigin: 'original',
@@ -33,9 +33,9 @@ describe('identity recipe', () => {
     });
     expect(events).toEqual([
       expect.objectContaining({
-        type: 'meta-prompt.phase.started',
+        type: 'promptiris.phase.started',
         source: 'core',
-        dataSchema: 'meta-prompt/event/phase-started-v1',
+        dataSchema: 'promptiris/event/phase-started-v1',
         data: { phase: 'transform' },
         classification: 'metadata',
         delivery: 'critical',
@@ -44,9 +44,9 @@ describe('identity recipe', () => {
         traceId: 'run-1',
       }),
       expect.objectContaining({
-        type: 'meta-prompt.phase.completed',
+        type: 'promptiris.phase.completed',
         source: 'core',
-        dataSchema: 'meta-prompt/event/phase-completed-v1',
+        dataSchema: 'promptiris/event/phase-completed-v1',
         data: { phase: 'transform', status: 'success' },
         classification: 'metadata',
         delivery: 'critical',

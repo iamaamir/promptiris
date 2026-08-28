@@ -1,5 +1,5 @@
 {
-  "name": "@meta-prompt/plugin-sdk",
+  "name": "@promptiris/plugin-sdk",
   "version": "0.1.0",
   "type": "module",
   "exports": {
@@ -13,6 +13,6 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@meta-prompt/protocol": "workspace:*"
+    "@promptiris/protocol": "workspace:*"
   }
 }

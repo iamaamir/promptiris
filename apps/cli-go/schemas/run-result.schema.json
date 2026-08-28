@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://meta-prompt.dev/schema/run-result-v1.json",
+  "$id": "urn:promptiris:schema:run-result:v1",
   "type": "object",
   "additionalProperties": false,
   "required": [

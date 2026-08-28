@@ -8,7 +8,7 @@ Start it from the repository root:
 pnpm dashboard
 ```
 
-Then open `http://127.0.0.1:4173`. Set `META_PROMPT_DASHBOARD_PORT` to use another port. The server binds only to the loopback interface, accepts read-only requests, applies a restrictive Content Security Policy, and does not load third-party assets.
+Then open `http://127.0.0.1:4173`. Set `PROMPTIRIS_DASHBOARD_PORT` to use another port. The server binds only to the loopback interface, accepts read-only requests, applies a restrictive Content Security Policy, and does not load third-party assets.
 
 Generate the underlying aggregate without starting a server:
 
@@ -49,7 +49,7 @@ No quality category compensates for another. A high mutation score cannot erase 
 
 The dashboard groups repeated `taskId` and `providerId` pairs after three observations. These are review candidates, not self-installing automations. Promote a candidate only when its invocation, invalidation, failure fingerprint, and output reducer are stable; then register and verify the new script through the normal repository gauntlet.
 
-The dashboard itself stays direct development infrastructure. It is not a Meta Prompt Plugin and does not make the repository tooling a plugin system.
+The dashboard itself stays direct development infrastructure. It is not a Prompt Iris Plugin and does not make the repository tooling a plugin system.
 
 ## Local feedback and measurement
 

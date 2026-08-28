@@ -51,7 +51,7 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 	if err := runCLIContext(ctx, os.Args[1:], os.Stdin, os.Stdout, os.Stderr); err != nil {
-		fmt.Fprintln(os.Stderr, "meta-prompt:", err)
+		fmt.Fprintln(os.Stderr, "promptiris:", err)
 		os.Exit(1)
 	}
 }
@@ -68,8 +68,8 @@ func runCLIContext(ctx context.Context, args []string, stdin io.Reader, stdout, 
 
 func newRootCommand(stdin io.Reader, stdout, stderr io.Writer) *cobra.Command {
 	root := &cobra.Command{
-		Use:           "meta-prompt",
-		Short:         "Transform prompts through the Meta Prompt runtime",
+		Use:           "promptiris",
+		Short:         "Transform prompts through the Prompt Iris runtime",
 		SilenceErrors: true,
 		SilenceUsage:  true,
 		RunE: func(command *cobra.Command, _ []string) error {
@@ -100,12 +100,12 @@ func newRootCommand(stdin io.Reader, stdout, stderr io.Writer) *cobra.Command {
 				text = string(value)
 			}
 			if runtimePath == "" {
-				return errors.New("runtime is required (--runtime or META_PROMPT_RUNTIME)")
+				return errors.New("runtime is required (--runtime or PROMPTIRIS_RUNTIME)")
 			}
 			return execute(command.Context(), runtimePath, text, strict, command.OutOrStdout(), command.ErrOrStderr())
 		},
 	}
-	enhance.Flags().StringVar(&runtimePath, "runtime", os.Getenv("META_PROMPT_RUNTIME"), "path to bundled Node runtime entrypoint")
+	enhance.Flags().StringVar(&runtimePath, "runtime", os.Getenv("PROMPTIRIS_RUNTIME"), "path to bundled Node runtime entrypoint")
 	enhance.Flags().StringVar(&input, "input", "", "prompt text (otherwise stdin or positional text)")
 	enhance.Flags().BoolVar(&strict, "strict", false, "return non-zero on transformation failure")
 	root.AddCommand(enhance)
@@ -155,17 +155,17 @@ func execute(ctx context.Context, runtimePath, text string, strict bool, stdout,
 		if event.RunID != "" {
 			runID = event.RunID
 		}
-		if event.Type == "meta-prompt.phase.started" {
+		if event.Type == "promptiris.phase.started" {
 			fmt.Fprintf(stderr, "%s: started\n", event.Data.Phase)
 		}
-		if event.Type == "meta-prompt.phase.completed" {
+		if event.Type == "promptiris.phase.completed" {
 			fmt.Fprintf(stderr, "%s: %s\n", event.Data.Phase, event.Data.Status)
 		}
 	})
 	var init initializeResult
 	if err := client.Call(ctx, "initialize", map[string]interface{}{
 		"protocolVersion": "1",
-		"clientName":      "meta-prompt-cli/0.1.0",
+		"clientName":      "promptiris-cli/0.1.0",
 		"capabilities":    map[string]bool{"events": true, "cancellation": true},
 	}, &init); err != nil {
 		return fmt.Errorf("initialize: %w", err)
@@ -222,7 +222,7 @@ func execute(ctx context.Context, runtimePath, text string, strict bool, stdout,
 
 func runtimeCommand(path string) ([]string, error) {
 	if filepath.Ext(path) == ".mjs" || filepath.Ext(path) == ".js" {
-		node := os.Getenv("META_PROMPT_NODE")
+		node := os.Getenv("PROMPTIRIS_NODE")
 		if node == "" {
 			node = "node"
 		}

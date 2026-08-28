@@ -11,7 +11,7 @@ Evidence levels:
 
 ## Prompt transformation and optimization
 
-| System/source | Evidence | Relevant practice | Meta Prompt decision |
+| System/source | Evidence | Relevant practice | Prompt Iris decision |
 | --- | --- | --- | --- |
 | [DSPy](https://dspy.ai/) | Implementation | Structured signatures separate task contracts from prompts; optimizers compile against examples and metrics. | Adopt the distinction between ordinary enhancement and empirical optimization. Defer optimizer Recipes until datasets and metrics exist. |
 | [Anthropic Console prompting tools](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-tools) | Market | A dedicated tool can rewrite prompt templates, preserve variables, incorporate examples, and expose latency/cost trade-offs. | Bundle enhancement as a Recipe, but avoid tying the Artifact to one vendor or claiming universal improvement. |
@@ -23,10 +23,10 @@ Evidence levels:
 
 ## Plugin kernels, dependency resolution, and packaging
 
-| System/source | Evidence | Relevant practice | Meta Prompt decision |
+| System/source | Evidence | Relevant practice | Prompt Iris decision |
 | --- | --- | --- | --- |
 | [Terraform plugin protocol](https://developer.hashicorp.com/terraform/plugin/terraform-plugin-protocol) | Primary | Host/plugin compatibility uses an independently versioned protocol. | Separate package, SDK, and protocol versions; negotiate before use. |
-| [Terraform dependency lock file](https://developer.hashicorp.com/terraform/language/files/dependency-lock) | Primary | Exact selected versions and checksums make plugin selection reproducible. | Commit `meta-prompt.lock.json` with exact source/version/integrity. |
+| [Terraform dependency lock file](https://developer.hashicorp.com/terraform/language/files/dependency-lock) | Primary | Exact selected versions and checksums make plugin selection reproducible. | Commit `promptiris.lock.json` with exact source/version/integrity. |
 | [Terraform plugin discovery](https://developer.hashicorp.com/terraform/plugin/how-terraform-works) | Primary | Discovery, installation, selection, initialization, and execution are distinct stages. | Installing never activates behavior; compile a fixed catalog snapshot before a Run. Unlike Terraform, never auto-install during a Run. |
 | [Fastify plugins](https://fastify.dev/docs/latest/Reference/Plugins/) | Implementation | Plugin graphs provide encapsulation and dependency-aware registration. | Adopt explicit dependencies and scoped contributions; avoid ambient global registration. |
 | [Webpack compiler hooks](https://webpack.js.org/api/compiler-hooks/) | Implementation | Hook types express sync/async and lifecycle timing. | Define typed lifecycle phases and hook contracts rather than arbitrary callbacks. |
@@ -38,7 +38,7 @@ Evidence levels:
 
 ## Hosts, activation, and permissions
 
-| System/source | Evidence | Relevant practice | Meta Prompt decision |
+| System/source | Evidence | Relevant practice | Prompt Iris decision |
 | --- | --- | --- | --- |
 | [Pi extensions](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/extensions.md) | Implementation | The asynchronous `input` event sees raw text/images/source before skill/template expansion and may return chained `continue`, `transform`, or `handled` results; UI exposes status and confirmation, while extensions run with full system permissions. | Use `input` for exact replacement, confirmation and status for UX, bypass extension/mid-stream/slash input, preserve images, fail open, and pin a verified Pi version during implementation. |
 | [VS Code activation events](https://code.visualstudio.com/api/references/activation-events) | Primary | Extensions activate on declared demand rather than eagerly executing everything. | Adopt manifest-eager, execution-lazy activation. |
@@ -49,7 +49,7 @@ Evidence levels:
 
 ## Protocols, schemas, and isolation
 
-| System/source | Evidence | Relevant practice | Meta Prompt decision |
+| System/source | Evidence | Relevant practice | Prompt Iris decision |
 | --- | --- | --- | --- |
 | [JSON-RPC 2.0](https://www.jsonrpc.org/specification) | Primary | Requests, responses, notifications, and protocol errors have a small transport-neutral model. | Use JSON-RPC for process communication; reserve its error object for RPC/protocol faults. |
 | [Language Server Protocol base protocol](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#baseProtocol) | Primary | Content-Length framing carries JSON-RPC reliably over stdio and separates protocol streams from logs. | Adopt Content-Length-framed UTF-8, protocol-only stdout, and stderr diagnostics. |
@@ -83,12 +83,12 @@ Evidence levels:
 | [Ajv strict mode](https://ajv.js.org/strict-mode.html) | Implementation | Strict compilation prevents ignored or ambiguous schema constructs. | Compile schemas strictly and reject unknown constructs. |
 | [Ajv data modification](https://ajv.js.org/guide/modifying-data.html) | Implementation | Coercion/default insertion/removal makes validation impure and order-sensitive. | Disable mutation; resolve defaults/configuration separately with provenance. |
 | [JSON Schema Test Suite](https://github.com/json-schema-org/JSON-Schema-Test-Suite) | Implementation | Language-neutral fixtures expose validator differences across released dialects. | Run applicable official cases plus project-specific differential fixtures in Node and Go. |
-| [Bowtie](https://docs.bowtie.report/en/latest/) | Implementation | A common harness compares JSON Schema implementations and dialect support. | Use reports as ecosystem evidence while keeping Meta Prompt's constrained profile and fixtures authoritative. |
+| [Bowtie](https://docs.bowtie.report/en/latest/) | Implementation | A common harness compares JSON Schema implementations and dialect support. | Use reports as ecosystem evidence while keeping Prompt Iris's constrained profile and fixtures authoritative. |
 | [santhosh-tekuri/jsonschema v6](https://github.com/santhosh-tekuri/jsonschema) | Implementation | The Go validator supports Draft 2020-12, formats, custom registries, and official-suite compatibility. | Adopt it for Go protocol validation, pinned and exercised by shared fixtures. |
 
 ## Ordering, overlays, and failure policy
 
-| System/source | Evidence | Relevant practice | Meta Prompt decision |
+| System/source | Evidence | Relevant practice | Prompt Iris decision |
 | --- | --- | --- | --- |
 | [Kubernetes dynamic admission control](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/) | Primary | Mutating then validating phases, explicit ordering concerns, reinvocation/idempotence, and configurable failure policy make extension behavior tractable. | Run mutators serially, validators read-only, require idempotence, and make fail-open/fail-closed an explicit boundary choice. |
 | [Kustomize](https://kubectl.docs.kubernetes.io/references/kustomize/kustomization/) | Implementation | Bases plus overlays enable reusable declarative composition without editing the base. | Allow one immutable base Recipe plus explicit add/replace/remove/configure operations and fragments. |
@@ -97,7 +97,7 @@ Evidence levels:
 
 ## Events, traces, and errors
 
-| System/source | Evidence | Relevant practice | Meta Prompt decision |
+| System/source | Evidence | Relevant practice | Prompt Iris decision |
 | --- | --- | --- | --- |
 | [OpenTelemetry trace API](https://opentelemetry.io/docs/specs/otel/trace/api/) | Primary | API and SDK/export are separable; no SDK can mean no-op behavior; spans carry stable status and context. | Use OTel-compatible concepts without requiring its SDK or enabling telemetry by default. |
 | [OpenTelemetry exception conventions](https://opentelemetry.io/docs/specs/otel/trace/exceptions/) | Primary | Exception type/message/stack are correlated with the operation in which they occurred. | Correlate Debug Records with Run/Phase/Plugin spans, but keep them outside safe Diagnostics. |
@@ -106,7 +106,7 @@ Evidence levels:
 
 ## Repository and polyglot development
 
-| System/source | Evidence | Relevant practice | Meta Prompt decision |
+| System/source | Evidence | Relevant practice | Prompt Iris decision |
 | --- | --- | --- | --- |
 | [pnpm workspaces](https://pnpm.io/workspaces) | Primary | A workspace coordinates related JavaScript packages while preserving package boundaries. | Use one pnpm workspace for runtime/SDK packages and adapters. |
 | [Go workspaces](https://go.dev/doc/tutorial/workspaces) | Primary | Go workspace tooling can develop multiple modules together, though one module is simpler initially. | Start with one Go module for the CLI and shared generated bindings. |
@@ -127,7 +127,7 @@ Evidence levels:
 
 ## Agent-driven implementation and deterministic verification
 
-| System/source | Evidence | Relevant practice | Meta Prompt decision |
+| System/source | Evidence | Relevant practice | Prompt Iris decision |
 | --- | --- | --- | --- |
 | [Uncle Bob agent-development interview transcript](../tmp/unclebob-transcript.txt) | Practitioner | Long steering prompts soften in context; disposable focused agents, clean modules, deterministic architecture checks, CRAP analysis, mutation hardening, black-box QA, and short iterative work can constrain fast imperfect generators. | Adopt the values and staged gauntlet, not unmeasured literal thresholds. Keep implementation iterative and convert recurring review knowledge into executable policy. |
 | [PIT basic concepts](https://pitest.org/quickstart/basic_concepts/) | Implementation | Mutation operators introduce controlled faults so surviving mutants expose weak tests that coverage alone misses. | Make mutation strength first-class Hardener evidence on affected code and high-risk full profiles. |

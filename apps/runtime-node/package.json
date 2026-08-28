@@ -1,5 +1,5 @@
 {
-  "name": "@meta-prompt/runtime-node",
+  "name": "@promptiris/runtime-node",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -14,7 +14,7 @@
     }
   },
   "bin": {
-    "meta-prompt-runtime": "dist/index.js"
+    "promptiris-runtime": "dist/index.js"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -23,8 +23,8 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@meta-prompt/core": "workspace:*",
-    "@meta-prompt/plugin-sdk": "workspace:*",
-    "@meta-prompt/protocol": "workspace:*"
+    "@promptiris/core": "workspace:*",
+    "@promptiris/plugin-sdk": "workspace:*",
+    "@promptiris/protocol": "workspace:*"
   }
 }

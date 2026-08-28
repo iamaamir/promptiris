@@ -21,7 +21,7 @@ func TestFramingRoundTrip(t *testing.T) {
 
 func TestClientConsumesEventBeforeResponse(t *testing.T) {
 	var wire bytes.Buffer
-	_ = writeMessage(&wire, []byte(`{"jsonrpc":"2.0","method":"meta-prompt.phase.progress","params":{"message":"working"}}`))
+	_ = writeMessage(&wire, []byte(`{"jsonrpc":"2.0","method":"promptiris.phase.progress","params":{"message":"working"}}`))
 	_ = writeMessage(&wire, []byte(`{"jsonrpc":"2.0","id":1,"result":{"status":"success"}}`))
 	var seen Notification
 	c := NewClient(&wire, &bytes.Buffer{}, func(n Notification) { seen = n })
@@ -29,7 +29,7 @@ func TestClientConsumesEventBeforeResponse(t *testing.T) {
 	if err := c.Call(context.Background(), "run/start", nil, &result); err != nil {
 		t.Fatal(err)
 	}
-	if seen.Method != "meta-prompt.phase.progress" || result["status"] != "success" {
+	if seen.Method != "promptiris.phase.progress" || result["status"] != "success" {
 		t.Fatalf("event=%+v result=%v", seen, result)
 	}
 }

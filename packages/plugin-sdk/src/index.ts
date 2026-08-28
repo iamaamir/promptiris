@@ -10,7 +10,7 @@ import type {
   ResourceReference,
   RunResult,
   SchemaReference,
-} from '@meta-prompt/protocol';
+} from '@promptiris/protocol';
 
 /** @public */
 export interface PluginContribution {
@@ -206,7 +206,7 @@ export function defineDeclarativePlugin(
 export function identityArtifact(
   input: PromptDocument,
   provenance: Provenance = {
-    pluginId: 'meta-prompt/core',
+    pluginId: 'promptiris/core',
     contributionId: 'identity',
     invocationId: 'identity',
     phase: 'render',
@@ -217,7 +217,7 @@ export function identityArtifact(
   return {
     schemaVersion: '1',
     id: 'artifact:identity',
-    kind: 'meta-prompt/prompt',
+    kind: 'promptiris/prompt',
     mediaType: 'text/plain',
     value: input.content.map((block) => block.text).join('\n'),
     provenance,

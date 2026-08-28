@@ -1,5 +1,5 @@
-import type { Diagnostic, Phase } from '@meta-prompt/protocol';
-import type { PluginContribution, PluginManifest } from '@meta-prompt/plugin-sdk';
+import type { Diagnostic, Phase } from '@promptiris/protocol';
+import type { PluginContribution, PluginManifest } from '@promptiris/plugin-sdk';
 
 /** @public */
 export interface CompiledContribution {

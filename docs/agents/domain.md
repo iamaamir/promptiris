@@ -1,6 +1,6 @@
 # Domain documentation
 
-Meta Prompt uses a single bounded-context documentation layout.
+Prompt Iris uses a single bounded-context documentation layout.
 
 Before semantic exploration or implementation, agents read:
 

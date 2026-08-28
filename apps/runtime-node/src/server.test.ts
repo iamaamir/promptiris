@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { makeTextDocument, type JsonRpcRequest } from '@meta-prompt/protocol';
+import { makeTextDocument, type JsonRpcRequest } from '@promptiris/protocol';
 import { RuntimeServer } from './server.js';
 
 function request(id: number, method: string, params?: unknown): JsonRpcRequest {

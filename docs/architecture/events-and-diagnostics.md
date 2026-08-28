@@ -43,7 +43,7 @@ The v1 standard catalog is intentionally bounded:
 | Outcome | `fallback.activated`, `diagnostic.emitted` | Degradation and safe failure visibility |
 | Observer | `observer.progress-dropped`, `observer.detached` | Self-diagnostics for backpressure and subscriber failure |
 
-Start/completion payloads share common status and duration shapes; progress payloads use optional `current`, `total`, `unit`, and safe human-readable `message`. Usage belongs on provider completion and the Run summary, not on every progress Event. Failure is represented by referenced safe Diagnostics rather than copied exception data. On the wire, standard type names use the reserved `meta-prompt.` prefix—for example `meta-prompt.phase.started`; the shortened names in this document are for readability.
+Start/completion payloads share common status and duration shapes; progress payloads use optional `current`, `total`, `unit`, and safe human-readable `message`. Usage belongs on provider completion and the Run summary, not on every progress Event. Failure is represented by referenced safe Diagnostics rather than copied exception data. On the wire, standard type names use the reserved `promptiris.` prefix—for example `promptiris.phase.started`; the shortened names in this document are for readability.
 
 A Plugin may define a custom Event only in its own namespace and must register its schema in its manifest. Custom Events use the same envelope and may not impersonate standard lifecycle Events. Hosts should present unknown custom Events generically rather than depending on their payload.
 
@@ -84,7 +84,7 @@ interface Diagnostic {
 
 Stable categories are `configuration`, `validation`, `capability`, `authorization`, `resource`, `patch`, `provider`, `plugin`, `guard`, `timeout`, `cancellation`, `observer`, and `internal`. Category is broad routing metadata; `code` carries actionable precision. `fatal` is reserved for an unusable Engine/runtime, not an ordinary failed Run.
 
-Core codes use `meta-prompt.*`. Plugin codes are namespaced and registered by the manifest; a Plugin cannot emit a core code. The initial core catalog is small:
+Core codes use `promptiris.*`. Plugin codes are namespaced and registered by the manifest; a Plugin cannot emit a core code. The initial core catalog is small:
 
 - configuration: `config.invalid`, `config.unknown-key`, `config.policy-violation`;
 - composition: `recipe.not-found`, `recipe.compile-failed`, `capability.missing`;
@@ -108,7 +108,7 @@ Expected Plugin failures use an SDK failure constructor with a registered code a
 3. Manifest validation checks namespaces and declarations.
 4. Runtime boundaries validate every returned failure record.
 5. The Kernel stamps trusted fields and applies size limits and redaction.
-6. Unknown or invalid records become `meta-prompt.plugin.invalid-diagnostic`.
+6. Unknown or invalid records become `promptiris.plugin.invalid-diagnostic`.
 7. The final Result is validated before it crosses a Host or wire boundary.
 
 An isolated Plugin returns a conceptual payload such as:
@@ -126,7 +126,7 @@ The `debug` member is requested only when debug capture is enabled, then validat
 ## Failure ownership
 
 - The Kernel generates timeout and cancellation Diagnostics because it owns those boundaries.
-- A supervised process exit becomes `meta-prompt.plugin.process-exited`; exit code, signal, last method, and stderr tail are debug-only.
+- A supervised process exit becomes `promptiris.plugin.process-exited`; exit code, signal, last method, and stderr tail are debug-only.
 - Provider errors are normalized by the Provider Plugin into its registered portable codes.
 - Go and Host Adapters consume the safe Result and Events; they never infer an operational failure from stderr.
 - Optional enhancement failure returns a degraded Result whose primary origin is `original`.

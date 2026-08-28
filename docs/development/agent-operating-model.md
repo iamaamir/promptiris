@@ -1,6 +1,6 @@
 # Agent-driven implementation operating model
 
-This document governs implementation work produced by humans, weak or strong models, and parallel agent systems. It is repository-development policy, not Meta Prompt runtime behavior. The implementation is expected to evolve; the authority and evidence boundaries below do not depend on a particular agent host. Capability routing, Tool Traces, Harness Events, and automation promotion are specified in [tool-aware execution](./tool-aware-execution.md).
+This document governs implementation work produced by humans, weak or strong models, and parallel agent systems. It is repository-development policy, not Prompt Iris runtime behavior. The implementation is expected to evolve; the authority and evidence boundaries below do not depend on a particular agent host. Capability routing, Tool Traces, Harness Events, and automation promotion are specified in [tool-aware execution](./tool-aware-execution.md).
 
 ## Objective and priorities
 
@@ -172,7 +172,7 @@ No relevant surviving mutant is silent. Exclusions and equivalent-mutant classif
 
 CRAP, coverage, and mutation answer different questions and cannot summarize quality. Every Quality Profile selects applicable evidence from ten independent classes: structure, test sensitivity, generated input/state space, cross-implementation behavior, public compatibility, runtime adversity, security/supply chain, performance/resources, evidence integrity, and source-blind product behavior. A result in one class never compensates for a missing or failed required class.
 
-Checks use replaceable Verifier Adapters so the system can grow without hard-coding vendors. Tool and Verifier Adapters are not Meta Prompt Plugins and are never loaded through the runtime being verified. Each declares stable identity/version, applicability, inputs, output schema, cost class, cache/invalidation rules, sensitivity, and finding codes. The deterministic repository verifier owns profile selection, standard Harness Events/diagnostics, Evidence validation, and pass/fail policy; adapters cannot waive gates or approve integration.
+Checks use replaceable Verifier Adapters so the system can grow without hard-coding vendors. Tool and Verifier Adapters are not Prompt Iris Plugins and are never loaded through the runtime being verified. Each declares stable identity/version, applicability, inputs, output schema, cost class, cache/invalidation rules, sensitivity, and finding codes. The deterministic repository verifier owns profile selection, standard Harness Events/diagnostics, Evidence validation, and pass/fail policy; adapters cannot waive gates or approve integration.
 
 ### Source-blind QA
 
@@ -208,7 +208,7 @@ Agent-driven does not mean agent-governed. Agents may select ready work, impleme
 
 ## Deterministic analysis passes
 
-Analysis providers have a stable ID/version, declared inputs, output schema, cost class, cache key, invalidation rules, and sensitivity classification. The standalone development verifier must not depend on the Meta Prompt runtime it verifies.
+Analysis providers have a stable ID/version, declared inputs, output schema, cost class, cache key, invalidation rules, and sensitivity classification. The standalone development verifier must not depend on the Prompt Iris runtime it verifies.
 
 - The Tool Router reuses fresh Evidence and routes semantic capabilities to registered Automation Tasks or the cheapest trusted applicable Tool Adapter; agents do not reconstruct commands from a large utility prompt.
 - Tool Traces retain raw execution Evidence, compact model-visible results, costs, output sizes, redaction, failure fingerprints, and references without collecting private reasoning.

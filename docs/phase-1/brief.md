@@ -23,7 +23,7 @@ Phase 1 produces requirements, architecture, protocols, developer and user exper
 ## Primary users
 
 - A CLI user enhancing stdin, a file, or an argument.
-- A host-integration author adding Meta Prompt to Pi, Codex, OpenCode, or another agent environment.
+- A host-integration author adding Prompt Iris to Pi, Codex, OpenCode, or another agent environment.
 - A Plugin author contributing a provider, transformation, guard, renderer, observer, Recipe, or adapter.
 - An application developer embedding the TypeScript SDK.
 - A maintainer debugging a composition or evaluating a strategy.
@@ -42,7 +42,7 @@ Phase 1 produces requirements, architecture, protocols, developer and user exper
 
 ## Explicitly out of scope for v1
 
-- A hosted Meta Prompt service or mandatory cloud dependency.
+- A hosted Prompt Iris service or mandatory cloud dependency.
 - A centralized Plugin registry, automatic installation during a Run, or arbitrary remote code loading.
 - A second Kernel implementation in Go or any other language.
 - Ambient file, conversation, environment, or workspace crawling.

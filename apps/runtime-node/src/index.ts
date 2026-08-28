@@ -4,7 +4,7 @@ import {
   encodeMessage,
   type JsonRpcMessage,
   type JsonRpcRequest,
-} from '@meta-prompt/protocol';
+} from '@promptiris/protocol';
 import { RuntimeServer } from './server.js';
 
 const decoder = new ContentLengthDecoder();

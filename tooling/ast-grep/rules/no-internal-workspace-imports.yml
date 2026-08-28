@@ -4,4 +4,4 @@ severity: error
 message: Import packages through their public export, never their src directory.
 rule:
   kind: import_statement
-  regex: '@meta-prompt/.+/src'
+  regex: '@promptiris/.+/src'

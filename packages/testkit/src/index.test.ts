@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { makeTextDocument } from '@meta-prompt/protocol';
-import { identityRecipe } from '@meta-prompt/core';
+import { makeTextDocument } from '@promptiris/protocol';
+import { identityRecipe } from '@promptiris/core';
 import { captureEvents, createRunContext } from './index.js';
 
 describe('testkit event capture', () => {

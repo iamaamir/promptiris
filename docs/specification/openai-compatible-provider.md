@@ -1,6 +1,6 @@
 # Bundled OpenAI-compatible Provider profile
 
-This profile defines what `meta-prompt/provider-openai-compatible` may claim without pretending that OpenAI-compatible servers implement one uniform API. Capability identity applies to the complete Model Binding—endpoint, selected model, server version/configuration, and authentication—not merely to a vendor name.
+This profile defines what `promptiris/provider-openai-compatible` may claim without pretending that OpenAI-compatible servers implement one uniform API. Capability identity applies to the complete Model Binding—endpoint, selected model, server version/configuration, and authentication—not merely to a vendor name.
 
 ## Portable baseline
 

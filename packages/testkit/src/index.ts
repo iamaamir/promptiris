@@ -1,5 +1,5 @@
-import { createRunContext } from '@meta-prompt/core';
-import type { Event } from '@meta-prompt/protocol';
+import { createRunContext } from '@promptiris/core';
+import type { Event } from '@promptiris/protocol';
 /** @public */
 export function captureEvents(): { events: Event[]; emit: (event: Event) => void } {
   const events: Event[] = [];

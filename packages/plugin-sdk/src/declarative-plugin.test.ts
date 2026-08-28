@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { makeTextDocument } from '@meta-prompt/protocol';
+import { makeTextDocument } from '@promptiris/protocol';
 import { defineDeclarativePlugin, type PluginManifest, type PluginRegistration } from './index.js';
 
 describe('defineDeclarativePlugin', () => {

@@ -2,7 +2,7 @@
 
 ## Shape
 
-Meta Prompt uses a policy-free microkernel surrounded by explicit extension planes.
+Prompt Iris uses a policy-free microkernel surrounded by explicit extension planes.
 
 ```text
 Host (CLI, Pi, future Codex/OpenCode, embedded app)
@@ -32,7 +32,7 @@ The Kernel does not understand prompt-engineering policy. It discovers definitio
 | Renderer | Target or media representation | Yes |
 | Observer | Event consumption/export/persistence | No |
 
-Plugin IDs are namespaced and cannot shadow each other. Installing `acme/enhance-with-memory` therefore does not compete with the bundled `meta-prompt/enhance` Recipe. A user explicitly activates an overlay or another Recipe.
+Plugin IDs are namespaced and cannot shadow each other. Installing `acme/enhance-with-memory` therefore does not compete with the bundled `promptiris/enhance` Recipe. A user explicitly activates an overlay or another Recipe.
 
 ## Run lifecycle
 

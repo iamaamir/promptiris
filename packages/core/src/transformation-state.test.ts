@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import fc from 'fast-check';
-import type { Patch, PromptDocument, TextSelector } from '@meta-prompt/protocol';
+import type { Patch, PromptDocument, TextSelector } from '@promptiris/protocol';
 import {
   applyPatch,
   blockDigest,

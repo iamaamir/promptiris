@@ -2,7 +2,7 @@
 
 ## Host boundary
 
-A Host Adapter is a Plugin outside the transformation pipeline. It owns input interception, explicit Context collection, progress presentation, confirmation, fallback, and submission. It creates an Engine instance and maps Host capabilities into Meta Prompt capabilities.
+A Host Adapter is a Plugin outside the transformation pipeline. It owns input interception, explicit Context collection, progress presentation, confirmation, fallback, and submission. It creates an Engine instance and maps Host capabilities into Prompt Iris capabilities.
 
 The Kernel never crawls a workspace, chat history, or environment to infer Context. A Recipe declares required and optional Context capabilities; the Host supplies them or compilation reports what is missing.
 
@@ -14,13 +14,13 @@ The CLI is a real polyglot integration test. It is written in Go but calls the p
 
 V1 commands:
 
-- `meta-prompt enhance`
-- `meta-prompt run <recipe>`
-- `meta-prompt inspect`
-- `meta-prompt doctor`
-- `meta-prompt trace`
-- `meta-prompt plugins list`
-- `meta-prompt recipes list`
+- `promptiris enhance`
+- `promptiris run <recipe>`
+- `promptiris inspect`
+- `promptiris doctor`
+- `promptiris trace`
+- `promptiris plugins list`
+- `promptiris recipes list`
 
 Input may be positional, stdin, `--input`, an explicit Context source, or a structured JSON document. stdout contains only the primary output (or the selected `--json`/`--jsonl` representation); diagnostics and progress go to stderr.
 
@@ -33,10 +33,10 @@ The release bundle contains the Go executable and compiled Node runtime. V1 does
 A release is one immutable, versioned adjacent-runtime bundle:
 
 ```text
-meta-prompt/
-  bin/meta-prompt[.exe]       # Go protocol client
+promptiris/
+  bin/promptiris[.exe]       # Go protocol client
   runtime/node[.exe]          # private pinned Node LTS binary
-  runtime/meta-prompt.mjs     # bundled canonical runtime
+  runtime/promptiris.mjs     # bundled canonical runtime
   runtime/spec/               # authoritative schemas and fixtures needed at runtime
   manifest.json               # component/protocol versions and SHA-256 digests
   LICENSES/                   # project and redistributed dependency notices
@@ -49,7 +49,7 @@ V1 release targets are macOS arm64/x64, Linux glibc arm64/x64, and Windows arm64
 Distribution channels share the same payload and manifest:
 
 - `.tar.gz`/`.zip` GitHub release archives are the source payloads;
-- `@meta-prompt/cli` selects one generated `@meta-prompt/cli-<os>-<arch>` optional platform package, following npm's `os`/`cpu` mechanism, so users do not download every runtime;
+- `@promptiris/cli` selects one generated `@promptiris/cli-<os>-<arch>` optional platform package, following npm's `os`/`cpu` mechanism, so users do not download every runtime;
 - a project-owned Homebrew tap consumes immutable checksummed archives for supported macOS/Linux tuples; and
 - Windows users have the archive and npm path in v1, with WinGet/Scoop manifests added only after their install/upgrade tests exist.
 
@@ -70,7 +70,7 @@ The installed adapter changes nothing until enabled. Its interaction modes are:
 - `confirm` — the default for eligible idle input with usable UI; run the selected Recipe, present a bounded diff/review, then return Pi's `transform` only after acceptance;
 - `suggest` — show/copy the candidate without replacing the submitted text;
 - `automatic` — explicitly opted-in transformation without review; and
-- `manual` — run only through `/meta-prompt` (with `/meta-prompt-mode` for inspection/change).
+- `manual` — run only through `/promptiris` (with `/promptiris-mode` for inspection/change).
 
 `confirm` without a usable confirmation UI safely behaves as pass-through and emits a bounded notice; it never silently becomes automatic. The Adapter does not transform:
 
@@ -83,8 +83,8 @@ Attached images remain attached and byte-for-byte outside the transformed text. 
 
 The Adapter creates the Engine lazily on its first eligible action, feeds Pi cancellation into the Run, and closes session-scoped resources idempotently on shutdown/reload. It maps standard Run/Phase/Provider Events to one keyed Pi status indicator and clears it on every terminal path. Debug content does not appear in notifications. Decline, timeout, cancellation, invalid Result, missing Provider configuration, or any transformation failure returns `continue` with the exact original text and a safe Diagnostic summary.
 
-The Meta Prompt transformation Model Binding is explicit and independent of Pi's selected target model. The Adapter may use Pi's current model metadata as target-adaptation Context only when the public API exposes reliable values; it never borrows Pi credentials ambiently. No session history is read or persisted unless a separately activated Plugin supplies that behavior.
+The Prompt Iris transformation Model Binding is explicit and independent of Pi's selected target model. The Adapter may use Pi's current model metadata as target-adaptation Context only when the public API exposes reliable values; it never borrows Pi credentials ambiently. No session history is read or persisted unless a separately activated Plugin supplies that behavior.
 
-The package participates in both Meta Prompt manifest discovery and Pi's package discovery conventions, including the `pi-package` keyword.
+The package participates in both Prompt Iris manifest discovery and Pi's package discovery conventions, including the `pi-package` keyword.
 
 Codex and OpenCode adapters can follow later in the same repository. Host-specific limitations remain explicit; the common SDK must not be weakened into assumptions that only one Host supports.

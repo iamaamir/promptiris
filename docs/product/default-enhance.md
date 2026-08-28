@@ -2,7 +2,7 @@
 
 ## Contract
 
-The bundled `meta-prompt/enhance` Recipe produces a candidate, model-neutral improvement. It is not an optimizer and does not claim empirical superiority. Its invariant is:
+The bundled `promptiris/enhance` Recipe produces a candidate, model-neutral improvement. It is not an optimizer and does not claim empirical superiority. Its invariant is:
 
 > Produce a model-neutral enhancement by default, then optionally apply a target-specific adaptation plugin.
 

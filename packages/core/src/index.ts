@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
-import type { Event, PromptDocument, RunResult } from '@meta-prompt/protocol';
-import { identityArtifact, type Recipe, type RunContext } from '@meta-prompt/plugin-sdk';
+import type { Event, PromptDocument, RunResult } from '@promptiris/protocol';
+import { identityArtifact, type Recipe, type RunContext } from '@promptiris/plugin-sdk';
 export {
   compilePluginGraph,
   type CompiledContribution,
@@ -24,22 +24,22 @@ export {
 
 /** @public */
 export const identityRecipe: Recipe = {
-  id: 'meta-prompt/identity',
+  id: 'promptiris/identity',
   version: '1.0.0',
   async run(input: PromptDocument, context: RunContext): Promise<RunResult> {
     const started = Date.now();
     context.emit({
-      type: 'meta-prompt.phase.started',
+      type: 'promptiris.phase.started',
       source: 'core',
-      dataSchema: 'meta-prompt/event/phase-started-v1',
+      dataSchema: 'promptiris/event/phase-started-v1',
       data: { phase: 'transform' },
       classification: 'metadata',
       delivery: 'critical',
     });
     context.emit({
-      type: 'meta-prompt.phase.completed',
+      type: 'promptiris.phase.completed',
       source: 'core',
-      dataSchema: 'meta-prompt/event/phase-completed-v1',
+      dataSchema: 'promptiris/event/phase-completed-v1',
       data: { phase: 'transform', status: 'success' },
       classification: 'metadata',
       delivery: 'critical',

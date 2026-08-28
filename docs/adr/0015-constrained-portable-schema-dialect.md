@@ -4,7 +4,7 @@ status: accepted
 
 # Constrain the portable JSON Schema dialect
 
-Meta Prompt will use an explicit subset of JSON Schema Draft 2020-12 rather than treating every feature accepted by Ajv as portable. The full dialect offers more expressive schemas, but dynamic references, unevaluated semantics, regex differences, mutation options, and custom vocabularies make cross-language validation and generated types less predictable; the profile can expand only with Node/Go conformance evidence and a protocol revision when necessary.
+Prompt Iris will use an explicit subset of JSON Schema Draft 2020-12 rather than treating every feature accepted by Ajv as portable. The full dialect offers more expressive schemas, but dynamic references, unevaluated semantics, regex differences, mutation options, and custom vocabularies make cross-language validation and generated types less predictable; the profile can expand only with Node/Go conformance evidence and a protocol revision when necessary.
 
 ## Consequences
 

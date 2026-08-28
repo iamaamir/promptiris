@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { PluginContribution, PluginManifest } from '@meta-prompt/plugin-sdk';
+import type { PluginContribution, PluginManifest } from '@promptiris/plugin-sdk';
 import { compilePluginGraph } from './index.js';
 
 function plugin(id: string, contributions: readonly PluginContribution[]): PluginManifest {

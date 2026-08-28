@@ -4,7 +4,7 @@ status: accepted
 
 # Use typed atomic domain Patches
 
-Plugins will propose atomic, revision-aware Patches using a small versioned union of Meta Prompt operations that target stable block IDs and carry content preconditions. Reusing RFC 6902 would reduce initial protocol work, but generic JSON paths expose internal schema, array indexes drift under composition, and unrestricted operations could bypass immutable constraints or Kernel-owned fields; arbitrary Plugin products remain extensible through Artifacts rather than executable custom Patch opcodes.
+Plugins will propose atomic, revision-aware Patches using a small versioned union of Prompt Iris operations that target stable block IDs and carry content preconditions. Reusing RFC 6902 would reduce initial protocol work, but generic JSON paths expose internal schema, array indexes drift under composition, and unrestricted operations could bypass immutable constraints or Kernel-owned fields; arbitrary Plugin products remain extensible through Artifacts rather than executable custom Patch opcodes.
 
 ## Consequences
 

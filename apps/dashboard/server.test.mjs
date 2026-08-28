@@ -22,7 +22,7 @@ test('serves the dashboard with restrictive security headers', async () => {
   assert.equal(response.status, 200);
   assert.match(response.headers['Content-Security-Policy'], /default-src 'self'/);
   assert.equal(response.headers['X-Content-Type-Options'], 'nosniff');
-  assert.match(response.body, /Meta Prompt Evidence/);
+  assert.match(response.body, /Prompt Iris Evidence/);
 });
 
 test('serves generated telemetry without caching', async () => {

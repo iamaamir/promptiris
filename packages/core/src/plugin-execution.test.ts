@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { makeTextDocument, type PromptDocument } from '@meta-prompt/protocol';
+import { makeTextDocument, type PromptDocument } from '@promptiris/protocol';
 import {
   defineDeclarativePlugin,
   type PluginImplementation,
   type PluginManifest,
   type PluginRegistration,
-} from '@meta-prompt/plugin-sdk';
+} from '@promptiris/plugin-sdk';
 import { compilePluginGraph, createRunContext, executePluginPlan } from './index.js';
 
 const manifest: PluginManifest = {
@@ -85,35 +85,35 @@ describe('executePluginPlan', () => {
     );
 
     expect(events).toEqual([
-      expect.objectContaining({ type: 'meta-prompt.phase.started', data: { phase: 'transform' } }),
+      expect.objectContaining({ type: 'promptiris.phase.started', data: { phase: 'transform' } }),
       expect.objectContaining({
-        type: 'meta-prompt.plugin.activation-started',
+        type: 'promptiris.plugin.activation-started',
         data: { pluginId: manifest.id, contributionId: 'first' },
       }),
       expect.objectContaining({
-        type: 'meta-prompt.plugin.activation-completed',
+        type: 'promptiris.plugin.activation-completed',
         data: { pluginId: manifest.id, contributionId: 'first', status: 'success' },
       }),
       expect.objectContaining({
-        type: 'meta-prompt.plugin.invocation-started',
+        type: 'promptiris.plugin.invocation-started',
         data: { pluginId: manifest.id, contributionId: 'first' },
       }),
       expect.objectContaining({
-        type: 'meta-prompt.plugin.invocation-completed',
+        type: 'promptiris.plugin.invocation-completed',
         data: { pluginId: manifest.id, contributionId: 'first', status: 'failed' },
       }),
       expect.objectContaining({
-        type: 'meta-prompt.phase.completed',
+        type: 'promptiris.phase.completed',
         data: { phase: 'transform', status: 'degraded' },
       }),
     ]);
     expect(events.map((event) => event.dataSchema)).toEqual([
-      'meta-prompt/event/phase-started-v1',
-      'meta-prompt/event/plugin-activation-started-v1',
-      'meta-prompt/event/plugin-activation-completed-v1',
-      'meta-prompt/event/plugin-invocation-started-v1',
-      'meta-prompt/event/plugin-invocation-completed-v1',
-      'meta-prompt/event/phase-completed-v1',
+      'promptiris/event/phase-started-v1',
+      'promptiris/event/plugin-activation-started-v1',
+      'promptiris/event/plugin-activation-completed-v1',
+      'promptiris/event/plugin-invocation-started-v1',
+      'promptiris/event/plugin-invocation-completed-v1',
+      'promptiris/event/phase-completed-v1',
     ]);
     expect(events.map((event) => event.data)).toStrictEqual([
       { phase: 'transform' },
@@ -155,14 +155,14 @@ describe('executePluginPlan', () => {
       status: 'degraded',
       primary: { value: 'input' },
       primaryOrigin: 'original',
-      diagnostics: [{ code: 'meta-prompt.plugin.activation-failed' }],
+      diagnostics: [{ code: 'promptiris.plugin.activation-failed' }],
       summary: { completedPhases: [], failedPhases: ['transform'] },
     });
     expect(events).toEqual([
-      'meta-prompt.phase.started',
-      'meta-prompt.plugin.activation-started',
-      'meta-prompt.plugin.activation-completed',
-      'meta-prompt.phase.completed',
+      'promptiris.phase.started',
+      'promptiris.plugin.activation-started',
+      'promptiris.plugin.activation-completed',
+      'promptiris.phase.completed',
     ]);
   });
 
@@ -198,7 +198,7 @@ describe('executePluginPlan', () => {
         })),
       ]);
       expect(result.diagnostics).toEqual([
-        expect.objectContaining({ code: 'meta-prompt.plugin.invalid-output' }),
+        expect.objectContaining({ code: 'promptiris.plugin.invalid-output' }),
       ]);
       expect(result.primaryOrigin).toBe('original');
     }
@@ -232,8 +232,8 @@ describe('executePluginPlan', () => {
     expect(result.status).toBe('success');
     expect(result.summary.completedPhases).toEqual(phases);
     expect(result.summary.failedPhases).toEqual([]);
-    expect(events.filter((type) => type === 'meta-prompt.phase.started')).toHaveLength(3);
-    expect(events.filter((type) => type === 'meta-prompt.phase.completed')).toHaveLength(3);
+    expect(events.filter((type) => type === 'promptiris.phase.started')).toHaveLength(3);
+    expect(events.filter((type) => type === 'promptiris.phase.completed')).toHaveLength(3);
   });
 
   it('activates once, invokes in graph order, and emits standard lifecycle events', async () => {
@@ -261,14 +261,14 @@ describe('executePluginPlan', () => {
     });
     expect(input).toEqual(makeTextDocument('input'));
     expect(events).toEqual([
-      'meta-prompt.phase.started',
-      'meta-prompt.plugin.activation-started',
-      'meta-prompt.plugin.activation-completed',
-      'meta-prompt.plugin.invocation-started',
-      'meta-prompt.plugin.invocation-completed',
-      'meta-prompt.plugin.invocation-started',
-      'meta-prompt.plugin.invocation-completed',
-      'meta-prompt.phase.completed',
+      'promptiris.phase.started',
+      'promptiris.plugin.activation-started',
+      'promptiris.plugin.activation-completed',
+      'promptiris.plugin.invocation-started',
+      'promptiris.plugin.invocation-completed',
+      'promptiris.plugin.invocation-started',
+      'promptiris.plugin.invocation-completed',
+      'promptiris.phase.completed',
     ]);
   });
 
@@ -305,7 +305,7 @@ describe('executePluginPlan', () => {
       status: 'degraded',
       primary: { value: 'input' },
       primaryOrigin: 'original',
-      diagnostics: [{ code: 'meta-prompt.plugin.activation-failed' }],
+      diagnostics: [{ code: 'promptiris.plugin.activation-failed' }],
     });
     expect(JSON.stringify(result.diagnostics)).not.toContain('secret activation stack');
   });
@@ -335,7 +335,7 @@ describe('executePluginPlan', () => {
     expect(result).toMatchObject({
       status: 'degraded',
       primaryOrigin: 'original',
-      diagnostics: [{ code: 'meta-prompt.plugin.activation-failed' }],
+      diagnostics: [{ code: 'promptiris.plugin.activation-failed' }],
     });
   });
 
@@ -349,8 +349,8 @@ describe('executePluginPlan', () => {
 
     expect(result.diagnostics).toEqual([
       expect.objectContaining({
-        id: 'diagnostic:meta-prompt.plugin.activation-failed',
-        code: 'meta-prompt.plugin.activation-failed',
+        id: 'diagnostic:promptiris.plugin.activation-failed',
+        code: 'promptiris.plugin.activation-failed',
         category: 'plugin',
       }),
     ]);
@@ -388,7 +388,7 @@ describe('executePluginPlan', () => {
       status: 'degraded',
       primary: { value: 'input' },
       primaryOrigin: 'original',
-      diagnostics: [{ code: 'meta-prompt.plugin.invocation-failed' }],
+      diagnostics: [{ code: 'promptiris.plugin.invocation-failed' }],
     });
     expect(JSON.stringify(result.diagnostics)).not.toContain('secret invocation stack');
   });
@@ -416,9 +416,9 @@ describe('executePluginPlan', () => {
       status: 'degraded',
       primary: { value: 'input' },
       primaryOrigin: 'original',
-      diagnostics: [{ code: 'meta-prompt.plugin.invalid-output' }],
+      diagnostics: [{ code: 'promptiris.plugin.invalid-output' }],
     });
-    expect(events).toContain('meta-prompt.plugin.invocation-completed');
+    expect(events).toContain('promptiris.plugin.invocation-completed');
   });
 
   it('preserves the last valid transformed artifact after a later failure', async () => {
@@ -447,7 +447,7 @@ describe('executePluginPlan', () => {
       status: 'degraded',
       primary: { value: 'input\nfirst' },
       primaryOrigin: 'transformed',
-      diagnostics: [{ code: 'meta-prompt.plugin.invocation-failed' }],
+      diagnostics: [{ code: 'promptiris.plugin.invocation-failed' }],
     });
   });
 
@@ -467,11 +467,11 @@ describe('executePluginPlan', () => {
       diagnostics: [
         {
           schemaVersion: '1',
-          id: 'diagnostic:meta-prompt.recipe.compile-failed',
-          code: 'meta-prompt.recipe.compile-failed',
+          id: 'diagnostic:promptiris.recipe.compile-failed',
+          code: 'promptiris.recipe.compile-failed',
           category: 'configuration',
           severity: 'error',
-          title: 'meta-prompt.recipe.compile-failed',
+          title: 'promptiris.recipe.compile-failed',
         },
       ],
     });
@@ -589,7 +589,7 @@ describe('executePluginPlan', () => {
       status: 'degraded',
       primary: { value: 'input' },
       primaryOrigin: 'original',
-      diagnostics: [{ code: 'meta-prompt.patch.stale-revision' }],
+      diagnostics: [{ code: 'promptiris.patch.stale-revision' }],
     });
   });
 
@@ -615,7 +615,7 @@ describe('executePluginPlan', () => {
     expect(result).toMatchObject({
       status: 'degraded',
       primary: { value: 'input' },
-      diagnostics: [{ code: 'meta-prompt.plugin.invalid-output' }],
+      diagnostics: [{ code: 'promptiris.plugin.invalid-output' }],
     });
   });
 
@@ -675,7 +675,7 @@ describe('executePluginPlan', () => {
     expect(result).toMatchObject({
       status: 'degraded',
       primary: { value: 'input' },
-      diagnostics: [{ code: 'meta-prompt.plugin.invalid-output' }],
+      diagnostics: [{ code: 'promptiris.plugin.invalid-output' }],
     });
   });
 });

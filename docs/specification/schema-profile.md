@@ -1,6 +1,6 @@
 # Portable JSON Schema profile
 
-Meta Prompt schemas use JSON Schema Draft 2020-12 through a deliberately constrained profile. The profile is the compatibility contract; support for a keyword in one validator does not make it available to Plugins.
+Prompt Iris schemas use JSON Schema Draft 2020-12 through a deliberately constrained profile. The profile is the compatibility contract; support for a keyword in one validator does not make it available to Plugins.
 
 ## Root requirements
 
@@ -8,7 +8,7 @@ Meta Prompt schemas use JSON Schema Draft 2020-12 through a deliberately constra
 - Schema IDs are versioned URIs. Incompatible shape changes receive a new ID.
 - `$ref` may target only the same bundled schema set by absolute known ID or local `#/$defs/...` fragment.
 - Runtime network resolution and unknown vocabularies are forbidden.
-- Schemas themselves pass a Meta Prompt profile meta-schema/linter before registration.
+- Schemas themselves pass a Prompt Iris profile meta-schema/linter before registration.
 
 ## Allowed keywords
 
@@ -56,8 +56,8 @@ CI runs:
 
 1. the profile meta-schema/linter against every shipped and fixture schema;
 2. the applicable official JSON Schema Test Suite cases in both validators;
-3. Meta Prompt positive/negative/limit fixtures through Node and Go;
+3. Prompt Iris positive/negative/limit fixtures through Node and Go;
 4. differential output checks so both implementations agree on validity, normalized instance path, keyword, and bounded error category;
 5. Bowtie reports as ecosystem evidence, not as a substitute for the project fixtures.
 
-Validation never inserts defaults, coerces types, removes unknown fields, or normalizes strings. Error wording is implementation-specific; only normalized paths, keywords, and Meta Prompt Diagnostic codes are portable.
+Validation never inserts defaults, coerces types, removes unknown fields, or normalizes strings. Error wording is implementation-specific; only normalized paths, keywords, and Prompt Iris Diagnostic codes are portable.

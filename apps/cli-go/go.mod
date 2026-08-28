@@ -1,4 +1,4 @@
-module github.com/meta-prompt/meta-prompt/apps/cli-go
+module github.com/iamaamir/promptiris/apps/cli-go
 
 go 1.26.0
 

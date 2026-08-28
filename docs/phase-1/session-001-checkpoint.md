@@ -8,7 +8,7 @@ This checkpoint summarizes the first long-form design grill before implementatio
 
 Prompt quality can materially improve output from weaker or local models, but asking a separate high-end model to rewrite every prompt is frustrating and difficult to integrate. The initial idea was an SDK that could sit behind a CLI or before an agent Host sends user input to its model.
 
-The scope widened deliberately: prompt enhancement should be one bundled function, while the framework allows any declared NLP transformation, guard, memory source, structured-output conversion, target adaptation, or observer. This led to the name Meta Prompt and the governing philosophy “everything is a plugin.”
+The scope widened deliberately: prompt enhancement should be one bundled function, while the framework allows any declared NLP transformation, guard, memory source, structured-output conversion, target adaptation, or observer. This led to the name Prompt Iris and the governing philosophy “everything is a plugin.”
 
 ## Boundary that emerged
 

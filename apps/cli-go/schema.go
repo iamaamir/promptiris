@@ -20,7 +20,7 @@ func mustCompileRunResultSchema() *jsonschema.Schema {
 	}
 	compiler := jsonschema.NewCompiler()
 	compiler.DefaultDraft(jsonschema.Draft2020)
-	const schemaURL = "https://meta-prompt.dev/schema/run-result-v1.json"
+	const schemaURL = "urn:promptiris:schema:run-result:v1"
 	if err := compiler.AddResource(schemaURL, document); err != nil {
 		panic(fmt.Sprintf("register embedded Run Result schema: %v", err))
 	}

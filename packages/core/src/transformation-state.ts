@@ -9,7 +9,7 @@ import {
   type Protection,
   type TextBlock,
   type TextSelector,
-} from '@meta-prompt/protocol';
+} from '@promptiris/protocol';
 
 /** @public */
 export interface TransformationState {

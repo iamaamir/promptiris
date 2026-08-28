@@ -7,7 +7,7 @@ import {
   type Phase,
   type PromptDocument,
   type RunResult,
-} from '@meta-prompt/protocol';
+} from '@promptiris/protocol';
 import {
   identityArtifact,
   type ArtifactProposal,
@@ -16,7 +16,7 @@ import {
   type PluginOutput,
   type PluginRegistration,
   type RunContext,
-} from '@meta-prompt/plugin-sdk';
+} from '@promptiris/plugin-sdk';
 import type { CompiledContribution, CompiledPluginGraph } from './plugin-graph.js';
 import {
   applyPatch,
@@ -76,7 +76,7 @@ function emitPluginEvent(
   context.emit({
     type,
     source: 'core',
-    dataSchema: `meta-prompt/event/${type.replace('meta-prompt.', '').replaceAll('.', '-')}-v1`,
+    dataSchema: `promptiris/event/${type.replace('promptiris.', '').replaceAll('.', '-')}-v1`,
     data: {
       pluginId: node.pluginId,
       contributionId: node.contribution.id,
@@ -89,14 +89,14 @@ function emitPluginEvent(
 
 function emitPhaseEvent(
   context: RunContext,
-  type: 'meta-prompt.phase.started' | 'meta-prompt.phase.completed',
+  type: 'promptiris.phase.started' | 'promptiris.phase.completed',
   phase: Phase,
   status?: 'success' | 'degraded',
 ): void {
   context.emit({
     type,
     source: 'core',
-    dataSchema: `meta-prompt/event/${type.replace('meta-prompt.', '').replaceAll('.', '-')}-v1`,
+    dataSchema: `promptiris/event/${type.replace('promptiris.', '').replaceAll('.', '-')}-v1`,
     data: { phase, ...(status === undefined ? {} : { status }) },
     classification: 'metadata',
     delivery: 'critical',
@@ -158,17 +158,17 @@ async function activatePlugin(
 ): Promise<ActivationOutcome> {
   const cached = state.activated.get(node.pluginId);
   if (cached !== undefined) return { ok: true, implementation: cached };
-  emitPluginEvent(context, 'meta-prompt.plugin.activation-started', node);
+  emitPluginEvent(context, 'promptiris.plugin.activation-started', node);
   try {
     if (registration === undefined) throw new TypeError();
     const implementation: unknown = await registration.activate();
     if (!isPluginImplementation(implementation)) throw new TypeError();
     state.activated.set(node.pluginId, implementation);
-    emitPluginEvent(context, 'meta-prompt.plugin.activation-completed', node, 'success');
+    emitPluginEvent(context, 'promptiris.plugin.activation-completed', node, 'success');
     return { ok: true, implementation };
   } catch {
-    emitPluginEvent(context, 'meta-prompt.plugin.activation-completed', node, 'failed');
-    return { ok: false, diagnostic: coreDiagnostic('meta-prompt.plugin.activation-failed') };
+    emitPluginEvent(context, 'promptiris.plugin.activation-completed', node, 'failed');
+    return { ok: false, diagnostic: coreDiagnostic('promptiris.plugin.activation-failed') };
   }
 }
 
@@ -178,19 +178,19 @@ async function invokePlugin(
   node: CompiledContribution,
   context: RunContext,
 ): Promise<InvocationOutcome> {
-  emitPluginEvent(context, 'meta-prompt.plugin.invocation-started', node);
+  emitPluginEvent(context, 'promptiris.plugin.invocation-started', node);
   let output: unknown;
   try {
     output = await implementation.invoke(request);
   } catch {
-    emitPluginEvent(context, 'meta-prompt.plugin.invocation-completed', node, 'failed');
-    return { ok: false, diagnostic: coreDiagnostic('meta-prompt.plugin.invocation-failed') };
+    emitPluginEvent(context, 'promptiris.plugin.invocation-completed', node, 'failed');
+    return { ok: false, diagnostic: coreDiagnostic('promptiris.plugin.invocation-failed') };
   }
   if (!isPluginOutput(output)) {
-    emitPluginEvent(context, 'meta-prompt.plugin.invocation-completed', node, 'failed');
-    return { ok: false, diagnostic: coreDiagnostic('meta-prompt.plugin.invalid-output') };
+    emitPluginEvent(context, 'promptiris.plugin.invocation-completed', node, 'failed');
+    return { ok: false, diagnostic: coreDiagnostic('promptiris.plugin.invalid-output') };
   }
-  emitPluginEvent(context, 'meta-prompt.plugin.invocation-completed', node, 'success');
+  emitPluginEvent(context, 'promptiris.plugin.invocation-completed', node, 'success');
   return { ok: true, output };
 }
 
@@ -245,12 +245,12 @@ function acceptOutput(
 ): Diagnostic | undefined {
   const artifacts = output.artifacts ?? [];
   if (!artifactNamespacesValid(node.pluginId, artifacts)) {
-    return coreDiagnostic('meta-prompt.plugin.invalid-output');
+    return coreDiagnostic('promptiris.plugin.invalid-output');
   }
   const patchIds: string[] = [];
   for (const patch of output.patches ?? []) {
     const applied = applyPatch(state.current, patch, node.pluginId);
-    if (!applied.ok) return coreDiagnostic(`meta-prompt.patch.${applied.code}`, 'transformation');
+    if (!applied.ok) return coreDiagnostic(`promptiris.patch.${applied.code}`, 'transformation');
     state.current = applied.state;
     state.transformed = true;
     patchIds.push(patch.id);
@@ -287,7 +287,7 @@ function exposedArtifacts(
 
 function fallbackArtifact(state: ExecutionState, context: RunContext): Artifact {
   return identityArtifact(state.current.document, {
-    pluginId: 'meta-prompt/core',
+    pluginId: 'promptiris/core',
     contributionId: 'result-fallback',
     invocationId: `${context.runId}:result`,
     phase: 'render',
@@ -371,7 +371,7 @@ function createResult(
     status: state.diagnostics.length === 0 ? 'success' : 'degraded',
     primary: artifacts.primary,
     primaryOrigin:
-      artifacts.primary.kind !== 'meta-prompt/prompt' || state.transformed
+      artifacts.primary.kind !== 'promptiris/prompt' || state.transformed
         ? 'transformed'
         : 'original',
     alternatives: artifacts.alternatives,
@@ -400,20 +400,20 @@ async function executeNodes(
     if (activePhase !== node.contribution.phase) {
       if (activePhase !== undefined) {
         state.completedPhases.push(activePhase);
-        emitPhaseEvent(context, 'meta-prompt.phase.completed', activePhase, 'success');
+        emitPhaseEvent(context, 'promptiris.phase.completed', activePhase, 'success');
       }
       activePhase = node.contribution.phase;
-      emitPhaseEvent(context, 'meta-prompt.phase.started', activePhase);
+      emitPhaseEvent(context, 'promptiris.phase.started', activePhase);
     }
     if (!(await executeContribution(node, registrations, state, context, signal))) {
       state.failedPhases.push(activePhase);
-      emitPhaseEvent(context, 'meta-prompt.phase.completed', activePhase, 'degraded');
+      emitPhaseEvent(context, 'promptiris.phase.completed', activePhase, 'degraded');
       return;
     }
   }
   if (activePhase !== undefined) {
     state.completedPhases.push(activePhase);
-    emitPhaseEvent(context, 'meta-prompt.phase.completed', activePhase, 'success');
+    emitPhaseEvent(context, 'promptiris.phase.completed', activePhase, 'success');
   }
 }
 
@@ -437,7 +437,7 @@ export async function executePluginPlan(
     transformed: false,
   };
   if (!graph.ok)
-    state.diagnostics.push(coreDiagnostic('meta-prompt.recipe.compile-failed', 'configuration'));
+    state.diagnostics.push(coreDiagnostic('promptiris.recipe.compile-failed', 'configuration'));
   else {
     const signal = options.signal ?? new AbortController().signal;
     await executeNodes(graph, registrations, state, context, signal);

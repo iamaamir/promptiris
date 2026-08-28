@@ -1,6 +1,6 @@
 # Security and trust model
 
-Meta Prompt executes user-selected transformations and may invoke third-party code or remote/local models. Its primary security promise is explicit authority, bounded data flow, fault containment, and safe fallback—not a universal sandbox.
+Prompt Iris executes user-selected transformations and may invoke third-party code or remote/local models. Its primary security promise is explicit authority, bounded data flow, fault containment, and safe fallback—not a universal sandbox.
 
 ## Trust boundaries
 

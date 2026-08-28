@@ -4,7 +4,7 @@
 
 A manifest declares a namespaced ID, package SemVer, protocol version, engine range, Plugin type and entrypoint, contributions, dependencies, conflicts, capabilities, Permission Hints, configuration schema, diagnostic and custom-event schemas, and lazy activation conditions. The manifest is authoritative; package tags only aid discovery.
 
-The authoring API centers on `definePlugin(...)`. It infers a Plugin's configuration, services, hooks, Artifacts, and events while checking its public contract. Plugin authors depend on `@meta-prompt/plugin-sdk` as a peer dependency and should not import Kernel internals.
+The authoring API centers on `definePlugin(...)`. It infers a Plugin's configuration, services, hooks, Artifacts, and events while checking its public contract. Plugin authors depend on `@promptiris/plugin-sdk` as a peer dependency and should not import Kernel internals.
 
 Runtime JSON Schema is authoritative across languages. TypeScript types are inferred where possible. Public types use controlled package exports and instance-scoped generics; global module augmentation is not required.
 
@@ -55,7 +55,7 @@ Processes launch without a shell, with explicit executable/arguments, a minimal 
 
 ## Permissions and trust
 
-Meta Prompt does not implement RBAC. Capability declarations are mandatory for compatibility. Permission Hints are lightweight metadata that a Host may authorize through a callback or enforce through its own sandbox. A permissive Host may trust all installed native Plugins; a restrictive Host may deny filesystem, network, process, or credential access.
+Prompt Iris does not implement RBAC. Capability declarations are mandatory for compatibility. Permission Hints are lightweight metadata that a Host may authorize through a callback or enforce through its own sandbox. A permissive Host may trust all installed native Plugins; a restrictive Host may deny filesystem, network, process, or credential access.
 
 Credentials are logical references. Resolution order is explicit injection, environment, keychain/helper, then a custom credential Plugin. V1 needs environment and programmatic injection. Only the selected Provider receives credential material; credentials must never enter Results, Events, Diagnostics, debug bundles, or model content.
 
@@ -70,7 +70,7 @@ Example conceptually:
 ```json
 {
   "id": "acme/enhance-with-memory",
-  "extends": "meta-prompt/enhance",
+  "extends": "promptiris/enhance",
   "changes": [
     { "op": "add", "phase": "analyze", "plugin": "acme/memory-context" }
   ]
@@ -81,7 +81,7 @@ Both Recipes remain installed and addressable. Only the selected one runs.
 
 ## Distribution and discovery
 
-V1 discovers explicitly installed npm and local packages. It never installs packages while processing a Run. npm/GitHub topics such as `meta-prompt-plugin` and type-specific variants support catalog searches, while manifests decide compatibility. Pi-hosted packages may also use `pi-package`.
+V1 discovers explicitly installed npm and local packages. It never installs packages while processing a Run. npm/GitHub topics such as `promptiris-plugin` and type-specific variants support catalog searches, while manifests decide compatibility. Pi-hosted packages may also use `pi-package`.
 
 The lockfile records exact package versions, sources, and integrity. Package version, SDK version, and protocol version are separate because they evolve for different reasons. A centralized registry can be added later without changing the manifest contract.
 

@@ -6,7 +6,7 @@ status: accepted
 
 The bundled Provider will expose a minimal Chat Completions text baseline and model every richer feature independently as supported, unsupported, or unknown. It will not infer capabilities from an endpoint's product name, a successful `/v1/models` response, or the fact that a request field was ignored without error.
 
-OpenAI-compatible servers intentionally implement different subsets and extensions, and feature behavior frequently depends on the selected model, chat template, backend, or startup flags. A broad optimistic contract would create the exact silent degradation Meta Prompt is designed to prevent; demanding full OpenAI parity would unnecessarily exclude useful local models.
+OpenAI-compatible servers intentionally implement different subsets and extensions, and feature behavior frequently depends on the selected model, chat template, backend, or startup flags. A broad optimistic contract would create the exact silent degradation Prompt Iris is designed to prevent; demanding full OpenAI parity would unnecessarily exclude useful local models.
 
 ## Consequences
 

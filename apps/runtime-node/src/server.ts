@@ -1,12 +1,12 @@
 import { randomUUID } from 'node:crypto';
-import { createRunContext, identityRecipe } from '@meta-prompt/core';
+import { createRunContext, identityRecipe } from '@promptiris/core';
 import {
   validatePromptDocument,
   type Event,
   type JsonRpcMessage,
   type JsonRpcRequest,
   type RunStartParams,
-} from '@meta-prompt/protocol';
+} from '@promptiris/protocol';
 
 const METHOD_NOT_FOUND = -32601;
 const INVALID_PARAMS = -32602;
@@ -36,13 +36,13 @@ export class RuntimeServer {
     this.#initialized = true;
     return this.#response(request, {
       protocolVersion: '1',
-      serverName: 'meta-prompt-runtime',
+      serverName: 'promptiris-runtime',
       capabilities: {
         methods: ['initialize', 'run/start', 'shutdown'],
         events: [
-          'meta-prompt.phase.started',
-          'meta-prompt.phase.completed',
-          'meta-prompt.run.completed',
+          'promptiris.phase.started',
+          'promptiris.phase.completed',
+          'promptiris.run.completed',
         ],
       },
       limits: { maxFrameBytes: 8 * 1024 * 1024, maxDepth: 64 },
@@ -65,9 +65,9 @@ export class RuntimeServer {
     });
     const result = await identityRecipe.run(params.input, context);
     context.emit({
-      type: 'meta-prompt.run.completed',
+      type: 'promptiris.run.completed',
       source: 'core',
-      dataSchema: 'meta-prompt/event/run-completed-v1',
+      dataSchema: 'promptiris/event/run-completed-v1',
       data: { status: result.status },
       classification: 'metadata',
       delivery: 'critical',
