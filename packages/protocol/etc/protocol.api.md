@@ -29,6 +29,87 @@ export interface Artifact {
 }
 
 // @public (undocumented)
+export type CandidateDisposition = 'accepted' | 'overridden' | 'rejected';
+
+// @public (undocumented)
+export interface CapabilityEvidence {
+    // (undocumented)
+    readonly bindingFingerprint: string;
+    // (undocumented)
+    readonly capability: NamespacedId;
+    // (undocumented)
+    readonly digest?: string;
+    // (undocumented)
+    readonly evidenceId: string;
+    // (undocumented)
+    readonly observedAt?: string;
+    // (undocumented)
+    readonly reason?: string;
+    // (undocumented)
+    readonly source: {
+        readonly kind: 'policy' | 'configuration' | 'profile' | 'observation';
+        readonly id: string;
+    };
+    // (undocumented)
+    readonly state: 'supported' | 'unsupported' | 'unknown';
+}
+
+// @public (undocumented)
+export type CapabilityRequirement = 'required' | 'preferred' | 'optional';
+
+// @public (undocumented)
+export interface CapabilityResolution {
+    // (undocumented)
+    readonly bindingFingerprint: string;
+    // (undocumented)
+    readonly capability: NamespacedId;
+    // (undocumented)
+    readonly diagnostic?: Diagnostic;
+    // (undocumented)
+    readonly evidence: readonly CapabilityEvidence[];
+    // (undocumented)
+    readonly outcome: 'satisfied' | 'fallback' | 'missing' | 'conflict';
+    // (undocumented)
+    readonly reason?: string;
+    // (undocumented)
+    readonly requirement: CapabilityRequirement;
+}
+
+// @public (undocumented)
+export interface ConfigTrace {
+    // (undocumented)
+    readonly entries: Readonly<Record<string, ConfigTraceEntry>>;
+}
+
+// @public (undocumented)
+export interface ConfigTraceCandidate {
+    // (undocumented)
+    readonly disposition: CandidateDisposition;
+    // (undocumented)
+    readonly location?: SourceLocation;
+    // (undocumented)
+    readonly preview?: SafePreview;
+    // (undocumented)
+    readonly reason: string;
+    // (undocumented)
+    readonly sourceId: string;
+}
+
+// @public (undocumented)
+export interface ConfigTraceEntry {
+    // (undocumented)
+    readonly candidates: readonly ConfigTraceCandidate[];
+    // (undocumented)
+    readonly effectiveSource?: string;
+    // (undocumented)
+    readonly merge: 'default' | 'replace' | 'merge' | 'append' | 'union';
+    // (undocumented)
+    readonly pointer: string;
+    // (undocumented)
+    readonly schemaRule: string;
+}
+
+// @public (undocumented)
 export interface Constraint {
     // (undocumented)
     id: NamespacedId;
@@ -60,6 +141,38 @@ export interface Diagnostic {
     severity: 'info' | 'warning' | 'error' | 'fatal';
     // (undocumented)
     title: string;
+}
+
+// @public (undocumented)
+export interface DoctorCheck {
+    // (undocumented)
+    readonly id: NamespacedId;
+    // (undocumented)
+    readonly reason?: string;
+    // (undocumented)
+    readonly status: 'passed' | 'failed' | 'deferred';
+}
+
+// @public (undocumented)
+export interface DoctorParams {
+    // (undocumented)
+    readonly configUri?: string;
+    // (undocumented)
+    readonly recipe?: NamespacedId;
+}
+
+// @public (undocumented)
+export interface DoctorResult {
+    // (undocumented)
+    readonly checks: readonly DoctorCheck[];
+    // (undocumented)
+    readonly diagnostics: readonly Diagnostic[];
+    // (undocumented)
+    readonly ready: boolean;
+    // (undocumented)
+    readonly resolutions: readonly CapabilityResolution[];
+    // (undocumented)
+    readonly schemaVersion: '1';
 }
 
 // @public (undocumented)
@@ -130,6 +243,32 @@ export interface InsertContentBlock {
     block: TextBlock;
     // (undocumented)
     type: 'insert-content-block';
+}
+
+// @public (undocumented)
+export interface InspectParams {
+    // (undocumented)
+    readonly configUri?: string;
+    // (undocumented)
+    readonly recipe?: NamespacedId;
+}
+
+// @public (undocumented)
+export interface InspectResult {
+    // (undocumented)
+    readonly config: JsonValue;
+    // (undocumented)
+    readonly configTrace: ConfigTrace;
+    // (undocumented)
+    readonly permissionHints: readonly PermissionHint[];
+    // (undocumented)
+    readonly policies: readonly PolicyRecord[];
+    // (undocumented)
+    readonly redacted: true;
+    // (undocumented)
+    readonly resolutions: readonly CapabilityResolution[];
+    // (undocumented)
+    readonly schemaVersion: '1';
 }
 
 // @public (undocumented)
@@ -214,7 +353,31 @@ export interface Patch {
 export type PatchOperation = ReplaceText | InsertContentBlock | ReplaceContentBlock | RemoveContentBlock | SetNamespacedExtension;
 
 // @public (undocumented)
+export interface PermissionHint {
+    // (undocumented)
+    readonly effect: 'filesystem' | 'network' | 'process' | 'credential';
+    // (undocumented)
+    readonly reason?: string;
+    // (undocumented)
+    readonly scope?: string;
+}
+
+// @public (undocumented)
 export type Phase = 'preflight' | 'analyze' | 'transform' | 'adapt' | 'validate' | 'render';
+
+// @public (undocumented)
+export interface PolicyRecord {
+    // (undocumented)
+    readonly decision: 'allowed' | 'forced' | 'clamped' | 'denied';
+    // (undocumented)
+    readonly pointer: string;
+    // (undocumented)
+    readonly policyId: string;
+    // (undocumented)
+    readonly reason: string;
+    // (undocumented)
+    readonly sourceId?: string;
+}
 
 // @public (undocumented)
 export interface PromptDocument {
@@ -346,9 +509,26 @@ export interface RunStartParams {
 }
 
 // @public (undocumented)
+export type SafePreview = {
+    readonly kind: 'literal';
+    readonly value: JsonValue;
+} | {
+    readonly kind: 'redacted';
+    readonly digest?: string;
+} | {
+    readonly kind: 'secret-reference';
+    readonly scheme: string;
+};
+
+// @public (undocumented)
 export interface SchemaReference {
     // (undocumented)
     uri: string;
+}
+
+// @public (undocumented)
+export interface SecretReference {
+    readonly ref: string;
 }
 
 // @public (undocumented)
@@ -359,6 +539,14 @@ export interface SetNamespacedExtension {
     type: 'set-namespaced-extension';
     // (undocumented)
     value: JsonValue;
+}
+
+// @public (undocumented)
+export interface SourceLocation {
+    readonly column?: number;
+    readonly line?: number;
+    // (undocumented)
+    readonly uri?: string;
 }
 
 // @public (undocumented)

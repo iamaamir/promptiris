@@ -12,6 +12,120 @@ export type JsonValue =
 /** @public */
 export type NamespacedId = `${string}/${string}`;
 /** @public */
+export interface SecretReference {
+  /** Logical reference such as `env:OPENAI_API_KEY`; never credential material. */
+  readonly ref: string;
+}
+/** @public */
+export interface SourceLocation {
+  readonly uri?: string;
+  /** One-based source line. */
+  readonly line?: number;
+  /** One-based source column. */
+  readonly column?: number;
+}
+/** @public */
+export type CandidateDisposition = 'accepted' | 'overridden' | 'rejected';
+/** @public */
+export type CapabilityRequirement = 'required' | 'preferred' | 'optional';
+/** @public */
+export type SafePreview =
+  | { readonly kind: 'literal'; readonly value: JsonValue }
+  | { readonly kind: 'redacted'; readonly digest?: string }
+  | { readonly kind: 'secret-reference'; readonly scheme: string };
+/** @public */
+export interface ConfigTraceCandidate {
+  readonly sourceId: string;
+  readonly location?: SourceLocation;
+  readonly disposition: CandidateDisposition;
+  readonly preview?: SafePreview;
+  readonly reason: string;
+}
+/** @public */
+export interface ConfigTraceEntry {
+  readonly pointer: string;
+  readonly schemaRule: string;
+  readonly candidates: readonly ConfigTraceCandidate[];
+  readonly merge: 'default' | 'replace' | 'merge' | 'append' | 'union';
+  readonly effectiveSource?: string;
+}
+/** @public */
+export interface ConfigTrace {
+  readonly entries: Readonly<Record<string, ConfigTraceEntry>>;
+}
+/** @public */
+export interface PolicyRecord {
+  readonly policyId: string;
+  readonly decision: 'allowed' | 'forced' | 'clamped' | 'denied';
+  readonly pointer: string;
+  readonly sourceId?: string;
+  readonly reason: string;
+}
+/** @public */
+export interface CapabilityEvidence {
+  readonly evidenceId: string;
+  readonly capability: NamespacedId;
+  readonly bindingFingerprint: string;
+  readonly state: 'supported' | 'unsupported' | 'unknown';
+  readonly source: {
+    readonly kind: 'policy' | 'configuration' | 'profile' | 'observation';
+    readonly id: string;
+  };
+  readonly digest?: string;
+  readonly observedAt?: string;
+  readonly reason?: string;
+}
+/** @public */
+export interface CapabilityResolution {
+  readonly capability: NamespacedId;
+  readonly bindingFingerprint: string;
+  readonly requirement: CapabilityRequirement;
+  readonly outcome: 'satisfied' | 'fallback' | 'missing' | 'conflict';
+  readonly evidence: readonly CapabilityEvidence[];
+  readonly reason?: string;
+  readonly diagnostic?: Diagnostic;
+}
+/** @public */
+export interface PermissionHint {
+  readonly effect: 'filesystem' | 'network' | 'process' | 'credential';
+  readonly scope?: string;
+  readonly reason?: string;
+}
+/** @public */
+export interface InspectParams {
+  readonly recipe?: NamespacedId;
+  readonly configUri?: string;
+}
+/** @public */
+export interface InspectResult {
+  readonly schemaVersion: '1';
+  readonly redacted: true;
+  readonly config: JsonValue;
+  readonly configTrace: ConfigTrace;
+  readonly policies: readonly PolicyRecord[];
+  readonly resolutions: readonly CapabilityResolution[];
+  readonly permissionHints: readonly PermissionHint[];
+}
+/** @public */
+export interface DoctorParams {
+  readonly recipe?: NamespacedId;
+  readonly configUri?: string;
+}
+/** @public */
+export interface DoctorCheck {
+  readonly id: NamespacedId;
+  readonly status: 'passed' | 'failed' | 'deferred';
+  readonly reason?: string;
+}
+/** @public */
+export interface DoctorResult {
+  readonly schemaVersion: '1';
+  readonly ready: boolean;
+  readonly diagnostics: readonly Diagnostic[];
+  readonly checks: readonly DoctorCheck[];
+  readonly resolutions: readonly CapabilityResolution[];
+}
+/** @public */
 export interface ResourceReference {
   uri: string;
   mediaType?: string;

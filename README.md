@@ -19,6 +19,7 @@ Start with:
 - [Implementation handoff](./docs/phase-1/implementation-handoff.md)
 - [Phase-two bootstrap evidence](./docs/phase-2/bootstrap.md)
 - [Agent-driven implementation operating model](./docs/development/agent-operating-model.md)
+- [Configuration and capability tracer](./docs/development/configuration-capability-tracer.md)
 - [Closed questions and deferred roadmap](./docs/phase-1/open-questions.md)
 
 ## Core promise

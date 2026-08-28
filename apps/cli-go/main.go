@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -109,7 +110,34 @@ func newRootCommand(stdin io.Reader, stdout, stderr io.Writer) *cobra.Command {
 	enhance.Flags().StringVar(&input, "input", "", "prompt text (otherwise stdin or positional text)")
 	enhance.Flags().BoolVar(&strict, "strict", false, "return non-zero on transformation failure")
 	root.AddCommand(enhance)
+	root.AddCommand(newRuntimeQueryCommand("inspect", "Inspect resolved configuration", stdin, stdout, stderr))
+	root.AddCommand(newRuntimeQueryCommand("doctor", "Check local configuration readiness", stdin, stdout, stderr))
 	return root
+}
+
+func newRuntimeQueryCommand(method, summary string, stdin io.Reader, stdout, stderr io.Writer) *cobra.Command {
+	var runtimePath string
+	var configPath string
+	command := &cobra.Command{
+		Use:   method,
+		Short: summary,
+		Args:  cobra.NoArgs,
+		RunE: func(command *cobra.Command, _ []string) error {
+			if runtimePath == "" {
+				return errors.New("runtime is required (--runtime or PROMPTIRIS_RUNTIME)")
+			}
+			if configPath == "" {
+				return errors.New("configuration is required (--config)")
+			}
+			return executeQuery(command.Context(), runtimePath, method, configPath, command.OutOrStdout(), command.ErrOrStderr())
+		},
+	}
+	command.SetIn(stdin)
+	command.SetOut(stdout)
+	command.SetErr(stderr)
+	command.Flags().StringVar(&runtimePath, "runtime", os.Getenv("PROMPTIRIS_RUNTIME"), "path to bundled Node runtime entrypoint")
+	command.Flags().StringVar(&configPath, "config", "", "path or file URL to project JSONC configuration")
+	return command
 }
 
 func execute(ctx context.Context, runtimePath, text string, strict bool, stdout, stderr io.Writer) error {
@@ -218,6 +246,55 @@ func execute(ctx context.Context, runtimePath, text string, strict bool, stdout,
 		return fmt.Errorf("runtime returned status %q", result.Status)
 	}
 	return nil
+}
+
+func executeQuery(ctx context.Context, runtimePath, method, configPath string, stdout, stderr io.Writer) error {
+	cmd, err := runtimeCommand(runtimePath)
+	if err != nil {
+		return err
+	}
+	child := exec.CommandContext(ctx, cmd[0], append(cmd[1:], "--stdio")...)
+	child.Stderr = stderr
+	stdin, err := child.StdinPipe()
+	if err != nil {
+		return err
+	}
+	childStdout, err := child.StdoutPipe()
+	if err != nil {
+		return err
+	}
+	if err := child.Start(); err != nil {
+		return fmt.Errorf("start runtime: %w", err)
+	}
+	defer func() {
+		_ = stdin.Close()
+		_ = child.Process.Kill()
+		_ = child.Wait()
+	}()
+	client := NewClient(childStdout, stdin, nil)
+	var initialized initializeResult
+	if err := client.Call(ctx, "initialize", map[string]interface{}{
+		"protocolVersion": "1",
+		"clientName":      "promptiris-cli/0.1.0",
+		"capabilities":    map[string]bool{"events": false},
+	}, &initialized); err != nil {
+		return fmt.Errorf("initialize: %w", err)
+	}
+	var result json.RawMessage
+	if err := client.Call(ctx, method, map[string]string{"configUri": configPath}, &result); err != nil {
+		return fmt.Errorf("%s: %w", method, err)
+	}
+	var shutdownResult interface{}
+	if err := client.Call(ctx, "shutdown", nil, &shutdownResult); err != nil {
+		return fmt.Errorf("shutdown runtime: %w", err)
+	}
+	var output bytes.Buffer
+	if err := json.Indent(&output, result, "", "  "); err != nil {
+		return fmt.Errorf("decode %s result: %w", method, err)
+	}
+	output.WriteByte('\n')
+	_, err = stdout.Write(output.Bytes())
+	return err
 }
 
 func runtimeCommand(path string) ([]string, error) {

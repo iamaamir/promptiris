@@ -1,0 +1,23 @@
+{
+  // T004 local inspection fixture. Secret material is intentionally absent.
+  "provider": {
+    "bindingFingerprint": "fixture-binding",
+    "apiKey": { "ref": "env:PROMPTIRIS_API_KEY" },
+  },
+  "capabilities": [
+    {
+      "capability": "provider/json-schema",
+      "bindingFingerprint": "fixture-binding",
+      "requirement": "required",
+    },
+  ],
+  "evidence": [
+    {
+      "evidenceId": "fixture-project",
+      "capability": "provider/json-schema",
+      "bindingFingerprint": "fixture-binding",
+      "state": "supported",
+      "source": { "kind": "configuration", "id": "fixture" },
+    },
+  ],
+}
