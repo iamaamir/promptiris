@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "workItem": "WORK-ID",
+  "objective": "One bounded observable outcome",
+  "stage": "specifier",
+  "baseRevision": "BASE_REVISION",
+  "candidateRevision": null,
+  "lease": {
+    "owner": null,
+    "scope": null
+  },
+  "lastEvidence": null,
+  "nextAction": "Define acceptance criteria"
+}
