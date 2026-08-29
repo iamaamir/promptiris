@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/restrict-template-expressions */
 import { describe, it, expect } from 'vitest';
 import { createEventDispatcher } from '@promptiris/core';
 import { captureDebugRecord } from '@promptiris/core';
@@ -6,7 +7,12 @@ import { createObserverDevtools } from './observer.js';
 import { JsonLinesSink, createConsoleSink, formatEvent } from './sinks.js';
 import { createSupportBundle, MAX_BUNDLE_BYTES, MAX_BUNDLE_EVENTS } from './support-bundle.js';
 
-function emit(dispatcher: ReturnType<typeof createEventDispatcher>, type: string, data: unknown, delivery: 'critical' | 'progress' = 'critical') {
+function emit(
+  dispatcher: ReturnType<typeof createEventDispatcher>,
+  type: string,
+  data: unknown,
+  delivery: 'critical' | 'progress' = 'critical',
+) {
   dispatcher.emit({
     type,
     source: 'test',
@@ -30,17 +36,31 @@ describe('observer devtools', () => {
     expect(devtools.getEvents().every((e) => typeof e.type === 'string')).toBe(true);
     await handle.detach();
     // must not throw or affect dispatcher
-    expect(() => dispatcher.emit({ type: 'after', source: 'test', dataSchema: 'test/v1', data: {}, classification: 'metadata', delivery: 'critical' })).toThrow();
+    expect(() =>
+      dispatcher.emit({
+        type: 'after',
+        source: 'test',
+        dataSchema: 'test/v1',
+        data: {},
+        classification: 'metadata',
+        delivery: 'critical',
+      }),
+    ).toThrow();
   });
 
   it('does not invent event dialect, only forwards standard types', async () => {
     const dispatcher = createEventDispatcher('run-2');
     const devtools = createObserverDevtools({ observerId: 'test/observer2' });
     devtools.attach(dispatcher);
-    emit(dispatcher, 'promptiris.plugin.activation-started', { pluginId: 'p/a', contributionId: 'c1' });
+    emit(dispatcher, 'promptiris.plugin.activation-started', {
+      pluginId: 'p/a',
+      contributionId: 'c1',
+    });
     dispatcher.complete('success');
     await new Promise((r) => setTimeout(r, 10));
-    expect(devtools.getEvents().map((e) => e.type)).toContain('promptiris.plugin.activation-started');
+    expect(devtools.getEvents().map((e) => e.type)).toContain(
+      'promptiris.plugin.activation-started',
+    );
     expect(devtools.getEvents().map((e) => e.dataSchema)).toContain('test/v1');
   });
 
@@ -52,7 +72,10 @@ describe('observer devtools', () => {
     const devtools = createObserverDevtools({ observerId: 'test/obs3', consoleSink, jsonSink });
     devtools.attach(dispatcher);
     emit(dispatcher, 'promptiris.phase.started', { phase: 'analyze' });
-    emit(dispatcher, 'promptiris.plugin.activation-started', { pluginId: 'plug/a', contributionId: 'c1' });
+    emit(dispatcher, 'promptiris.plugin.activation-started', {
+      pluginId: 'plug/a',
+      contributionId: 'c1',
+    });
     emit(dispatcher, 'promptiris.run.cancelled', { reason: 'user' });
     dispatcher.complete('cancelled');
     await new Promise((r) => setTimeout(r, 20));
@@ -63,7 +86,11 @@ describe('observer devtools', () => {
   });
 
   it('sink failure cannot fail transformation', async () => {
-    const failingSink = { write: () => { throw new Error('sink boom'); } };
+    const failingSink = {
+      write: () => {
+        throw new Error('sink boom');
+      },
+    };
     const dispatcher = createEventDispatcher('run-4');
     const devtools = createObserverDevtools({ observerId: 'test/obs4', consoleSink: failingSink });
     devtools.attach(dispatcher);
@@ -87,7 +114,11 @@ describe('observer devtools', () => {
 
   it('support bundle is explicit bounded deterministic redacted', async () => {
     const dispatcher = createEventDispatcher('run-6');
-    const devtools = createObserverDevtools({ observerId: 'test/obs6', manifestIds: ['plug/a'], configTraceId: 'trace-1' });
+    const devtools = createObserverDevtools({
+      observerId: 'test/obs6',
+      manifestIds: ['plug/a'],
+      configTraceId: 'trace-1',
+    });
     devtools.attach(dispatcher);
     // sensitive event should be redacted in bundle
     dispatcher.emit({
@@ -99,7 +130,11 @@ describe('observer devtools', () => {
       delivery: 'critical',
     });
     dispatcher.complete('success');
-    captureDebugRecord(devtools, new Error('debug error'), { runId: 'run-6', traceId: 'run-6', operation: 'test' });
+    captureDebugRecord(devtools, new Error('debug error'), {
+      runId: 'run-6',
+      traceId: 'run-6',
+      operation: 'test',
+    });
     await new Promise((r) => setTimeout(r, 10));
     const bundle = devtools.createBundle();
     expect(bundle.bounded).toBe(true);
@@ -133,7 +168,9 @@ describe('observer devtools', () => {
     expect(bytes).toBeLessThanOrEqual(MAX_BUNDLE_BYTES + 5000); // allow small overhead
     // deterministic: second call same
     const bundle2 = createSupportBundle({ observerId: 'test', events, debugRecords: [] });
-    expect(JSON.stringify(bundle)).toBe(JSON.stringify({ ...bundle2, createdAt: bundle.createdAt }));
+    expect(JSON.stringify(bundle)).toBe(
+      JSON.stringify({ ...bundle2, createdAt: bundle.createdAt }),
+    );
   });
 
   it('plugin registration is usable without runtime internals', async () => {
@@ -141,7 +178,12 @@ describe('observer devtools', () => {
     const reg = devtools.createRegistration();
     expect(reg.manifest.type).toBe('observer');
     const impl = await reg.activate();
-    const out = await impl.invoke({ contributionId: 'c', input: { schemaVersion: '1', content: [{ id: 'b1', text: 'hi' }] } as any, revision: 0, signal: new AbortController().signal });
+    const out = await impl.invoke({
+      contributionId: 'c',
+      input: { schemaVersion: '1', content: [{ id: 'b1', text: 'hi' }] } as any,
+      revision: 0,
+      signal: new AbortController().signal,
+    });
     expect(out).toEqual({});
   });
 

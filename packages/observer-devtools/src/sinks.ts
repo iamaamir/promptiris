@@ -10,17 +10,23 @@ export interface ConsoleSinkOptions {
   readonly writer?: (line: string) => void;
 }
 
+function pushIfString(parts: string[], key: string, value: unknown): void {
+  if (typeof value === 'string') parts.push(`${key}=${value}`);
+}
+
 /** @public */
 export function formatEvent(event: Event): string {
   const data = event.data as Record<string, unknown>;
-  const parts: string[] = [`[${event.sequence}]`, event.type, `source=${event.source}`];
-  if (typeof data?.phase === 'string') parts.push(`phase=${String(data.phase)}`);
-  if (typeof data?.pluginId === 'string') parts.push(`plugin=${String(data.pluginId)}`);
-  if (typeof data?.contributionId === 'string') parts.push(`contrib=${String(data.contributionId)}`);
-  if (typeof data?.status === 'string') parts.push(`status=${String(data.status)}`);
-  if (typeof data?.observerId === 'string') parts.push(`observer=${String(data.observerId)}`);
-  const delivery = event.delivery;
-  parts.push(`delivery=${delivery}`);
+  const parts: string[] = [];
+  parts.push(`[${String(event.sequence)}]`);
+  parts.push(event.type);
+  parts.push(`source=${event.source}`);
+  pushIfString(parts, 'phase', data?.phase);
+  pushIfString(parts, 'plugin', data?.pluginId);
+  pushIfString(parts, 'contrib', data?.contributionId);
+  pushIfString(parts, 'status', data?.status);
+  pushIfString(parts, 'observer', data?.observerId);
+  parts.push(`delivery=${event.delivery}`);
   return parts.join(' ');
 }
 
@@ -51,7 +57,8 @@ export class JsonLinesSink implements EventSink {
 
   constructor(options: JsonLinesSinkOptions = {}) {
     const cap = options.capacity ?? 512;
-    if (!Number.isSafeInteger(cap) || cap <= 0) throw new RangeError('capacity must be positive integer');
+    if (!Number.isSafeInteger(cap) || cap <= 0)
+      throw new RangeError('capacity must be positive integer');
     this.#capacity = cap;
   }
 

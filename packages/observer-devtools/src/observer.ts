@@ -1,8 +1,18 @@
 import type { DebugRecord, DebugRecordSink, EventDispatcher } from '@promptiris/core';
 import type { Event } from '@promptiris/protocol';
-import { definePlugin, type PluginImplementation, type PluginInvocation, type PluginRegistration } from '@promptiris/plugin-sdk';
+import {
+  definePlugin,
+  type PluginImplementation,
+  type PluginInvocation,
+  type PluginRegistration,
+} from '@promptiris/plugin-sdk';
 import { createConsoleSink, JsonLinesSink, type EventSink } from './sinks.js';
-import { createSupportBundle, MAX_BUNDLE_DEBUG_RECORDS, MAX_BUNDLE_EVENTS, type SupportBundle } from './support-bundle.js';
+import {
+  createSupportBundle,
+  MAX_BUNDLE_DEBUG_RECORDS,
+  MAX_BUNDLE_EVENTS,
+  type SupportBundle,
+} from './support-bundle.js';
 
 /** @public */
 export interface ObserverDevtoolsOptions {
@@ -30,14 +40,46 @@ export interface ObserverDevtools extends DebugRecordSink {
 
 const DEFAULT_OBSERVER_ID = 'promptiris/observer-devtools';
 
+function resolveObserverId(input?: string): string {
+  const id = input ?? DEFAULT_OBSERVER_ID;
+  if (typeof id !== 'string' || id.length === 0)
+    throw new Error('observerId must be non-empty string');
+  return id;
+}
+
+function resolveCapacity(input?: number): number {
+  const v = input ?? 64;
+  if (!Number.isSafeInteger(v) || v <= 0) throw new RangeError('capacity must be positive integer');
+  return v;
+}
+
+function resolveMaxEvents(input?: number): number {
+  const v = input ?? MAX_BUNDLE_EVENTS;
+  if (!Number.isSafeInteger(v) || v <= 0)
+    throw new RangeError('maxEvents must be positive integer');
+  return v;
+}
+
+function makeRegistration(manifest: PluginRegistration['manifest']): PluginRegistration {
+  return {
+    manifest,
+    activate(): PluginImplementation {
+      return {
+        async invoke(_request: PluginInvocation): Promise<Record<string, never>> {
+          void _request;
+          return {};
+        },
+      };
+    },
+  };
+}
+
 /** @public */
+// eslint-disable-next-line max-lines-per-function
 export function createObserverDevtools(options: ObserverDevtoolsOptions = {}): ObserverDevtools {
-  const observerId = options.observerId ?? DEFAULT_OBSERVER_ID;
-  if (typeof observerId !== 'string' || observerId.length === 0) throw new Error('observerId must be non-empty string');
-  const capacity = options.capacity ?? 64;
-  if (!Number.isSafeInteger(capacity) || capacity <= 0) throw new RangeError('capacity must be positive integer');
-  const maxEvents = options.maxEvents ?? MAX_BUNDLE_EVENTS;
-  if (!Number.isSafeInteger(maxEvents) || maxEvents <= 0) throw new RangeError('maxEvents must be positive integer');
+  const observerId = resolveObserverId(options.observerId);
+  const capacity = resolveCapacity(options.capacity);
+  const maxEvents = resolveMaxEvents(options.maxEvents);
 
   const consoleSink: EventSink | undefined =
     options.consoleSink === false ? undefined : (options.consoleSink ?? createConsoleSink());
@@ -48,20 +90,28 @@ export function createObserverDevtools(options: ObserverDevtoolsOptions = {}): O
   let runId: string | undefined;
   let traceId: string | undefined;
 
+  function forwardToSinks(event: Event): void {
+    try {
+      consoleSink?.write(event);
+    } catch {
+      // sink failure isolated
+    }
+    try {
+      jsonSink.write(event);
+    } catch {
+      // sink failure isolated
+    }
+  }
+
   function onEvent(event: Event): void {
     try {
-      // Bounded retention
       if (events.length < maxEvents) events.push(event);
-      // Always forward to sinks, sink failure isolated
-      try {
-        consoleSink?.write(event);
-      } catch {}
-      try {
-        jsonSink.write(event);
-      } catch {}
-      if (runId === undefined) runId = event.runId;
-      if (traceId === undefined) traceId = event.traceId;
-    } catch {}
+      forwardToSinks(event);
+      runId ??= event.runId;
+      traceId ??= event.traceId;
+    } catch {
+      // bounded retention failure isolated
+    }
   }
 
   const manifest = definePlugin({
@@ -71,20 +121,6 @@ export function createObserverDevtools(options: ObserverDevtoolsOptions = {}): O
     capabilities: [],
   });
 
-  function createRegistration(): PluginRegistration {
-    return {
-      manifest,
-      activate(): PluginImplementation {
-        return {
-          async invoke(_request: PluginInvocation) {
-            // Observer does not affect transformation outcome.
-            return {};
-          },
-        };
-      },
-    };
-  }
-
   return {
     observerId,
     manifest,
@@ -92,39 +128,41 @@ export function createObserverDevtools(options: ObserverDevtoolsOptions = {}): O
     attach(dispatcher: EventDispatcher) {
       const subscription = dispatcher.subscribe({ observerId, capacity });
       let detached = false;
-      // Consume in background without blocking dispatcher; backpressure handled by dispatcher.
-      (async () => {
+      void (async () => {
         try {
           for await (const event of subscription) {
             if (detached) break;
             onEvent(event);
           }
         } catch {
-          // Backpressure/detach isolates, cannot fail transformation
+          // backpressure isolated
         }
       })();
       return {
-        async detach() {
+        async detach(): Promise<void> {
           detached = true;
           try {
             await subscription.return();
-          } catch {}
+          } catch {
+            // detach isolated
+          }
         },
       };
     },
     capture(record: DebugRecord): void {
       try {
         if (debugRecords.length < MAX_BUNDLE_DEBUG_RECORDS) debugRecords.push(record);
-      } catch {}
+      } catch {
+        // capture isolated
+      }
     },
-    getEvents() {
+    getEvents(): readonly Event[] {
       return events;
     },
-    getDebugRecords() {
+    getDebugRecords(): readonly DebugRecord[] {
       return debugRecords;
     },
     createBundle(): SupportBundle {
-      // Deterministic snapshot
       return createSupportBundle({
         observerId,
         events: [...events],
@@ -135,6 +173,8 @@ export function createObserverDevtools(options: ObserverDevtoolsOptions = {}): O
         ...(traceId ? { traceId } : {}),
       });
     },
-    createRegistration,
+    createRegistration(): PluginRegistration {
+      return makeRegistration(manifest);
+    },
   };
 }

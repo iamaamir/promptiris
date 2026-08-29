@@ -38,10 +38,12 @@ export interface BundleInput {
 }
 
 function stableStringify(value: unknown): string {
-  return JSON.stringify(value, (_, v) => {
+  return JSON.stringify(value, (_, v: unknown) => {
     if (v !== null && typeof v === 'object' && !Array.isArray(v)) {
       const sorted: Record<string, unknown> = {};
-      for (const k of Object.keys(v as Record<string, unknown>).sort()) sorted[k] = (v as Record<string, unknown>)[k];
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+      for (const k of Object.keys(v as Record<string, unknown>).sort())
+        sorted[k] = (v as Record<string, unknown>)[k];
       return sorted;
     }
     return v;
@@ -90,7 +92,7 @@ export function createSupportBundle(input: BundleInput): SupportBundle {
   });
 
   // Bounded bytes: truncate if exceeds MAX_BUNDLE_BYTES by dropping oldest progress events first
-  let bytes = stableStringify(bundle).length;
+  const bytes = stableStringify(bundle).length;
   if (bytes > MAX_BUNDLE_BYTES) {
     const filtered = events.filter((e) => e.delivery !== 'progress');
     const truncated = filtered.slice(0, Math.min(filtered.length, MAX_BUNDLE_EVENTS));

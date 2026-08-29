@@ -1,4 +1,11 @@
-export { createConsoleSink, formatEvent, JsonLinesSink, type EventSink, type ConsoleSinkOptions, type JsonLinesSinkOptions } from './sinks.js';
+export {
+  createConsoleSink,
+  formatEvent,
+  JsonLinesSink,
+  type EventSink,
+  type ConsoleSinkOptions,
+  type JsonLinesSinkOptions,
+} from './sinks.js';
 export {
   createSupportBundle,
   MAX_BUNDLE_BYTES,
@@ -8,4 +15,8 @@ export {
   type BundleInput,
   type SupportBundle,
 } from './support-bundle.js';
-export { createObserverDevtools, type ObserverDevtools, type ObserverDevtoolsOptions } from './observer.js';
+export {
+  createObserverDevtools,
+  type ObserverDevtools,
+  type ObserverDevtoolsOptions,
+} from './observer.js';
