@@ -6,17 +6,17 @@ Expose a curated capability set instead of a large utility prompt. Each provider
 
 Typical mappings:
 
-| Need | Capability/provider examples |
-| --- | --- |
-| Literal search | textual search with `rg` |
-| Syntax relationships | structural search with ast-grep |
-| Definitions/references | pinned language server |
-| Cross-function flow | CodeQL or equivalent analyzer |
-| Structured data | `jq`, `yq`, schema tools |
-| Validation | compiler, tests, lint, secret scanner |
-| Output reduction | structured reporters with retained raw logs |
-| Measurement | Hyperfine, runtime timers, token/output telemetry |
-| Event observation | Watchexec or native filesystem APIs |
+| Need                   | Capability/provider examples                      |
+| ---------------------- | ------------------------------------------------- |
+| Literal search         | textual search with `rg`                          |
+| Syntax relationships   | structural search with ast-grep                   |
+| Definitions/references | pinned language server                            |
+| Cross-function flow    | CodeQL or equivalent analyzer                     |
+| Structured data        | `jq`, `yq`, schema tools                          |
+| Validation             | compiler, tests, lint, secret scanner             |
+| Output reduction       | structured reporters with retained raw logs       |
+| Measurement            | Hyperfine, runtime timers, token/output telemetry |
+| Event observation      | Watchexec or native filesystem APIs               |
 
 The compiler remains authoritative over LSP diagnostics. Filesystem snapshots remain authoritative over watcher hints. Statistical benchmarks are evidence with variance, not deterministic facts.
 
@@ -50,6 +50,20 @@ source.changed
 ```
 
 Require task/revision identity, idempotency, sequencing, debounce/coalescing, budgets, cancellation, and supersession.
+
+## Execution lifecycle
+
+Treat the harness as a resource-owning runtime, not a collection of commands:
+
+- compose caller cancellation, deadlines, and supersession under one task-lifetime owner;
+- publish exactly one terminal outcome and ignore late worker or tool completion;
+- expose event consumption through bounded queues or streams so slow observers cannot block verification;
+- drop replaceable progress before detaching a consumer that cannot accept critical state;
+- dispose subprocesses, timers, filesystem watchers, listeners, subscriptions, and temporary resources on success, failure, cancellation, and early return;
+- transfer stable failures as structured data while retaining exception causes and raw stderr only in bounded, referenced debug evidence; and
+- carry only operational correlation through ambient execution context—never task content, credentials, acceptance state, or other correctness-critical inputs.
+
+Lazy-load an adapter only after routing selects it and policy authorizes its exact local identity. Discovery must not execute code, and a dynamic import is not an authorization mechanism.
 
 ## Automation promotion
 

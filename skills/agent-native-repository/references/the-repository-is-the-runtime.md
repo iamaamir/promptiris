@@ -88,17 +88,17 @@ Long instructions compete with the task, source code, tool output, and conversat
 
 The remedy is not zero instruction. It is a separation of concerns:
 
-| Concern | Best durable form |
-| --- | --- |
-| A few universal values | Small root constitution |
-| Domain language | Glossary and domain documents |
-| Durable trade-offs | ADRs and decision register |
-| Public behavior | Schemas, types, contracts, examples |
-| Current task | Small task packet with acceptance criteria |
-| Current repository state | Generated orientation packet |
-| Mechanical policy | Compiler, linter, structural rule, test, gate |
-| Large output | Referenced report or log |
-| Historical execution | Revision-bound evidence |
+| Concern                  | Best durable form                             |
+| ------------------------ | --------------------------------------------- |
+| A few universal values   | Small root constitution                       |
+| Domain language          | Glossary and domain documents                 |
+| Durable trade-offs       | ADRs and decision register                    |
+| Public behavior          | Schemas, types, contracts, examples           |
+| Current task             | Small task packet with acceptance criteria    |
+| Current repository state | Generated orientation packet                  |
+| Mechanical policy        | Compiler, linter, structural rule, test, gate |
+| Large output             | Referenced report or log                      |
+| Historical execution     | Revision-bound evidence                       |
 
 Instructions state values. Executable checks enforce mechanically decidable rules.
 
@@ -326,16 +326,16 @@ The answer is not to replace it with a stronger model for every action. The answ
 
 ### A cost-aware model escalation policy
 
-| Work | Default mechanism |
-| --- | --- |
-| File operations, search, parsing, counting | Deterministic tool |
-| Known workflow | Registered automation task |
-| Relevant context discovery | Index, Git, LSP, structural query |
-| Routine bounded implementation | Cheapest capable coding model |
-| Focused review or test generation | Cheap or medium model with a narrow packet |
-| Repeated novel failure | Strong reasoning model |
-| Public architecture or security boundary | Strong model plus human judgment where material |
-| Acceptance and merge eligibility | Deterministic verifier and repository policy |
+| Work                                       | Default mechanism                               |
+| ------------------------------------------ | ----------------------------------------------- |
+| File operations, search, parsing, counting | Deterministic tool                              |
+| Known workflow                             | Registered automation task                      |
+| Relevant context discovery                 | Index, Git, LSP, structural query               |
+| Routine bounded implementation             | Cheapest capable coding model                   |
+| Focused review or test generation          | Cheap or medium model with a narrow packet      |
+| Repeated novel failure                     | Strong reasoning model                          |
+| Public architecture or security boundary   | Strong model plus human judgment where material |
+| Acceptance and merge eligibility           | Deterministic verifier and repository policy    |
 
 The system should start cheap, measure failure, and escalate deliberately. It should not remain loyal to a weak model after repeated failures make the total workflow more expensive.
 
@@ -486,19 +486,19 @@ Property-based testing generates broad input spaces, shrinks failures, and prese
 
 These tools answer orthogonal questions:
 
-| Evidence class | Question |
-| --- | --- |
-| Structure | Is the code becoming difficult to change safely? |
-| Coverage | Which code paths executed? |
-| Mutation | Would tests detect plausible implementation faults? |
-| Property/state testing | Do invariants survive generated values and sequences? |
-| Differential testing | Do implementations agree on shared cases? |
-| API/schema checks | Did a public contract drift? |
-| Runtime adversity | What happens under cancellation, races, crashes, and exhaustion? |
-| Security/data flow | Can untrusted or sensitive data cross a forbidden boundary? |
-| Performance/resources | Did latency, memory, or bundle cost regress? |
-| Source-blind QA | Does the product behave correctly through public surfaces? |
-| Evidence integrity | Do these results actually belong to this candidate? |
+| Evidence class         | Question                                                         |
+| ---------------------- | ---------------------------------------------------------------- |
+| Structure              | Is the code becoming difficult to change safely?                 |
+| Coverage               | Which code paths executed?                                       |
+| Mutation               | Would tests detect plausible implementation faults?              |
+| Property/state testing | Do invariants survive generated values and sequences?            |
+| Differential testing   | Do implementations agree on shared cases?                        |
+| API/schema checks      | Did a public contract drift?                                     |
+| Runtime adversity      | What happens under cancellation, races, crashes, and exhaustion? |
+| Security/data flow     | Can untrusted or sensitive data cross a forbidden boundary?      |
+| Performance/resources  | Did latency, memory, or bundle cost regress?                     |
+| Source-blind QA        | Does the product behave correctly through public surfaces?       |
+| Evidence integrity     | Do these results actually belong to this candidate?              |
 
 No category compensates for another.
 
@@ -561,21 +561,21 @@ flowchart TD
 
 Examples:
 
-| Need | Prefer |
-| --- | --- |
-| Literal or regex search | `rg` |
-| File discovery | `fd` or `find` |
-| Syntax relationship | ast-grep |
-| Definition or references | pinned LSP |
-| Cross-function data flow | CodeQL |
-| JSON/YAML transformation | `jq` or `yq` |
-| Types and compilation | compiler |
-| Dead exports/dependencies | Knip or equivalent |
-| Secrets | Gitleaks |
-| Mutation sensitivity | Stryker, PIT, or language equivalent |
-| Generated invariants | fast-check, QuickCheck, Hypothesis, or equivalent |
-| Statistical command comparison | Hyperfine |
-| Filesystem-triggered feedback | Watchexec or native watcher |
+| Need                           | Prefer                                            |
+| ------------------------------ | ------------------------------------------------- |
+| Literal or regex search        | `rg`                                              |
+| File discovery                 | `fd` or `find`                                    |
+| Syntax relationship            | ast-grep                                          |
+| Definition or references       | pinned LSP                                        |
+| Cross-function data flow       | CodeQL                                            |
+| JSON/YAML transformation       | `jq` or `yq`                                      |
+| Types and compilation          | compiler                                          |
+| Dead exports/dependencies      | Knip or equivalent                                |
+| Secrets                        | Gitleaks                                          |
+| Mutation sensitivity           | Stryker, PIT, or language equivalent              |
+| Generated invariants           | fast-check, QuickCheck, Hypothesis, or equivalent |
+| Statistical command comparison | Hyperfine                                         |
+| Filesystem-triggered feedback  | Watchexec or native watcher                       |
 
 LSP and CodeQL deserve distinct roles. LSP cheaply retrieves the symbol neighborhood: definitions, references, document symbols, and diagnostics. CodeQL constructs deeper semantic and data-flow relationships across functions and packages. Neither replaces the compiler, and neither should flood every task context.
 
@@ -641,6 +641,35 @@ flowchart LR
 Filesystem notifications are hints, not truth. Events may coalesce or arrive late. A fresh repository snapshot remains authoritative.
 
 Every event needs task and revision identity, idempotency, sequencing, budgets, cancellation, and supersession. Otherwise a watcher can publish a green result for code that no longer exists.
+
+### The harness is a resource-owning runtime
+
+An event-driven controller is not complete merely because it no longer polls. It owns subprocesses, timers, filesystem watchers, stream readers, temporary directories, listener registrations, and observer subscriptions. Those resources must have the same explicit lifecycle as the task they serve.
+
+A robust task lifetime composes three termination sources:
+
+```text
+caller cancellation
+      + deadline
+      + newer revision supersedes this task
+                 |
+                 v
+       one owned cancellation signal
+                 |
+                 v
+      tool and worker execution
+                 |
+                 v
+ exactly one terminal task outcome
+```
+
+The first accepted terminal cause wins. Late process output cannot turn a cancelled task green. Cleanup happens on success, failure, cancellation, and early return. Disposal is idempotent and releases resources in dependency-safe reverse order. Garbage collection and process exit are not cleanup strategies.
+
+Event consumers need isolation too. Use bounded queues or asynchronous iterators with explicit completion. When a consumer lags, discard replaceable progress before detaching it from critical delivery. A dashboard, logger, or optional observer must never hold the verifier open or change its verdict.
+
+Failures still cross seams as structured data. Internally, preserve exception causes and aggregate failures in bounded debug evidence so diagnosis retains causality. Ambient execution context may carry task, revision, trace, worker, and tool identifiers; it must not become hidden storage for source content, secrets, authorization, or acceptance state.
+
+Lazy loading belongs after routing and authorization. Discovering an adapter should read metadata, not execute its implementation. Load only the selected local implementation, validate that it matches the registered identity, and keep network installation outside task execution.
 
 ---
 
@@ -744,13 +773,13 @@ But applying the same philosophy indiscriminately to repository tooling can wast
 
 The runtime and the development harness have different jobs:
 
-| Runtime extension system | Development control plane |
-| --- | --- |
-| User-extensible behavior | Maintainer-controlled verification |
-| Stable public plugin contracts | Replaceable internal tool adapters |
-| Activation and composition semantics | Direct scripts and pinned executables |
-| Failure policy belongs to product/host | Gate policy belongs to repository |
-| Must not grant implicit authority | Must remain independent of runtime under test |
+| Runtime extension system               | Development control plane                     |
+| -------------------------------------- | --------------------------------------------- |
+| User-extensible behavior               | Maintainer-controlled verification            |
+| Stable public plugin contracts         | Replaceable internal tool adapters            |
+| Activation and composition semantics   | Direct scripts and pinned executables         |
+| Failure policy belongs to product/host | Gate policy belongs to repository             |
+| Must not grant implicit authority      | Must remain independent of runtime under test |
 
 The harness may have replaceable adapters, but it does not need to become a general plugin platform. A direct script is often the best abstraction. Do not build extensibility before repeated evidence demonstrates a second implementation or real replacement pressure.
 
@@ -1133,3 +1162,6 @@ The project carries the agent.
 - [Git worktrees](https://git-scm.com/docs/git-worktree.html)
 - [GitHub merge queues](https://docs.github.com/en/repositories/configuring-branches-and-merges/managing-a-merge-queue)
 - [JSON Schema Draft 2020-12](https://json-schema.org/draft/2020-12)
+- [JavaScript explicit resource management](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Resource_management)
+- [AbortController and AbortSignal](https://developer.mozilla.org/en-US/docs/Web/API/AbortController)
+- [Node.js asynchronous context tracking](https://nodejs.org/api/async_context.html)

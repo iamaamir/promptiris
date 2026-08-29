@@ -29,6 +29,8 @@ The primary economic measure is total tokens and model cost per verified, accept
 
 Generation is untrusted. Humans and models are Change Producers; neither self-certifies. Models own semantic reasoning and generation. Deterministic controllers own discovery, parsing, compilation, formatting, testing, exit-code interpretation, evidence freshness, budgets, cancellation, and merge eligibility.
 
+Controllers also own lifecycle truth: one terminal outcome, cancellation and supersession precedence, bounded delivery, and deterministic cleanup. Optional observers and debug capture cannot delay or alter the task result.
+
 ## Repository memory
 
 - Stable understanding: source, schemas, tests, domain docs, ADRs, security and compatibility policy.

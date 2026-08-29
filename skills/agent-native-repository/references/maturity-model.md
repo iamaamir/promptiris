@@ -44,6 +44,7 @@ Required evidence:
 - raw versus model-visible output boundary;
 - evidence reuse/invalidation rules;
 - fast affected profile distinct from deliberate full verification.
+- task cancellation, terminal outcomes, event delivery, and owned resources have deterministic lifecycle behavior.
 
 Recommended increment: make replacement and parallel workers revision-safe.
 
