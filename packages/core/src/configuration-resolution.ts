@@ -220,7 +220,7 @@ const schemaAt = (schema: SchemaRule, pointer: string): SchemaRule | undefined =
   return rule;
 };
 const validPointer = (pointer: string): boolean =>
-  pointer === '' || /^(?:\/[^~]*(?:~[01][^~]*)*)+$/.test(pointer);
+  pointer === '' || /^(?:\/(?:[^~/]|~[01])*)+$/.test(pointer);
 const makeTrace = (
   schema: SchemaRule,
   layers: readonly ConfigLayer[],
