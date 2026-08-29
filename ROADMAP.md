@@ -6,7 +6,7 @@ GitHub issue: <https://github.com/iamaamir/promptiris/issues/7>
 Branch: n/a
 Parent: none
 Blocked by: none
-Blocks: .scratch/roadmap-automation/issues/01-roadmap-sync.md, .scratch/provider-path/issues/01-provider-contract.md, .scratch/provider-path/issues/02-openai-compatible.md, .scratch/provider-path/issues/03-provider-doctor.md, .scratch/enhance-path/issues/01-default-enhance.md, .scratch/enhance-path/issues/02-guard-renderer.md, .scratch/enhance-path/issues/03-evaluation-harness.md, .scratch/resource-path/issues/01-resource-resolver.md, .scratch/discovery-path/issues/01-plugin-discovery.md, .scratch/devtools-path/issues/01-observer-devtools.md, .scratch/host-path/issues/01-cli-surface.md, .scratch/host-path/issues/02-pi-adapter.md, .scratch/release-path/issues/01-adjacent-bundle.md, .scratch/release-path/issues/02-release-evidence.md
+Blocks: .scratch/hardener-performance/issues/01-ci-hardener.md, .scratch/roadmap-automation/issues/01-roadmap-sync.md, .scratch/provider-path/issues/01-provider-contract.md, .scratch/provider-path/issues/02-openai-compatible.md, .scratch/provider-path/issues/03-provider-doctor.md, .scratch/enhance-path/issues/01-default-enhance.md, .scratch/enhance-path/issues/02-guard-renderer.md, .scratch/enhance-path/issues/03-evaluation-harness.md, .scratch/resource-path/issues/01-resource-resolver.md, .scratch/discovery-path/issues/01-plugin-discovery.md, .scratch/devtools-path/issues/01-observer-devtools.md, .scratch/host-path/issues/01-cli-surface.md, .scratch/host-path/issues/02-pi-adapter.md, .scratch/release-path/issues/01-adjacent-bundle.md, .scratch/release-path/issues/02-release-evidence.md
 Parallel-safe: n/a; child packets declare their own ownership and dependencies
 
 ## Goal
@@ -34,6 +34,10 @@ This parent is not an implementation assignment. Pick one unblocked child packet
 7. Release path: adjacent runtime payloads, then reproducible release evidence and platform matrix.
 
 Work may run concurrently only when each packet is unblocked and its ownership/conflict domain does not overlap another active packet.
+
+## Continuous improvement
+
+- Reduce CI hardener latency without weakening mutation, coverage, CRAP, security, API, race, or evidence-integrity gates.
 
 ## Deferred beyond v1
 
