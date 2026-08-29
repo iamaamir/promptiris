@@ -56,7 +56,12 @@ const ageInDays = (date, now) => {
 };
 
 export const mutationSummary = (report, policy, now = new Date()) => {
-  if (!report?.files) return { available: false, targets: [], policy: { available: false, status: 'missing', regressions: [] } };
+  if (!report?.files)
+    return {
+      available: false,
+      targets: [],
+      policy: { available: false, status: 'missing', regressions: [] },
+    };
   const targets = Object.entries(report.files)
     .map(([file, value]) => targetSummary(file, value.mutants ?? [], policy?.targets?.[file]))
     .sort((left, right) => right.debt - left.debt || left.file.localeCompare(right.file));
