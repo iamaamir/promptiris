@@ -8,4 +8,4 @@
 | `ready-for-human` | `ready-for-human` | Requires human judgment or implementation |
 | `wontfix`         | `wontfix`         | The work will not be actioned             |
 
-Use the local status string exactly in task packets and issue files.
+Use the status string exactly in local packets and, when labels are available, on their GitHub projections. The local packet remains authoritative.

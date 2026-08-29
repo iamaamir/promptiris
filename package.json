@@ -11,7 +11,7 @@
     "build": "pnpm -r --if-present build",
     "clean": "pnpm -r --if-present clean",
     "lint": "eslint \"packages/*/src/**/*.ts\" \"apps/runtime-node/src/**/*.ts\" \"apps/dashboard/**/*.mjs\" \"apps/dashboard/public/*.js\" \"scripts/*.mjs\" \"tooling/**/*.mjs\" --max-warnings 0 && markdownlint README.md PRODUCT.md CONTRIBUTING.md SECURITY.md docs/**/*.md",
-    "lint:shell": "shellcheck scripts/agent-context scripts/benchmark-agent-context scripts/bootstrap-tools scripts/check-api scripts/check-generated scripts/repetition-report scripts/test-affected scripts/test-integration-identity scripts/test-lsp scripts/tool-router scripts/tool-trace scripts/verify-candidate scripts/watch-verify",
+    "lint:shell": "shellcheck scripts/agent-context scripts/benchmark-agent-context scripts/bootstrap-tools scripts/check-api scripts/check-generated scripts/issue-sync scripts/repetition-report scripts/test-affected scripts/test-integration-identity scripts/test-lsp scripts/tool-router scripts/tool-trace scripts/verify-candidate scripts/watch-verify",
     "test": "pnpm test:ts && pnpm test:go && pnpm test:tooling",
     "test:ts": "pnpm -r --if-present test",
     "test:go": "cd apps/cli-go && GOCACHE=${TMPDIR:-/tmp}/meta-prompt-go-cache go test ./...",

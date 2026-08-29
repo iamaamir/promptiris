@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  echo 'usage: scripts/issue-sync <check|push> <local-issue-file>' >&2
+  exit 2
+}
+
+[[ $# -eq 2 ]] || usage
+mode="$1"
+issue_file="$2"
+[[ -f "$issue_file" ]] || {
+  echo "issue packet not found: $issue_file" >&2
+  exit 2
+}
+
+issue_url="$(awk '/^GitHub issue: https:\/\/github\.com\// { print $3; exit }' "$issue_file")"
+[[ "$issue_url" =~ ^https://github.com/[^/]+/[^/]+/issues/[0-9]+$ ]] || {
+  echo "issue packet has no valid GitHub issue URL: $issue_file" >&2
+  exit 2
+}
+
+case "$mode" in
+  check)
+    local_body="$(<"$issue_file")"
+    remote_body="$(gh issue view "$issue_url" --json body --jq .body)"
+    if [[ "$local_body" != "$remote_body" ]]; then
+      echo "GitHub issue body drifted from authoritative packet: $issue_file" >&2
+      exit 1
+    fi
+    echo "in sync: $issue_file"
+    ;;
+  push)
+    gh issue edit "$issue_url" --body-file "$issue_file"
+    ;;
+  *) usage ;;
+esac

@@ -11,6 +11,7 @@ temp/
 *.tsbuildinfo
 pnpm-debug.log*
 .tmp/
+.freebuff/
 .agent/logs/
 .agent/evidence/
 .agent/indexes/

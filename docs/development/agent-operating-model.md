@@ -207,13 +207,15 @@ Candidate verification runs every applicable changed/affected check. Integration
 
 ## Parallel and agent-driven development
 
-Agents work concurrently on isolated Candidate Changes, never a shared mutable working directory. Each Work Item owns a branch/worktree and exact base revision. An atomic `(work item, stage, candidate)` lease prevents duplicate assignment; replacement agents resume from artifacts.
+Agents work concurrently on isolated Candidate Changes, never a shared mutable working directory. Each Work Item owns one short branch and exact base revision. A worktree is added only when concurrent local writers require filesystem isolation; a single agent working sequentially uses the ordinary checkout. An atomic `(work item, stage, candidate)` lease prevents duplicate assignment; replacement agents resume from artifacts.
+
+Durable Work Item packets live under `.scratch/` and project to GitHub Issues. The local packet owns specification, dependencies, branch, and status; GitHub provides assignment, discussion, notifications, and PR linkage. Deterministic synchronization detects body drift, and accepted remote decisions return to repository state. This makes remote coordination useful without making project recovery depend on GitHub.
 
 Parallelize only ready Work Items with no unresolved dependency or overlapping Conflict Domain. Establish and integrate a protocol/schema/public contract first, then fan out dependent implementations. Git textual conflict detection is insufficient; integration conformance detects semantic conflict.
 
 Every Candidate gets its own gauntlet. A merge queue or equivalent tests it against the latest target and changes ahead of it. Evidence is revision-bound and becomes stale after relevant rebases or production changes.
 
-Agent-driven does not mean agent-governed. Agents may select ready work, implement, clean, harden, execute QA, and respond to deterministic failures. They may not weaken gates, approve their own exceptions, or merge around failures.
+The issue-owning agent runs the complete internal gauntlet and repairs the Candidate until its PR is green. Agent-driven does not mean agent-governed: agents may select ready work, implement, review through an independent responsibility, clean, harden, execute QA, and respond to deterministic failures, but they may not weaken gates, approve their own exceptions, or merge around failures. External maintainers retain the merge decision.
 
 ## Deterministic analysis passes
 
