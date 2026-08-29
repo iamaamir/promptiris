@@ -1,0 +1,10 @@
+{
+  "capabilities": [
+    {
+      "capability": "provider/json-schema",
+      "bindingFingerprint": "fixture-binding",
+      "requirement": "required",
+    },
+  ],
+  "evidence": [],
+}

@@ -4,6 +4,10 @@
 
 ```ts
 
+import type { CapabilityEvidence } from '@promptiris/protocol';
+import type { CapabilityRequirement } from '@promptiris/protocol';
+import type { CapabilityResolution } from '@promptiris/protocol';
+import type { ConfigTrace } from '@promptiris/protocol';
 import type { Diagnostic } from '@promptiris/protocol';
 import type { Event as Event_2 } from '@promptiris/protocol';
 import { JsonValue } from '@promptiris/protocol';
@@ -13,10 +17,14 @@ import { PatchOperation } from '@promptiris/protocol';
 import type { PluginContribution } from '@promptiris/plugin-sdk';
 import type { PluginManifest } from '@promptiris/plugin-sdk';
 import { PluginRegistration } from '@promptiris/plugin-sdk';
+import type { PolicyRecord } from '@promptiris/protocol';
 import { PromptDocument } from '@promptiris/protocol';
 import { Recipe } from '@promptiris/plugin-sdk';
 import { RunContext } from '@promptiris/plugin-sdk';
 import { RunResult } from '@promptiris/protocol';
+import type { SafePreview } from '@promptiris/protocol';
+import type { SecretReference } from '@promptiris/protocol';
+import type { SourceLocation } from '@promptiris/protocol';
 import { TextBlock } from '@promptiris/protocol';
 
 // @public (undocumented)
@@ -48,6 +56,16 @@ export interface ArtifactExposurePolicy {
 export function blockDigest(block: Pick<TextBlock, 'text'>): string;
 
 // @public (undocumented)
+export interface CapabilityRequirementInput {
+    // (undocumented)
+    readonly bindingFingerprint: string;
+    // (undocumented)
+    readonly capability: NamespacedId;
+    // (undocumented)
+    readonly requirement: CapabilityRequirement;
+}
+
+// @public (undocumented)
 export interface CompiledContribution {
     // (undocumented)
     readonly contribution: PluginContribution;
@@ -69,10 +87,59 @@ export interface CompiledPluginGraph {
 export function compilePluginGraph(manifests: readonly PluginManifest[], selectedPluginIds: readonly string[]): CompiledPluginGraph;
 
 // @public (undocumented)
+export interface ConfigLayer {
+    // (undocumented)
+    readonly location?: SourceLocation;
+    // (undocumented)
+    readonly sourceId: string;
+    // (undocumented)
+    readonly value: unknown;
+}
+
+// @public (undocumented)
+export function configPointer(parent: string, key: string | number): string;
+
+// @public (undocumented)
+export type ConfigPolicy = {
+    readonly policyId: string;
+    readonly action: 'allowed';
+    readonly pointer: string;
+    readonly reason?: string;
+    readonly sourceId?: string;
+} | {
+    readonly policyId: string;
+    readonly action: 'forced';
+    readonly pointer: string;
+    readonly value: unknown;
+    readonly reason?: string;
+    readonly sourceId?: string;
+} | {
+    readonly policyId: string;
+    readonly action: 'clamped';
+    readonly pointer: string;
+    readonly min?: number;
+    readonly max?: number;
+    readonly reason?: string;
+    readonly sourceId?: string;
+} | {
+    readonly policyId: string;
+    readonly action: 'denied';
+    readonly pointer: string;
+    readonly reason?: string;
+    readonly sourceId?: string;
+};
+
+// @public (undocumented)
 export function createRunContext(runId: string, emit: (event: Event_2) => void): RunContext;
 
 // @public (undocumented)
 export function createTransformationState(document: PromptDocument, revision?: number): TransformationState;
+
+// @public (undocumented)
+export function deepFrozenClone(value: JsonValue): JsonValue;
+
+// @public (undocumented)
+export function evaluateCapabilities(requirements: readonly CapabilityRequirementInput[], evidence: readonly CapabilityEvidence[]): readonly CapabilityResolution[];
 
 // @public (undocumented)
 export function executePluginPlan(input: PromptDocument, graph: CompiledPluginGraph, registrations: readonly PluginRegistration[], context: RunContext, options: ExecutionOptions): Promise<RunResult>;
@@ -92,6 +159,38 @@ export interface ExecutionOptions {
 
 // @public (undocumented)
 export const identityRecipe: Recipe;
+
+// @public (undocumented)
+export interface JsoncDiagnostic extends Diagnostic {
+    // (undocumented)
+    readonly location?: SourceLocation;
+    // (undocumented)
+    readonly sourceId: string;
+}
+
+// @public (undocumented)
+export type JsoncResult = {
+    readonly ok: true;
+    readonly value: JsonValue;
+    readonly source: JsoncSource;
+} | {
+    readonly ok: false;
+    readonly diagnostics: readonly JsoncDiagnostic[];
+};
+
+// @public (undocumented)
+export interface JsoncSource {
+    // (undocumented)
+    readonly sourceId: string;
+    // (undocumented)
+    readonly uri?: string;
+}
+
+// @public (undocumented)
+export function parseJsonc(text: string, options: ParseJsoncOptions): JsoncResult;
+
+// @public (undocumented)
+export type ParseJsoncOptions = JsoncSource;
 
 // @public (undocumented)
 export interface PatchChange {
@@ -122,12 +221,79 @@ export type PatchResult = {
 };
 
 // @public (undocumented)
+export function resolveConfiguration(params: ResolveParams): ResolveResult;
+
+// @public (undocumented)
+export interface ResolveParams {
+    // (undocumented)
+    readonly layers: readonly ConfigLayer[];
+    // (undocumented)
+    readonly policies?: readonly ConfigPolicy[];
+    // (undocumented)
+    readonly schema: SchemaRule;
+}
+
+// @public (undocumented)
+export type ResolveResult = {
+    readonly ok: true;
+    readonly config: JsonValue;
+    readonly trace: ConfigTrace;
+    readonly policies: readonly PolicyRecord[];
+} | {
+    readonly ok: false;
+    readonly diagnostic: Diagnostic;
+};
+
+// @public (undocumented)
+export function safePreview(schema: SchemaRule, value: JsonValue): SafePreview;
+
+// @public (undocumented)
+export type SchemaResult = {
+    readonly ok: true;
+    readonly value: JsonValue;
+} | {
+    readonly ok: false;
+    readonly diagnostic: Diagnostic;
+};
+
+// Warning: (ae-forgotten-export) The symbol "RuleOptions" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type SchemaRule = ({
+    readonly type: 'string';
+} & RuleOptions) | ({
+    readonly type: 'number';
+} & RuleOptions) | ({
+    readonly type: 'integer';
+} & RuleOptions) | ({
+    readonly type: 'boolean';
+} & RuleOptions) | ({
+    readonly type: 'null';
+} & RuleOptions) | ({
+    readonly type: 'secret-reference';
+} & RuleOptions) | ({
+    readonly type: 'array';
+    readonly items: SchemaRule;
+    readonly merge?: 'replace' | 'append' | 'union';
+} & RuleOptions) | ({
+    readonly type: 'object';
+    readonly properties: Readonly<Record<string, SchemaRule>>;
+    readonly merge?: boolean;
+} & RuleOptions);
+
+// @public (undocumented)
 export interface TransformationState {
     // (undocumented)
     readonly document: Readonly<PromptDocument>;
     // (undocumented)
     readonly revision: number;
 }
+
+// @public (undocumented)
+export function validateConfig(schema: SchemaRule, value: unknown, pointer?: string): SchemaResult;
+
+// @public (undocumented)
+export function validateSecretReference(value: unknown): value is SecretReference;
 
 // (No @packageDocumentation comment for this package)
 

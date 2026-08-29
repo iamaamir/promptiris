@@ -9,6 +9,7 @@ import type { Event as Event_2 } from '@promptiris/protocol';
 import type { JsonValue } from '@promptiris/protocol';
 import type { NamespacedId } from '@promptiris/protocol';
 import type { Patch } from '@promptiris/protocol';
+import type { PermissionHint } from '@promptiris/protocol';
 import type { Phase } from '@promptiris/protocol';
 import type { PromptDocument } from '@promptiris/protocol';
 import type { Provenance } from '@promptiris/protocol';
@@ -98,10 +99,13 @@ export interface PluginInvocation {
 
 // @public (undocumented)
 export interface PluginManifest {
+    readonly capabilities?: readonly NamespacedId[];
+    readonly configSchema?: SchemaReference;
     // (undocumented)
     readonly contributions?: readonly PluginContribution[];
     // (undocumented)
     readonly id: string;
+    readonly permissionHints?: readonly PermissionHint[];
     // (undocumented)
     readonly type: 'recipe' | 'pipeline' | 'guard' | 'provider' | 'observer';
     // (undocumented)

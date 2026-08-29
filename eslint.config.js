@@ -18,6 +18,7 @@ export default tseslint.config(
       complexity: ['error', 10],
       'max-depth': ['error', 4],
       'max-lines-per-function': ['error', { max: 40, skipBlankLines: true, skipComments: true }],
+      '@typescript-eslint/switch-exhaustiveness-check': 'error',
       '@typescript-eslint/no-confusing-void-expression': 'off',
       '@typescript-eslint/no-unnecessary-condition': 'off',
       '@typescript-eslint/require-await': 'off',
@@ -27,6 +28,12 @@ export default tseslint.config(
     files: ['**/*.test.ts'],
     rules: {
       'max-lines-per-function': 'off',
+    },
+  },
+  {
+    files: ['apps/runtime-node/src/configuration.ts', 'apps/runtime-node/src/server.ts'],
+    rules: {
+      '@typescript-eslint/no-unsafe-type-assertion': 'error',
     },
   },
   {

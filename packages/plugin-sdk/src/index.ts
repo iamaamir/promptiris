@@ -10,6 +10,7 @@ import type {
   ResourceReference,
   RunResult,
   SchemaReference,
+  PermissionHint,
 } from '@promptiris/protocol';
 
 /** @public */
@@ -82,6 +83,12 @@ export interface PluginManifest {
   readonly version: string;
   readonly type: 'recipe' | 'pipeline' | 'guard' | 'provider' | 'observer';
   readonly contributions?: readonly PluginContribution[];
+  /** JSON Schema reference for this Plugin's configuration subtree. */
+  readonly configSchema?: SchemaReference;
+  /** Compatibility declarations; Hosts still require scoped evidence. */
+  readonly capabilities?: readonly NamespacedId[];
+  /** Advisory metadata only; these hints grant no authority. */
+  readonly permissionHints?: readonly PermissionHint[];
 }
 
 function assertJsonScalar(value: unknown): void {

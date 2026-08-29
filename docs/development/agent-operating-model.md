@@ -139,6 +139,7 @@ Every Candidate Change passes independent responsibilities:
 small Work Item
   -> Specifier
   -> Implementer
+  -> Reviewer
   -> Cleaner
   -> Hardener
   -> source-blind QA
@@ -157,6 +158,14 @@ Turns one small intent into observable acceptance criteria, normal/failure scena
 ### Implementer
 
 Produces the smallest working Candidate Change and focused tests. It runs the fast applicable baseline but does not self-approve.
+
+### Reviewer
+
+Treats the Candidate as untrusted and reviews the task contract, diff, affected dependency neighborhood, public behavior, failure paths, boundary validation, platform-primitive choices, compatibility, and security/redaction. It does not repeat mechanical checks already preserved as Evidence and does not review from the Implementer's narrative.
+
+Every comment is resolved as accepted with a change/evidence reference or rejected with a concrete technical rationale. Findings carry severity, exact file/line, a reproducible observation, and the violated contract or invariant. High-risk protocol, Kernel, configuration, Provider, native-Plugin, and security changes require a Reviewer responsibility independent from the Implementer; a cheap model is acceptable, but unresolved blocker/high findings prevent completion regardless of model quality. The structured report follows `spec/schemas/reviewer-report.schema.json`.
+
+The Reviewer checks whether a platform primitive expresses the semantics better; it never demands `Proxy`, generators, `Symbol`, or another feature merely to appear sophisticated. Missed use of `Set` for uniqueness/ownership, `Map` for non-JSON keyed state, or iterators for genuinely lazy traversal can be a finding. Unnecessary interception, hidden behavior, or exotic identity is also a finding. See [Code quality and review](./code-quality-and-review.md).
 
 ### Cleaner
 

@@ -5,4 +5,36 @@ cd "$repo_root"
 pnpm build >/dev/null
 output="$(cd apps/cli-go && GOCACHE="${TMPDIR:-/tmp}/meta-prompt-go-cache" go run . enhance --runtime ../runtime-node/dist/index.js --input 'identity tracer')"
 [[ "$output" == 'identity tracer' ]] || { printf 'unexpected output: %s\n' "$output" >&2; exit 1; }
-echo 'Go CLI -> Node runtime -> identity Recipe: passed'
+inspect_output="$(cd apps/cli-go && PROMPTIRIS_API_KEY='TOP_SECRET_RUNTIME_VALUE' GOCACHE="${TMPDIR:-/tmp}/meta-prompt-go-cache" go run . inspect --runtime ../runtime-node/dist/index.js --config ../../spec/fixtures/project-configuration.jsonc)"
+jq -e '.redacted == true and .resolutions[0].outcome == "satisfied" and .config.provider.apiKey.ref == "env:PROMPTIRIS_API_KEY"' <<<"$inspect_output" >/dev/null
+! rg -q 'TOP_SECRET_RUNTIME_VALUE' <<<"$inspect_output" || { printf 'inspection resolved secret material\n' >&2; exit 1; }
+doctor_output="$(cd apps/cli-go && PROMPTIRIS_API_KEY='TOP_SECRET_RUNTIME_VALUE' GOCACHE="${TMPDIR:-/tmp}/meta-prompt-go-cache" go run . doctor --runtime ../runtime-node/dist/index.js --config ../../spec/fixtures/project-configuration.jsonc)"
+jq -e '.ready == true and ([.checks[] | select(.status == "deferred")] | length) == 3' <<<"$doctor_output" >/dev/null
+! rg -q 'TOP_SECRET_RUNTIME_VALUE' <<<"$doctor_output" || { printf 'doctor resolved secret material\n' >&2; exit 1; }
+
+missing_output="$(cd apps/cli-go && GOCACHE="${TMPDIR:-/tmp}/meta-prompt-go-cache" go run . inspect --runtime ../runtime-node/dist/index.js --config ../../spec/fixtures/project-configuration-missing-capability.jsonc)"
+jq -e '.resolutions[0].outcome == "missing" and .resolutions[0].diagnostic.code == "promptiris.capability.missing"' <<<"$missing_output" >/dev/null
+conflict_output="$(cd apps/cli-go && GOCACHE="${TMPDIR:-/tmp}/meta-prompt-go-cache" go run . inspect --runtime ../runtime-node/dist/index.js --config ../../spec/fixtures/project-configuration-conflict.jsonc)"
+jq -e '.resolutions[0].outcome == "conflict" and .resolutions[0].diagnostic.code == "promptiris.capability.evidence-conflict"' <<<"$conflict_output" >/dev/null
+missing_doctor="$(cd apps/cli-go && GOCACHE="${TMPDIR:-/tmp}/meta-prompt-go-cache" go run . doctor --runtime ../runtime-node/dist/index.js --config ../../spec/fixtures/project-configuration-missing-capability.jsonc)"
+jq -e '.ready == false and ([.checks[] | select(.status == "failed")] | length) == 1 and .diagnostics[0].code == "promptiris.capability.missing"' <<<"$missing_doctor" >/dev/null
+
+test_dir="$(mktemp -d "${TMPDIR:-/tmp}/promptiris-integration.XXXXXX")"
+trap 'rm -rf "$test_dir"' EXIT
+for fixture in \
+  project-configuration-invalid-secret.jsonc \
+  project-configuration-invalid-jsonc.txt \
+  project-configuration-duplicate.jsonc \
+  project-configuration-unknown.jsonc; do
+  for method in inspect doctor; do
+    set +e
+    (cd apps/cli-go && GOCACHE="${TMPDIR:-/tmp}/meta-prompt-go-cache" go run . "$method" --runtime ../runtime-node/dist/index.js --config "../../spec/fixtures/$fixture") >"$test_dir/stdout" 2>"$test_dir/stderr"
+    status=$?
+    set -e
+    [[ "$status" -ne 0 ]] || { printf '%s accepted invalid fixture %s\n' "$method" "$fixture" >&2; exit 1; }
+    [[ ! -s "$test_dir/stdout" ]] || { printf '%s emitted partial stdout for %s\n' "$method" "$fixture" >&2; exit 1; }
+    ! rg -q 'TOP_SECRET_FIXTURE' "$test_dir/stderr" || { printf '%s leaked secret material for %s\n' "$method" "$fixture" >&2; exit 1; }
+  done
+done
+
+echo 'Go CLI -> Node runtime -> identity, inspect, doctor, capability failures, and invalid configuration: passed'

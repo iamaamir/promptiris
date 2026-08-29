@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "fixtures": [
+    {
+      "path": "spec/fixtures/project-configuration-conflict.jsonc",
+      "checkId": "verify.integration",
+      "consumers": ["scripts/test-integration-identity"]
+    },
+    {
+      "path": "spec/fixtures/project-configuration-duplicate.jsonc",
+      "checkId": "verify.integration",
+      "consumers": ["scripts/test-integration-identity"]
+    },
+    {
+      "path": "spec/fixtures/project-configuration-invalid-jsonc.txt",
+      "checkId": "verify.integration",
+      "consumers": ["scripts/test-integration-identity"]
+    },
+    {
+      "path": "spec/fixtures/project-configuration-invalid-secret.jsonc",
+      "checkId": "verify.integration",
+      "consumers": ["scripts/test-integration-identity"]
+    },
+    {
+      "path": "spec/fixtures/project-configuration-missing-capability.jsonc",
+      "checkId": "verify.integration",
+      "consumers": ["scripts/test-integration-identity"]
+    },
+    {
+      "path": "spec/fixtures/project-configuration-unknown.jsonc",
+      "checkId": "verify.integration",
+      "consumers": ["scripts/test-integration-identity"]
+    },
+    {
+      "path": "spec/fixtures/project-configuration.jsonc",
+      "checkId": "verify.integration",
+      "consumers": ["scripts/test-integration-identity"]
+    },
+    {
+      "path": "spec/fixtures/transformation-state.json",
+      "checkId": "verify.unit",
+      "consumers": [
+        "apps/cli-go/transformation_test.go",
+        "packages/core/src/transformation-state.test.ts"
+      ]
+    }
+  ]
+}

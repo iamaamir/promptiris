@@ -8,7 +8,9 @@
     "schemaVersion": { "const": 1 },
     "task_id": { "type": "string", "minLength": 1 },
     "goal": { "type": "string", "minLength": 1 },
-    "stage": { "enum": ["generator", "cleaner", "hardener", "qa", "integration"] },
+    "stage": {
+      "enum": ["generator", "reviewer", "cleaner", "hardener", "qa", "integration"]
+    },
     "iteration": { "type": "number", "minimum": 0 },
     "last_verification": { "type": "string" },
     "next_action": { "type": "string", "minLength": 1 },

@@ -1,7 +1,14 @@
 name: verify
 on:
   push:
+    branches:
+      - main
   pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 jobs:
@@ -60,6 +67,7 @@ jobs:
           go-version: 1.26.3
           cache-dependency-path: apps/cli-go/go.sum
       - run: pnpm install --frozen-lockfile
+      - run: pnpm build
       - run: pnpm test:coverage
       - run: pnpm quality:crap
       - run: pnpm quality:dead-code

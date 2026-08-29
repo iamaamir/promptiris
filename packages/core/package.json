@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@promptiris/plugin-sdk": "workspace:*",
-    "@promptiris/protocol": "workspace:*"
+    "@promptiris/protocol": "workspace:*",
+    "jsonc-parser": "3.3.1"
   }
 }

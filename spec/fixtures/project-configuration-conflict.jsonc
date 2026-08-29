@@ -1,0 +1,25 @@
+{
+  "capabilities": [
+    {
+      "capability": "provider/json-schema",
+      "bindingFingerprint": "fixture-binding",
+      "requirement": "optional",
+    },
+  ],
+  "evidence": [
+    {
+      "evidenceId": "supported",
+      "capability": "provider/json-schema",
+      "bindingFingerprint": "fixture-binding",
+      "state": "supported",
+      "source": { "kind": "policy", "id": "supported" },
+    },
+    {
+      "evidenceId": "unsupported",
+      "capability": "provider/json-schema",
+      "bindingFingerprint": "fixture-binding",
+      "state": "unsupported",
+      "source": { "kind": "policy", "id": "unsupported" },
+    },
+  ],
+}

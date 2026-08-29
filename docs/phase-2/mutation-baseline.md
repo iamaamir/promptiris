@@ -1,8 +1,8 @@
 # Mutation baseline
 
-Mutation testing covers the protocol, Plugin SDK, graph compiler, immutable transformation state, plugin execution engine, and Node native-plugin supervisor. It exists to make test sensitivity inspectable rather than inferred from line coverage.
+Mutation testing covers the protocol, Plugin SDK, graph compiler, immutable transformation state, plugin execution engine, configuration/capability path, runtime server, and Node native-plugin supervisor. It exists to make test sensitivity inspectable rather than inferred from line coverage.
 
-The transformation-state tracer generated 1,636 mutants and established a 94.28% aggregate no-regression baseline: 807 killed, two timed out, 44 survived, five had no coverage, and 680 failed TypeScript compilation. Every governed target is at least 90%: transformation state is 92.82%, plugin execution is 91.86%, the native supervisor is 90.23%, and protocol, Plugin SDK, graph, and core entrypoint targets are 100%. The configured breaking threshold remains 90%, with 95% shown as the high band.
+The configuration/capability tracer and subsequent boundary-quality pass expanded the scored surface from 858 to 1,409 mutants and established a 93.47% aggregate no-regression baseline: 82 survived and ten had no coverage. This is an intentional scope expansion, not a relaxation of the per-target standard. Every governed target remains above 90%; the new targets range from 90.75% for configuration resolution to 94.05% for capability evidence, while the runtime configuration loader and server score 91.53% and 93.81%. The configured breaking threshold remains 90%, with 95% shown as the high band. The configuration-loader percentage changed after validated collection refactoring reduced its mutation denominator, while its survivor count improved from six to five; both the new exact score and lower debt ceiling are governed.
 
 The hardening work added deterministic assertions for:
 

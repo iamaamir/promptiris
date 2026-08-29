@@ -41,6 +41,18 @@ describe('plugin SDK primitives', () => {
     expect(manifest).toEqual({ id: 'example/minimal', version: '1.0.0', type: 'guard' });
   });
 
+  it('freezes capability declarations and advisory permission hints', () => {
+    const manifest = definePlugin({
+      id: 'example/provider',
+      version: '1.0.0',
+      type: 'provider' as const,
+      capabilities: ['provider/text' as const],
+      permissionHints: [{ effect: 'network' as const, scope: 'api.example.test' }],
+    });
+    expect(Object.isFrozen(manifest.capabilities)).toBe(true);
+    expect(Object.isFrozen(manifest.permissionHints?.[0])).toBe(true);
+  });
+
   it('rejects executable and non-JSON manifest extensions', () => {
     const executable = {
       id: 'example/executable',

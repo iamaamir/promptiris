@@ -11,6 +11,45 @@ import {
   validatePatch,
 } from './index.js';
 describe('Content-Length protocol', () => {
+  it('models redacted configuration and binding-scoped capability contracts', () => {
+    const inspect = {
+      schemaVersion: '1',
+      redacted: true,
+      config: { credentials: { apiKey: { ref: 'env:OPENAI_API_KEY' } } },
+      configTrace: {
+        entries: {
+          '/credentials/apiKey': {
+            pointer: '/credentials/apiKey',
+            schemaRule: 'secret-ref',
+            candidates: [
+              {
+                sourceId: 'user',
+                disposition: 'rejected',
+                reason: 'secret',
+                preview: { kind: 'secret-reference', scheme: 'env' },
+              },
+            ],
+            merge: 'replace',
+          },
+        },
+      },
+      policies: [
+        { policyId: 'host/policy', decision: 'denied', pointer: '/network', reason: 'disabled' },
+      ],
+      resolutions: [
+        {
+          capability: 'provider/text',
+          bindingFingerprint: 'sha256:x',
+          requirement: 'required',
+          outcome: 'missing',
+          evidence: [],
+        },
+      ],
+      permissionHints: [{ effect: 'network', scope: 'api.openai.com' }],
+    } satisfies import('./index.js').InspectResult;
+    expect(JSON.stringify(inspect)).not.toContain('sk-');
+    expect(inspect.configTrace.entries['/credentials/apiKey']?.pointer).toBe('/credentials/apiKey');
+  });
   it('round trips fragmented frames', () => {
     const frame = encodeMessage({
       jsonrpc: '2.0',

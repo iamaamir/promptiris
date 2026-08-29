@@ -21,7 +21,30 @@ export {
   type PatchResult,
   type TransformationState,
 } from './transformation-state.js';
-
+export {
+  parseJsonc,
+  validateSecretReference,
+  type JsoncDiagnostic,
+  type JsoncResult,
+  type JsoncSource,
+  type ParseJsoncOptions,
+} from './configuration-jsonc.js';
+export {
+  configPointer,
+  deepFrozenClone,
+  safePreview,
+  validateConfig,
+  type SchemaResult,
+  type SchemaRule,
+} from './configuration-schema.js';
+export {
+  resolveConfiguration,
+  type ConfigLayer,
+  type ConfigPolicy,
+  type ResolveParams,
+  type ResolveResult,
+} from './configuration-resolution.js';
+export { evaluateCapabilities, type CapabilityRequirementInput } from './capability-evidence.js';
 /** @public */
 export const identityRecipe: Recipe = {
   id: 'promptiris/identity',

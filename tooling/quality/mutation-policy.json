@@ -2,17 +2,53 @@
   "schemaVersion": 1,
   "baselineDate": "2026-08-28",
   "aggregate": {
-    "minScore": 94.28,
+    "minScore": 93.47,
     "maxIgnored": 106,
-    "maxSurvived": 44,
-    "maxNoCoverage": 5
+    "maxSurvived": 82,
+    "maxNoCoverage": 10
   },
   "targets": {
+    "apps/runtime-node/src/configuration.ts": {
+      "minScore": 91.53,
+      "maxIgnored": 0,
+      "maxSurvived": 5,
+      "maxNoCoverage": 0
+    },
     "apps/runtime-node/src/native-plugin.ts": {
       "minScore": 90.23,
       "maxIgnored": 80,
       "maxSurvived": 12,
       "maxNoCoverage": 5
+    },
+    "apps/runtime-node/src/server.ts": {
+      "minScore": 93.81,
+      "maxIgnored": 0,
+      "maxSurvived": 6,
+      "maxNoCoverage": 0
+    },
+    "packages/core/src/capability-evidence.ts": {
+      "minScore": 94.05,
+      "maxIgnored": 0,
+      "maxSurvived": 5,
+      "maxNoCoverage": 0
+    },
+    "packages/core/src/configuration-jsonc.ts": {
+      "minScore": 91.38,
+      "maxIgnored": 0,
+      "maxSurvived": 5,
+      "maxNoCoverage": 0
+    },
+    "packages/core/src/configuration-resolution.ts": {
+      "minScore": 90.75,
+      "maxIgnored": 0,
+      "maxSurvived": 13,
+      "maxNoCoverage": 3
+    },
+    "packages/core/src/configuration-schema.ts": {
+      "minScore": 92.59,
+      "maxIgnored": 0,
+      "maxSurvived": 4,
+      "maxNoCoverage": 2
     },
     "packages/core/src/index.ts": {
       "minScore": 100,

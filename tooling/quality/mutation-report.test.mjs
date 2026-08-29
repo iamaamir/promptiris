@@ -2,6 +2,30 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { mutationSummary } from './mutation-report.mjs';
 
+test('returns a stable unavailable shape when the mutation report is missing', () => {
+  assert.deepEqual(mutationSummary(undefined, undefined), {
+    available: false,
+    targets: [],
+    policy: {
+      available: false,
+      status: 'missing',
+      regressions: [],
+    },
+  });
+});
+
+test('returns a stable unavailable shape when the mutation report has no files', () => {
+  assert.deepEqual(mutationSummary({ thresholds: { break: 90 } }, null), {
+    available: false,
+    targets: [],
+    policy: {
+      available: false,
+      status: 'missing',
+      regressions: [],
+    },
+  });
+});
+
 const report = {
   files: {
     'a.ts': {

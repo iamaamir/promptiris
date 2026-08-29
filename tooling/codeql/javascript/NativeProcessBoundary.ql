@@ -24,5 +24,5 @@ predicate isProcessLaunch(DataFlow::CallNode call) {
 from DataFlow::CallNode call
 where
   isProcessLaunch(call) and
-  call.getNode().getFile().getRelativePath() != "apps/runtime-node/src/native-plugin.ts"
-select call.getNode(), "Process execution bypasses the supervised native-plugin boundary."
+  call.getFile().getRelativePath() != "apps/runtime-node/src/native-plugin.ts"
+select call, "Process execution bypasses the supervised native-plugin boundary."
