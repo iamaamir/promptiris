@@ -6,4 +6,4 @@ Keep the complete local roadmap self-contained while projecting pickable Work It
 
 ## Work items
 
-- [ ] [01 — Roadmap sync](./issues/01-roadmap-sync.md)
+- [x] [01 — Roadmap sync](./issues/01-roadmap-sync.md)

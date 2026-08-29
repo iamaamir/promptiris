@@ -1,6 +1,6 @@
 # Roadmap and GitHub issue synchronization
 
-Status: ready-for-human
+Status: complete
 
 GitHub issue: <https://github.com/iamaamir/promptiris/issues/21>
 Branch: `roadmap-sync`
@@ -23,9 +23,9 @@ Lay down the remaining v1 roadmap as independently pickable local packets and de
 - A deterministic fake-GitHub test proves creation, repeat execution, relationships, drift detection, and compact checks.
 - Documentation, shell lint, tooling tests, Reviewer, Hardener, QA, and candidate verification pass.
 
-## Delivery dependency
+## Delivery
 
-This branch is stacked on `platform-primitives` PR #3; external maintainers merge that dependency before this PR can target `main` cleanly.
+PR #3 merged first, the roadmap branch was rebased to one commit on canonical `main`, and fully green PR #22 merged as `d869456`.
 
 ## Verification evidence
 

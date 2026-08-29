@@ -1,6 +1,6 @@
 # Platform runtime primitives
 
-Status: ready-for-human
+Status: complete
 
 GitHub projection: [issue #2](https://github.com/iamaamir/promptiris/issues/2)
 

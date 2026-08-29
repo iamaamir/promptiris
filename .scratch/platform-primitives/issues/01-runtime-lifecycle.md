@@ -1,6 +1,6 @@
 # Runtime lifecycle and loading
 
-Status: ready-for-human
+Status: complete
 
 GitHub issue: <https://github.com/iamaamir/promptiris/issues/2>
 Branch: `platform-primitives`
@@ -41,6 +41,6 @@ Deliver the bounded Run-lifetime, Event-dispatch, Debug Record, execution-contex
 - Independent review: pass with zero findings
 - Mutation: 94.13% aggregate; all 18 governed targets passed, and every target scored at least 90%
 - Residual risks: cancelled in-process Plugin promises require cooperative termination; Debug Record destinations remain Host-authorized policy; lazy-loading security depends on Host authorization; Event sink isolation and terminal ordering remain protocol invariants
-- Publication: dependency satisfied; branch rebased onto `a0190b9` and ready for revision-bound verification and external review
+- Publication: PR #3 passed protected-branch verification and merged into `main` as `2f5031c`
 
 GitHub discussion is a projection; this packet remains the durable task definition.
