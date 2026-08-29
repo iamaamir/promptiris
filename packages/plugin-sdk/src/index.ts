@@ -55,6 +55,7 @@ export interface PluginOutput {
 /** @public */
 export interface PluginImplementation {
   invoke(request: PluginInvocation): Promise<PluginOutput>;
+  [Symbol.asyncDispose]?(): PromiseLike<void> | void;
 }
 /** @public */
 export interface PluginRegistration {
@@ -82,6 +83,8 @@ export interface PluginManifest {
   readonly id: string;
   readonly version: string;
   readonly type: 'recipe' | 'pipeline' | 'guard' | 'provider' | 'observer';
+  /** Package-relative module path; Hosts authorize and resolve it before lazy loading. */
+  readonly entrypoint?: string;
   readonly contributions?: readonly PluginContribution[];
   /** JSON Schema reference for this Plugin's configuration subtree. */
   readonly configSchema?: SchemaReference;

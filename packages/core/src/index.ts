@@ -1,6 +1,6 @@
-import { randomUUID } from 'node:crypto';
 import type { Event, PromptDocument, RunResult } from '@promptiris/protocol';
 import { identityArtifact, type Recipe, type RunContext } from '@promptiris/plugin-sdk';
+import { createEventDispatcher } from './event-dispatcher.js';
 export {
   compilePluginGraph,
   type CompiledContribution,
@@ -45,6 +45,25 @@ export {
   type ResolveResult,
 } from './configuration-resolution.js';
 export { evaluateCapabilities, type CapabilityRequirementInput } from './capability-evidence.js';
+export {
+  captureDebugRecord,
+  type DebugException,
+  type DebugRecord,
+  type DebugRecordLocation,
+  type DebugRecordSink,
+} from './debug-record.js';
+export {
+  createEventDispatcher,
+  type EventDispatcher,
+  type EventSubscription,
+  type EventSubscriptionOptions,
+} from './event-dispatcher.js';
+export {
+  createRunLifetime,
+  type RunLifetime,
+  type RunLifetimeOptions,
+  type RunTermination,
+} from './run-lifetime.js';
 /** @public */
 export const identityRecipe: Recipe = {
   id: 'promptiris/identity',
@@ -91,19 +110,5 @@ export const identityRecipe: Recipe = {
 
 /** @public */
 export function createRunContext(runId: string, emit: (event: Event) => void): RunContext {
-  let sequence = 0;
-  return {
-    runId,
-    emit(event) {
-      emit({
-        ...event,
-        schemaVersion: '1',
-        id: randomUUID(),
-        time: new Date().toISOString(),
-        sequence: sequence++,
-        runId,
-        traceId: runId,
-      });
-    },
-  };
+  return createEventDispatcher(runId, emit);
 }

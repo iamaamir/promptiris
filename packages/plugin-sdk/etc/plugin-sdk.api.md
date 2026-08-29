@@ -82,6 +82,8 @@ export interface PluginContribution {
 // @public (undocumented)
 export interface PluginImplementation {
     // (undocumented)
+    [Symbol.asyncDispose]?(): PromiseLike<void> | void;
+    // (undocumented)
     invoke(request: PluginInvocation): Promise<PluginOutput>;
 }
 
@@ -103,6 +105,7 @@ export interface PluginManifest {
     readonly configSchema?: SchemaReference;
     // (undocumented)
     readonly contributions?: readonly PluginContribution[];
+    readonly entrypoint?: string;
     // (undocumented)
     readonly id: string;
     readonly permissionHints?: readonly PermissionHint[];
