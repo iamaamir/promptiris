@@ -13,6 +13,9 @@ import type {
   PermissionHint,
 } from '@promptiris/protocol';
 
+export type { Provider, FakeProviderScenario, FakeProviderResponse } from './provider.js';
+export { FakeProvider, ProviderFailureError, makeGenerateResult } from './provider.js';
+
 /** @public */
 export interface PluginContribution {
   readonly id: string;

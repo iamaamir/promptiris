@@ -9,6 +9,9 @@ import {
   validateJsonValue,
   validatePromptDocument,
   validatePatch,
+  validateProviderConfig,
+  validateGenerateResult,
+  validateProviderError,
 } from './index.js';
 describe('Content-Length protocol', () => {
   it('models redacted configuration and binding-scoped capability contracts', () => {
@@ -336,5 +339,80 @@ describe('Content-Length protocol', () => {
       }),
       { seed: 20260826, numRuns: 200 },
     );
+  });
+});
+
+describe('Provider schema validation', () => {
+  it('validates a complete ProviderConfig', () => {
+    expect(
+      validateProviderConfig({
+        id: 'promptiris/test-provider',
+        binding: {
+          modelId: 'model-1',
+          providerId: 'promptiris/test-provider',
+          fingerprint: 'fp-001',
+        },
+        capabilities: { supported: ['text-generation'], unsupported: [] },
+      }),
+    ).toBe(true);
+  });
+
+  it('rejects ProviderConfig with missing binding', () => {
+    expect(
+      validateProviderConfig({
+        id: 'promptiris/test-provider',
+        capabilities: { supported: [], unsupported: [] },
+      }),
+    ).toBe(false);
+  });
+
+  it('rejects ProviderConfig with invalid capability', () => {
+    expect(
+      validateProviderConfig({
+        id: 'promptiris/test-provider',
+        binding: { modelId: 'm', providerId: 'promptiris/test-provider', fingerprint: 'f' },
+        capabilities: { supported: ['magic-wand'], unsupported: [] },
+      }),
+    ).toBe(false);
+  });
+
+  it('validates a complete GenerateResult', () => {
+    expect(
+      validateGenerateResult({
+        content: 'hello',
+        model: 'test-model',
+        usage: { promptTokens: 10, completionTokens: 5, totalTokens: 15 },
+        finishReason: 'stop',
+      }),
+    ).toBe(true);
+  });
+
+  it('rejects GenerateResult with invalid finishReason', () => {
+    expect(
+      validateGenerateResult({
+        content: 'hello',
+        model: 'test-model',
+        usage: { promptTokens: 10, completionTokens: 5, totalTokens: 15 },
+        finishReason: 'timeout',
+      }),
+    ).toBe(false);
+  });
+
+  it('validates a complete ProviderError', () => {
+    expect(
+      validateProviderError({ kind: 'network', message: 'connection lost', retryable: true }),
+    ).toBe(true);
+  });
+
+  it('rejects ProviderError with invalid kind', () => {
+    expect(
+      validateProviderError({ kind: 'quota-exceeded', message: 'limit', retryable: false }),
+    ).toBe(false);
+  });
+
+  it('rejects non-objects for all validators', () => {
+    expect(validateProviderConfig(null)).toBe(false);
+    expect(validateGenerateResult(undefined)).toBe(false);
+    expect(validateProviderError('error')).toBe(false);
   });
 });

@@ -279,6 +279,71 @@ export interface RunResult {
 }
 
 /** @public */
+export type ModelCapability = 'text-generation' | 'structured-output' | 'tool-use';
+/** @public */
+export interface ModelBinding {
+  readonly modelId: string;
+  readonly providerId: NamespacedId;
+  readonly fingerprint: string;
+}
+/** @public */
+export interface ProviderCapabilities {
+  readonly supported: readonly ModelCapability[];
+  readonly unsupported: readonly ModelCapability[];
+}
+/** @public */
+export interface ProviderConfig {
+  readonly id: NamespacedId;
+  readonly binding: ModelBinding;
+  readonly capabilities: ProviderCapabilities;
+  readonly secretRef?: SecretReference;
+  readonly endpoint?: string;
+}
+/** @public */
+export interface GenerateMessage {
+  readonly role: 'user' | 'assistant' | 'system';
+  readonly content: string;
+}
+/** @public */
+export interface GenerateParams {
+  readonly config: ProviderConfig;
+  readonly messages: readonly GenerateMessage[];
+  readonly system?: string;
+  readonly temperature?: number;
+  readonly maxTokens?: number;
+  readonly signal?: AbortSignal;
+}
+/** @public */
+export interface Usage {
+  readonly promptTokens: number;
+  readonly completionTokens: number;
+  readonly totalTokens: number;
+}
+/** @public */
+export interface GenerateResult {
+  readonly content: string;
+  readonly model: string;
+  readonly usage: Usage;
+  readonly finishReason: 'stop' | 'length' | 'content-filter' | 'error';
+}
+/** @public */
+export type ProviderErrorKind =
+  | 'unsupported-capability'
+  | 'cancelled'
+  | 'malformed-output'
+  | 'timeout'
+  | 'rate-limit'
+  | 'authentication'
+  | 'network'
+  | 'unknown';
+/** @public */
+export interface ProviderError {
+  readonly kind: ProviderErrorKind;
+  readonly message: string;
+  readonly retryable: boolean;
+  readonly cause?: unknown;
+}
+/** @public */
 export interface InitializeParams {
   protocolVersion: '1';
   clientName?: string;
@@ -557,6 +622,103 @@ ajv.addSchema(promptDocumentSchema);
 const validator = ajv.getSchema(promptDocumentSchema.$id);
 const patchValidator = ajv.compile(patchSchema);
 const jsonValueValidator = ajv.compile({ $ref: `${promptDocumentSchema.$id}#/$defs/jsonValue` });
+const providerConfigSchema = {
+  $schema: 'https://json-schema.org/draft/2020-12/schema',
+  $id: 'urn:promptiris:schema:provider-config:v1',
+  type: 'object',
+  additionalProperties: false,
+  required: ['id', 'binding', 'capabilities'],
+  properties: {
+    id: { type: 'string', pattern: namespacedPattern },
+    binding: {
+      type: 'object',
+      additionalProperties: false,
+      required: ['modelId', 'providerId', 'fingerprint'],
+      properties: {
+        modelId: { type: 'string', minLength: 1 },
+        providerId: { type: 'string', pattern: namespacedPattern },
+        fingerprint: { type: 'string', minLength: 1 },
+      },
+    },
+    capabilities: {
+      type: 'object',
+      additionalProperties: false,
+      required: ['supported', 'unsupported'],
+      properties: {
+        supported: {
+          type: 'array',
+          items: { type: 'string', enum: ['text-generation', 'structured-output', 'tool-use'] },
+        },
+        unsupported: {
+          type: 'array',
+          items: { type: 'string', enum: ['text-generation', 'structured-output', 'tool-use'] },
+        },
+      },
+    },
+    secretRef: {
+      type: 'object',
+      additionalProperties: false,
+      required: ['ref'],
+      properties: { ref: { type: 'string', minLength: 1 } },
+    },
+    endpoint: { type: 'string' },
+  },
+} as const;
+
+const generateResultSchema = {
+  $schema: 'https://json-schema.org/draft/2020-12/schema',
+  $id: 'urn:promptiris:schema:generate-result:v1',
+  type: 'object',
+  additionalProperties: false,
+  required: ['content', 'model', 'usage', 'finishReason'],
+  properties: {
+    content: { type: 'string' },
+    model: { type: 'string', minLength: 1 },
+    usage: {
+      type: 'object',
+      additionalProperties: false,
+      required: ['promptTokens', 'completionTokens', 'totalTokens'],
+      properties: {
+        promptTokens: { type: 'integer', minimum: 0 },
+        completionTokens: { type: 'integer', minimum: 0 },
+        totalTokens: { type: 'integer', minimum: 0 },
+      },
+    },
+    finishReason: { type: 'string', enum: ['stop', 'length', 'content-filter', 'error'] },
+  },
+} as const;
+
+const providerErrorSchema = {
+  $schema: 'https://json-schema.org/draft/2020-12/schema',
+  $id: 'urn:promptiris:schema:provider-error:v1',
+  type: 'object',
+  additionalProperties: false,
+  required: ['kind', 'message', 'retryable'],
+  properties: {
+    kind: {
+      type: 'string',
+      enum: [
+        'unsupported-capability',
+        'cancelled',
+        'malformed-output',
+        'timeout',
+        'rate-limit',
+        'authentication',
+        'network',
+        'unknown',
+      ],
+    },
+    message: { type: 'string', minLength: 1 },
+    retryable: { type: 'boolean' },
+  },
+} as const;
+
+ajv.addSchema(providerConfigSchema);
+ajv.addSchema(generateResultSchema);
+ajv.addSchema(providerErrorSchema);
+const providerConfigValidator = ajv.getSchema(providerConfigSchema.$id);
+const generateResultValidator = ajv.getSchema(generateResultSchema.$id);
+const providerErrorValidator = ajv.getSchema(providerErrorSchema.$id);
 // Stryker restore all
 /** @public */
 export function validatePromptDocument(value: unknown): value is PromptDocument {
@@ -571,6 +733,18 @@ export function validateJsonValue(value: unknown): value is JsonValue {
   return jsonValueValidator(value);
 }
 
+/** @public */
+export function validateProviderConfig(value: unknown): value is ProviderConfig {
+  return providerConfigValidator?.(value) === true;
+}
+/** @public */
+export function validateGenerateResult(value: unknown): value is GenerateResult {
+  return generateResultValidator?.(value) === true;
+}
+/** @public */
+export function validateProviderError(value: unknown): value is ProviderError {
+  return providerErrorValidator?.(value) === true;
+}
 /** @public */
 export function makeTextDocument(text: string): PromptDocument {
   return { schemaVersion: '1', content: [{ id: 'input-1', text }] };
