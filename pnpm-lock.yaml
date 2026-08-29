@@ -89,6 +89,18 @@ importers:
         specifier: 3.3.1
         version: 3.3.1
 
+  packages/observer-devtools:
+    dependencies:
+      '@promptiris/core':
+        specifier: workspace:*
+        version: link:../core
+      '@promptiris/plugin-sdk':
+        specifier: workspace:*
+        version: link:../plugin-sdk
+      '@promptiris/protocol':
+        specifier: workspace:*
+        version: link:../protocol
+
   packages/plugin-sdk:
     dependencies:
       '@promptiris/protocol':
