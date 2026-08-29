@@ -1,37 +1,435 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+readonly MANAGED_LABELS='needs-triage needs-info ready-for-agent ready-for-human wontfix'
+
 usage() {
-  echo 'usage: scripts/issue-sync <check|push> <local-issue-file>' >&2
+  echo 'usage: scripts/issue-sync <check|push|status> <local-issue-file|--all>' >&2
   exit 2
 }
 
 [[ $# -eq 2 ]] || usage
 mode="$1"
-issue_file="$2"
-[[ -f "$issue_file" ]] || {
-  echo "issue packet not found: $issue_file" >&2
-  exit 2
-}
-
-issue_url="$(awk '/^GitHub issue: https:\/\/github\.com\// { print $3; exit }' "$issue_file")"
-[[ "$issue_url" =~ ^https://github.com/[^/]+/[^/]+/issues/[0-9]+$ ]] || {
-  echo "issue packet has no valid GitHub issue URL: $issue_file" >&2
-  exit 2
-}
-
+target="$2"
 case "$mode" in
-  check)
-    local_body="$(<"$issue_file")"
-    remote_body="$(gh issue view "$issue_url" --json body --jq .body)"
-    if [[ "$local_body" != "$remote_body" ]]; then
-      echo "GitHub issue body drifted from authoritative packet: $issue_file" >&2
-      exit 1
-    fi
-    echo "in sync: $issue_file"
-    ;;
-  push)
-    gh issue edit "$issue_url" --body-file "$issue_file"
-    ;;
+  check | push | status) ;;
   *) usage ;;
 esac
+
+repo_root="$(git rev-parse --show-toplevel)"
+cd "$repo_root"
+command -v gh >/dev/null || { echo 'gh is required' >&2; exit 2; }
+command -v jq >/dev/null || { echo 'jq is required' >&2; exit 2; }
+
+temporary_directory="$(mktemp -d "${TMPDIR:-/tmp}/promptiris-issue-sync.XXXXXX")"
+trap 'rm -rf "$temporary_directory"' EXIT
+packet_list="$temporary_directory/packets"
+
+collect_packets() {
+  : >"$packet_list"
+  if [[ -f ROADMAP.md ]] && grep -q '^GitHub issue:' ROADMAP.md; then
+    echo ROADMAP.md >>"$packet_list"
+  fi
+  find .scratch -type f \( -name PRD.md -o -path '*/issues/*.md' \) -print 2>/dev/null \
+    | LC_ALL=C sort \
+    | while IFS= read -r packet; do
+        if grep -q '^GitHub issue:' "$packet"; then
+          echo "$packet"
+        fi
+      done >>"$packet_list"
+}
+
+if [[ "$target" == '--all' ]]; then
+  collect_packets
+else
+  [[ -f "$target" ]] || { echo "issue packet not found: $target" >&2; exit 2; }
+  packet="${target#./}"
+  grep -q '^GitHub issue:' "$packet" || {
+    echo "issue packet has no GitHub issue field: $packet" >&2
+    exit 2
+  }
+  echo "$packet" >"$packet_list"
+fi
+
+[[ -s "$packet_list" ]] || { echo 'no managed issue packets found' >&2; exit 2; }
+
+field_value() {
+  local packet="$1"
+  local field="$2"
+  awk -v prefix="$field: " 'index($0, prefix) == 1 { print substr($0, length(prefix) + 1); exit }' "$packet"
+}
+
+packet_title() {
+  sed -n 's/^# //p' "$1" | head -1
+}
+
+packet_status() {
+  field_value "$1" Status
+}
+
+packet_url() {
+  local value
+  value="$(field_value "$1" 'GitHub issue')"
+  value="${value#<}"
+  echo "${value%>}"
+}
+
+canonical_label() {
+  case "$1" in
+    needs-triage | needs-info | ready-for-agent | ready-for-human | wontfix) echo "$1" ;;
+    complete | done) echo '' ;;
+    *) return 1 ;;
+  esac
+}
+
+expected_state() {
+  case "$1" in
+    complete | done | wontfix) echo CLOSED ;;
+    *) echo OPEN ;;
+  esac
+}
+
+hash_standard_input() {
+  if command -v shasum >/dev/null; then
+    shasum -a 256 | awk '{ print $1 }'
+  else
+    sha256sum | awk '{ print $1 }'
+  fi
+}
+
+content_digest() {
+  local content
+  # GitHub and command substitution do not preserve trailing line feeds. Hash the
+  # same canonical text representation used for body comparison.
+  content="$(<"$1")"
+  printf '%s' "$content" | hash_standard_input
+}
+
+render_projection() {
+  local packet="$1"
+  local destination="$2"
+  local content digest
+  content="$(<"$packet")"
+  digest="$(content_digest "$packet")"
+  printf '%s\n\n<!-- promptiris-local-issue: %s -->\n<!-- promptiris-content-digest: sha256:%s -->\n' \
+    "$content" "$packet" "$digest" >"$destination"
+}
+
+validate_packet() {
+  local packet="$1"
+  local title status url
+  title="$(packet_title "$packet")"
+  status="$(packet_status "$packet")"
+  url="$(packet_url "$packet")"
+  [[ -n "$title" ]] || { echo "missing H1 title: $packet" >&2; return 1; }
+  canonical_label "$status" >/dev/null || {
+    echo "invalid status '$status': $packet" >&2
+    return 1
+  }
+  [[ "$url" == pending || "$url" =~ ^https://github.com/[^/]+/[^/]+/issues/[0-9]+$ ]] || {
+    echo "invalid GitHub issue field: $packet" >&2
+    return 1
+  }
+}
+
+replace_pending_url() {
+  local packet="$1"
+  local url="$2"
+  local replacement="$temporary_directory/packet-url"
+  awk -v url="$url" '
+    /^GitHub issue: / && !replaced { print "GitHub issue: <" url ">"; replaced = 1; next }
+    { print }
+    END { if (!replaced) exit 1 }
+  ' "$packet" >"$replacement"
+  mv "$replacement" "$packet"
+}
+
+find_projected_url() {
+  local packet="$1"
+  local issues="$temporary_directory/issues.json"
+  local marker="<!-- promptiris-local-issue: $packet -->"
+  gh issue list --state all \
+    --search "\"promptiris-local-issue: $packet\" in:body" \
+    --limit 10 --json body,url >"$issues"
+  jq -r --arg marker "$marker" '
+    [.[] | select(.body | contains($marker))] |
+    if length == 0 then "" elif length == 1 then .[0].url else "DUPLICATE" end
+  ' "$issues"
+}
+
+fetch_remote() {
+  local url="$1"
+  local destination="$2"
+  gh issue view "$url" --json title,body,state,labels,url,blockedBy,parent >"$destination"
+}
+
+assert_remote_ownership() {
+  local packet="$1"
+  local remote_json="$2"
+  local remote_body remote_marker remote_digest remote_content actual_digest local_content
+  remote_body="$(jq -r .body "$remote_json")"
+  remote_marker="$(printf '%s' "$remote_body" | sed -n 's/^<!-- promptiris-local-issue: \(.*\) -->$/\1/p' | tail -1)"
+  remote_digest="$(printf '%s' "$remote_body" | sed -n 's/^<!-- promptiris-content-digest: sha256:\([0-9a-f]*\) -->$/\1/p' | tail -1)"
+  local_content="$(<"$packet")"
+  if [[ -z "$remote_marker" ]]; then
+    [[ "$remote_body" == "$local_content" ]] || {
+      echo "unmanaged remote body differs; refusing overwrite: $packet" >&2
+      return 1
+    }
+    return 0
+  fi
+  [[ "$remote_marker" == "$packet" ]] || {
+    echo "remote identity belongs to '$remote_marker', not '$packet'" >&2
+    return 1
+  }
+  [[ -n "$remote_digest" ]] || {
+    echo "remote projection has no content digest: $packet" >&2
+    return 1
+  }
+  remote_content="$(printf '%s' "$remote_body" | sed \
+    -e '/^<!-- promptiris-local-issue: .* -->$/d' \
+    -e '/^<!-- promptiris-content-digest: sha256:[0-9a-f]* -->$/d')"
+  actual_digest="$(printf '%s' "$remote_content" | hash_standard_input)"
+  [[ "$actual_digest" == "$remote_digest" ]] || {
+    echo "remote body changed outside issue-sync; refusing overwrite: $packet" >&2
+    return 1
+  }
+}
+
+reconcile_labels() {
+  local url="$1"
+  local expected="$2"
+  local remote_json="$3"
+  local label
+  for label in $MANAGED_LABELS; do
+    if jq -e --arg label "$label" '.labels | any(.name == $label)' "$remote_json" >/dev/null; then
+      [[ "$label" == "$expected" ]] || gh issue edit "$url" --remove-label "$label" >/dev/null
+    elif [[ "$label" == "$expected" ]]; then
+      gh issue edit "$url" --add-label "$label" >/dev/null
+    fi
+  done
+}
+
+push_packet() {
+  local packet="$1"
+  local title status label url body_file remote_json found
+  validate_packet "$packet" || return 1
+  title="$(packet_title "$packet")"
+  status="$(packet_status "$packet")"
+  label="$(canonical_label "$status")"
+  url="$(packet_url "$packet")"
+  body_file="$temporary_directory/body"
+  if [[ "$url" == pending ]]; then
+    found="$(find_projected_url "$packet")"
+    [[ "$found" != DUPLICATE ]] || {
+      echo "multiple GitHub issues claim packet identity: $packet" >&2
+      return 1
+    }
+    if [[ -n "$found" ]]; then
+      url="$found"
+    else
+      render_projection "$packet" "$body_file"
+      url="$(gh issue create --title "$title" --body-file "$body_file")"
+    fi
+    replace_pending_url "$packet" "$url"
+  fi
+  remote_json="$temporary_directory/remote.json"
+  fetch_remote "$url" "$remote_json"
+  assert_remote_ownership "$packet" "$remote_json" || return 1
+  if [[ "$(jq -r .state "$remote_json")" == CLOSED && "$(expected_state "$status")" == OPEN ]]; then
+    echo "remote issue is closed but local packet is active; refusing reopen: $packet" >&2
+    return 1
+  fi
+  render_projection "$packet" "$body_file"
+  gh issue edit "$url" --title "$title" --body-file "$body_file" >/dev/null
+  reconcile_labels "$url" "$label" "$remote_json"
+  if [[ "$(expected_state "$status")" == CLOSED && "$(jq -r .state "$remote_json")" == OPEN ]]; then
+    if [[ "$status" == wontfix ]]; then
+      gh issue close "$url" --reason 'not planned' >/dev/null
+    else
+      gh issue close "$url" --reason completed >/dev/null
+    fi
+  fi
+  echo "projected: $packet -> $url"
+}
+
+trim_reference() {
+  printf '%s' "$1" | sed -e 's/^[[:space:]`]*//' -e 's/[[:space:]`]*$//'
+}
+
+reference_url() {
+  local reference="$1"
+  local url reference_directory physical_directory
+  if [[ "$reference" =~ ^https://github.com/[^/]+/[^/]+/issues/[0-9]+$ ]]; then
+    echo "$reference"
+    return
+  fi
+  reference="${reference#./}"
+  case "$reference" in
+    ROADMAP.md) ;;
+    .scratch/*)
+      [[ "$reference" != *'/../'* && "$reference" != *'/./'* && "$reference" != */.. && "$reference" != */. ]] || {
+        echo "packet reference is not normalized: $reference" >&2
+        return 1
+      }
+      ;;
+    *)
+      echo "packet reference is outside the managed roadmap: $reference" >&2
+      return 1
+      ;;
+  esac
+  [[ -f "$reference" ]] || {
+    echo "referenced packet not found: $reference" >&2
+    return 1
+  }
+  [[ ! -L "$reference" ]] || {
+    echo "packet reference cannot be a symbolic link: $reference" >&2
+    return 1
+  }
+  reference_directory="$(dirname "$reference")"
+  physical_directory="$(cd "$reference_directory" && pwd -P)"
+  [[ "$reference" == ROADMAP.md || "$physical_directory" == "$repo_root/.scratch" || "$physical_directory" == "$repo_root/.scratch/"* ]] || {
+    echo "packet reference escapes the managed roadmap: $reference" >&2
+    return 1
+  }
+  url="$(packet_url "$reference")"
+  [[ "$url" =~ ^https://github.com/[^/]+/[^/]+/issues/[0-9]+$ ]] || {
+    echo "referenced packet is not projected: $reference" >&2
+    return 1
+  }
+  echo "$url"
+}
+
+desired_dependencies() {
+  local packet="$1"
+  local raw reference
+  raw="$(field_value "$packet" 'Blocked by')"
+  [[ -n "$raw" && "$raw" != none* ]] || return 0
+  IFS=',' read -r -a references <<<"$raw"
+  for reference in "${references[@]}"; do
+    reference="$(trim_reference "$reference")"
+    reference_url "$reference"
+  done | LC_ALL=C sort -u
+}
+
+reconcile_relationships() {
+  local packet="$1"
+  local url remote_json desired current dependency parent_ref parent_url current_parent
+  url="$(packet_url "$packet")"
+  [[ "$url" != pending ]] || { echo "packet remains pending: $packet" >&2; return 1; }
+  remote_json="$temporary_directory/relationship.json"
+  fetch_remote "$url" "$remote_json"
+  desired="$temporary_directory/desired"
+  current="$temporary_directory/current"
+  desired_dependencies "$packet" >"$desired"
+  jq -r '.blockedBy.nodes[].url' "$remote_json" | LC_ALL=C sort -u >"$current"
+  while IFS= read -r dependency; do
+    [[ -n "$dependency" ]] || continue
+    grep -Fqx "$dependency" "$current" || gh issue edit "$url" --add-blocked-by "$dependency" >/dev/null
+  done <"$desired"
+  while IFS= read -r dependency; do
+    [[ -n "$dependency" ]] || continue
+    grep -Fqx "$dependency" "$desired" || gh issue edit "$url" --remove-blocked-by "$dependency" >/dev/null
+  done <"$current"
+  parent_ref="$(field_value "$packet" Parent)"
+  current_parent="$(jq -r '.parent.url // ""' "$remote_json")"
+  if [[ -n "$parent_ref" && "$parent_ref" != none ]]; then
+    parent_ref="$(trim_reference "$parent_ref")"
+    parent_url="$(reference_url "$parent_ref")"
+    [[ "$parent_url" == "$current_parent" ]] || gh issue edit "$url" --parent "$parent_url" >/dev/null
+  elif [[ -n "$current_parent" ]]; then
+    gh issue edit "$url" --remove-parent >/dev/null
+  fi
+}
+
+check_relationships() {
+  local packet="$1"
+  local remote_json="$2"
+  local desired current parent_ref expected_parent current_parent
+  desired="$temporary_directory/check-desired"
+  current="$temporary_directory/check-current"
+  desired_dependencies "$packet" >"$desired"
+  jq -r '.blockedBy.nodes[].url' "$remote_json" | LC_ALL=C sort -u >"$current"
+  cmp -s "$desired" "$current" || {
+    echo "GitHub dependency drift: $packet" >&2
+    return 1
+  }
+  parent_ref="$(field_value "$packet" Parent)"
+  expected_parent=''
+  if [[ -n "$parent_ref" && "$parent_ref" != none ]]; then
+    expected_parent="$(reference_url "$(trim_reference "$parent_ref")")"
+  fi
+  current_parent="$(jq -r '.parent.url // ""' "$remote_json")"
+  [[ "$expected_parent" == "$current_parent" ]] || {
+    echo "GitHub parent drift: $packet" >&2
+    return 1
+  }
+}
+
+check_packet() {
+  local packet="$1"
+  local title status label url remote_json body_file expected_body remote_body remote_title remote_state managed present
+  validate_packet "$packet" || return 1
+  title="$(packet_title "$packet")"
+  status="$(packet_status "$packet")"
+  label="$(canonical_label "$status")"
+  url="$(packet_url "$packet")"
+  [[ "$url" != pending ]] || { echo "packet is not projected: $packet" >&2; return 1; }
+  remote_json="$temporary_directory/check.json"
+  body_file="$temporary_directory/check-body"
+  fetch_remote "$url" "$remote_json"
+  render_projection "$packet" "$body_file"
+  expected_body="$(<"$body_file")"
+  remote_body="$(jq -r .body "$remote_json")"
+  remote_title="$(jq -r .title "$remote_json")"
+  remote_state="$(jq -r .state "$remote_json")"
+  [[ "$expected_body" == "$remote_body" ]] || { echo "GitHub body drift: $packet" >&2; return 1; }
+  [[ "$title" == "$remote_title" ]] || { echo "GitHub title drift: $packet" >&2; return 1; }
+  [[ "$(expected_state "$status")" == "$remote_state" ]] || {
+    echo "GitHub state drift: $packet" >&2
+    return 1
+  }
+  for managed in $MANAGED_LABELS; do
+    present=false
+    jq -e --arg label "$managed" '.labels | any(.name == $label)' "$remote_json" >/dev/null && present=true
+    if [[ "$managed" == "$label" && "$present" != true ]] ||
+       [[ "$managed" != "$label" && "$present" == true ]]; then
+      echo "GitHub label drift: $packet" >&2
+      return 1
+    fi
+  done
+  check_relationships "$packet" "$remote_json"
+  echo "in sync: $packet"
+}
+
+status_packet() {
+  local packet="$1"
+  local status url remote_json
+  validate_packet "$packet" || return 1
+  status="$(packet_status "$packet")"
+  url="$(packet_url "$packet")"
+  if [[ "$url" == pending ]]; then
+    printf '%s\t%s\tpending\n' "$packet" "$status"
+    return
+  fi
+  remote_json="$temporary_directory/status.json"
+  fetch_remote "$url" "$remote_json"
+  printf '%s\t%s\t%s\t%s\n' "$packet" "$status" "$(jq -r .state "$remote_json")" "$url"
+}
+
+failures=0
+while IFS= read -r packet; do
+  case "$mode" in
+    push) push_packet "$packet" || failures=$((failures + 1)) ;;
+    check) check_packet "$packet" || failures=$((failures + 1)) ;;
+    status) status_packet "$packet" || failures=$((failures + 1)) ;;
+  esac
+done <"$packet_list"
+
+if [[ "$mode" == push ]]; then
+  while IFS= read -r packet; do
+    reconcile_relationships "$packet" || failures=$((failures + 1))
+  done <"$packet_list"
+fi
+
+(( failures == 0 )) || exit 1
