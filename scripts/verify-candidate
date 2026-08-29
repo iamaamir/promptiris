@@ -26,11 +26,11 @@ run_check() {
 }
 
 run_check format formatters prettier,gofmt pnpm format:check
+run_check build builder tsc,pnpm pnpm build
 run_check lint linters eslint,markdownlint pnpm lint
 run_check shell shell-linter shellcheck pnpm lint:shell
 run_check schema schema-validator ajv pnpm quality:schema
 run_check generated generated-diff cmp ./scripts/check-generated
-run_check build builder tsc,pnpm pnpm build
 run_check types type-checker tsc pnpm typecheck
 run_check unit test-runner vitest,fast-check,go-test,node-test pnpm test
 run_check go-vet go-vet go-vet env GOCACHE="${TMPDIR:-/tmp}/meta-prompt-go-cache" go -C apps/cli-go vet ./...
