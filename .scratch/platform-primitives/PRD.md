@@ -2,7 +2,7 @@
 
 Status: ready-for-human
 
-GitHub projection: https://github.com/iamaamir/promptiris/issues/2
+GitHub projection: [issue #2](https://github.com/iamaamir/promptiris/issues/2)
 
 ## Goal
 

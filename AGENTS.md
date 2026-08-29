@@ -41,7 +41,7 @@ Commits follow Conventional Commits. Put the required emoji after the type/scope
 
 ### Issue tracker
 
-Authoritative Work Items live as Markdown under `.scratch/<feature>/` and are projected to GitHub Issues for assignment, discussion, and review. See `docs/agents/issue-tracker.md`.
+Authoritative Work Items live as Markdown under `.scratch/<feature>/` and are projected to GitHub Issues for assignment, discussion, and review. `ROADMAP.md` is the parent index; use `scripts/issue-sync push --all` to update the projection. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 

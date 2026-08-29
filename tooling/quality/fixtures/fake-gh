@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC2016 # jq variables are intentionally single-quoted.
+set -euo pipefail
+
+: "${GH_FAKE_DIR:?GH_FAKE_DIR is required}"
+mkdir -p "$GH_FAKE_DIR/issues"
+
+issue_number() {
+  basename "$1"
+}
+
+issue_file() {
+  printf '%s/issues/%s.json' "$GH_FAKE_DIR" "$(issue_number "$1")"
+}
+
+replace_issue() {
+  local file="$1"
+  local filter="$2"
+  shift 2
+  local replacement="$GH_FAKE_DIR/replacement.json"
+  jq "$@" "$filter" "$file" >"$replacement"
+  mv "$replacement" "$file"
+}
+
+[[ "${1:-}" == issue ]] || exit 2
+command_name="${2:-}"
+shift 2
+
+case "$command_name" in
+  list)
+    jq -s '.' "$GH_FAKE_DIR"/issues/*.json 2>/dev/null || echo '[]'
+    ;;
+  create)
+    title=''
+    body_file=''
+    while (($#)); do
+      case "$1" in
+        --title) title="$2"; shift 2 ;;
+        --body-file) body_file="$2"; shift 2 ;;
+        *) shift ;;
+      esac
+    done
+    counter_file="$GH_FAKE_DIR/counter"
+    number=1
+    [[ ! -f "$counter_file" ]] || number=$(( $(<"$counter_file") + 1 ))
+    echo "$number" >"$counter_file"
+    url="https://github.com/example/promptiris/issues/$number"
+    jq -n --arg title "$title" --rawfile body "$body_file" --arg url "$url" \
+      '{title:$title,body:$body,state:"OPEN",labels:[],url:$url,blockedBy:{nodes:[]},parent:null}' \
+      >"$GH_FAKE_DIR/issues/$number.json"
+    echo "$url"
+    ;;
+  view)
+    file="$(issue_file "$1")"
+    [[ -f "$file" ]] || exit 1
+    cat "$file"
+    ;;
+  edit)
+    url="$1"
+    shift
+    file="$(issue_file "$url")"
+    while (($#)); do
+      case "$1" in
+        --title)
+          replace_issue "$file" '.title = $value' --arg value "$2"
+          shift 2
+          ;;
+        --body-file)
+          replace_issue "$file" '.body = $value' --rawfile value "$2"
+          shift 2
+          ;;
+        --add-label)
+          replace_issue "$file" '.labels = ((.labels + [{name:$value}]) | unique_by(.name))' --arg value "$2"
+          shift 2
+          ;;
+        --remove-label)
+          replace_issue "$file" '.labels = [.labels[] | select(.name != $value)]' --arg value "$2"
+          shift 2
+          ;;
+        --add-blocked-by)
+          replace_issue "$file" '.blockedBy.nodes = ((.blockedBy.nodes + [{url:$value}]) | unique_by(.url))' --arg value "$2"
+          shift 2
+          ;;
+        --remove-blocked-by)
+          replace_issue "$file" '.blockedBy.nodes = [.blockedBy.nodes[] | select(.url != $value)]' --arg value "$2"
+          shift 2
+          ;;
+        --parent)
+          replace_issue "$file" '.parent = {url:$value}' --arg value "$2"
+          shift 2
+          ;;
+        --remove-parent)
+          replace_issue "$file" '.parent = null'
+          shift
+          ;;
+        *) shift ;;
+      esac
+    done
+    ;;
+  close)
+    file="$(issue_file "$1")"
+    replace_issue "$file" '.state = "CLOSED"'
+    ;;
+  *) exit 2 ;;
+esac

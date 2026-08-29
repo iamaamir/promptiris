@@ -2,7 +2,7 @@
 
 Status: ready-for-human
 
-GitHub issue: https://github.com/iamaamir/promptiris/issues/2
+GitHub issue: <https://github.com/iamaamir/promptiris/issues/2>
 Branch: `platform-primitives`
 Blocked by: none; GitHub PR #1 merged as `a0190b9`
 Blocks: none
