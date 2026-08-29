@@ -8,7 +8,7 @@ Every Event uses a stable envelope:
 
 ```ts
 interface Event<T extends JsonValue = JsonValue> {
-  schemaVersion: "1";
+  schemaVersion: '1';
   id: string;
   type: string;
   time: string;
@@ -23,8 +23,8 @@ interface Event<T extends JsonValue = JsonValue> {
   invocationId?: string;
   dataSchema: SchemaReference;
   data: T;
-  classification: "metadata" | "content" | "sensitive";
-  delivery: "critical" | "progress";
+  classification: 'metadata' | 'content' | 'sensitive';
+  delivery: 'critical' | 'progress';
 }
 ```
 
@@ -32,22 +32,24 @@ The Kernel stamps identity, source, time, correlation, classification, delivery 
 
 The v1 standard catalog is intentionally bounded:
 
-| Family | Standard types | Purpose |
-| --- | --- | --- |
-| Run | `run.started`, `run.cancellation-requested`, `run.completed` | Host lifecycle and terminal Result status |
-| Phase | `phase.started`, `phase.progress`, `phase.completed`, `phase.skipped` | User-visible progress across the six stable phases |
-| Plugin | `plugin.activation-started`, `plugin.activation-completed`, `plugin.invocation-started`, `plugin.progress`, `plugin.invocation-completed` | Devtools tree and slow/failing contribution visibility |
-| Provider | `provider.request-started`, `provider.first-output`, `provider.retrying`, `provider.request-completed` | Latency, streaming readiness, retries, and usage |
-| Patch | `patch.proposed`, `patch.applied`, `patch.rejected` | Provenance and document diff inspection |
-| Guard | `guard.evaluated` | Pass, warn, inconclusive, or block decision |
-| Outcome | `fallback.activated`, `diagnostic.emitted` | Degradation and safe failure visibility |
-| Observer | `observer.progress-dropped`, `observer.detached` | Self-diagnostics for backpressure and subscriber failure |
+| Family   | Standard types                                                                                                                            | Purpose                                                  |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| Run      | `run.started`, `run.cancellation-requested`, `run.completed`                                                                              | Host lifecycle and terminal Result status                |
+| Phase    | `phase.started`, `phase.progress`, `phase.completed`, `phase.skipped`                                                                     | User-visible progress across the six stable phases       |
+| Plugin   | `plugin.activation-started`, `plugin.activation-completed`, `plugin.invocation-started`, `plugin.progress`, `plugin.invocation-completed` | Devtools tree and slow/failing contribution visibility   |
+| Provider | `provider.request-started`, `provider.first-output`, `provider.retrying`, `provider.request-completed`                                    | Latency, streaming readiness, retries, and usage         |
+| Patch    | `patch.proposed`, `patch.applied`, `patch.rejected`                                                                                       | Provenance and document diff inspection                  |
+| Guard    | `guard.evaluated`                                                                                                                         | Pass, warn, inconclusive, or block decision              |
+| Outcome  | `fallback.activated`, `diagnostic.emitted`                                                                                                | Degradation and safe failure visibility                  |
+| Observer | `observer.progress-dropped`, `observer.detached`                                                                                          | Self-diagnostics for backpressure and subscriber failure |
 
 Start/completion payloads share common status and duration shapes; progress payloads use optional `current`, `total`, `unit`, and safe human-readable `message`. Usage belongs on provider completion and the Run summary, not on every progress Event. Failure is represented by referenced safe Diagnostics rather than copied exception data. On the wire, standard type names use the reserved `promptiris.` prefix—for example `promptiris.phase.started`; the shortened names in this document are for readability.
 
 A Plugin may define a custom Event only in its own namespace and must register its schema in its manifest. Custom Events use the same envelope and may not impersonate standard lifecycle Events. Hosts should present unknown custom Events generically rather than depending on their payload.
 
 Observer failures never alter the transformation. Each observer has an isolated bounded queue. When it lags, progress Events are dropped first and one coalesced `observer.progress-dropped` Event is sent to other healthy observers. If a critical Event cannot be enqueued, the lagging observer is detached and `observer.detached` is sent elsewhere. Observer callbacks never apply backpressure to the Run.
+
+The in-process dispatcher retains synchronous publication and offers each observer a disposable `AsyncIterable`. Iterator return removes the observer, dispatcher completion settles pending reads, and publication after completion is rejected. This streaming surface carries Events only; Plugin Patches and Artifacts remain one atomic terminal output in protocol v1.
 
 ## Safe failures versus debug detail
 
@@ -57,11 +59,11 @@ Errors cross boundaries as data, never as language-specific `Error` objects.
 
 ```ts
 interface Diagnostic {
-  schemaVersion: "1";
+  schemaVersion: '1';
   id: string;
   code: string;
   category: DiagnosticCategory;
-  severity: "info" | "warning" | "error" | "fatal";
+  severity: 'info' | 'warning' | 'error' | 'fatal';
   title: string;
   detail?: string;
   data?: JsonValue;
@@ -73,8 +75,8 @@ interface Diagnostic {
   spanId?: string;
   causeIds?: string[];
   retry: {
-    disposition: "never" | "safe" | "conditional";
-    scope?: "invocation" | "run";
+    disposition: 'never' | 'safe' | 'conditional';
+    scope?: 'invocation' | 'run';
     afterMs?: number;
   };
   docs?: string;
@@ -98,6 +100,8 @@ Core codes use `promptiris.*`. Plugin codes are namespaced and registered by the
 The catalog is extended only when Hosts need distinct recovery behavior; human wording changes without adding codes. Schema validation prevents unknown structured `data`, and Hosts switch on code—not title or detail.
 
 **Debug Record** is richer, ephemeral, and potentially sensitive. It may include an exception type, message, stack, process exit information, bounded stderr tail, and sanitized local context. It is referenced from the in-memory diagnostic journal, not embedded in a normal Result.
+
+Internal Error causes and aggregate failures may populate a bounded Debug Record only when capture is explicitly enabled. A Node execution context may contribute immutable operational correlation IDs, but never Input, Context, configuration, credentials, or correctness-critical state. Context crossing a worker or subprocess is explicit rather than assumed.
 
 Expected Plugin failures use an SDK failure constructor with a registered code and schema-valid data. Unexpected throws are caught at every Plugin, Provider, observer, and lifecycle boundary and normalized to a generic core Diagnostic. The Kernel, not the Plugin, stamps trusted identity, source, Run/Phase correlation, and sequence.
 

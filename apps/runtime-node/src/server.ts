@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { createRunContext, identityRecipe } from '@promptiris/core';
+import { createEventDispatcher, identityRecipe } from '@promptiris/core';
 import {
   validatePromptDocument,
   type CapabilityResolution,
@@ -11,6 +11,7 @@ import {
   type JsonRpcRequest,
 } from '@promptiris/protocol';
 import { loadConfiguration } from './configuration.js';
+import { runWithExecutionContext } from './execution-context.js';
 
 const METHOD_NOT_FOUND = -32601;
 const INVALID_PARAMS = -32602;
@@ -143,20 +144,15 @@ export class RuntimeServer {
 
     const runId = randomUUID();
     const messages: JsonRpcMessage[] = [];
-    const context = createRunContext(runId, (event: Event) => {
+    const context = createEventDispatcher(runId, (event: Event) => {
       messages.push({ jsonrpc: '2.0', method: 'run/event', params: event });
     });
-    const result = await identityRecipe.run(input, context);
-    context.emit({
-      type: 'promptiris.run.completed',
-      source: 'core',
-      dataSchema: 'promptiris/event/run-completed-v1',
-      data: { status: result.status },
-      classification: 'metadata',
-      delivery: 'critical',
+    return runWithExecutionContext({ runId, traceId: runId }, async () => {
+      const result = await identityRecipe.run(input, context);
+      context.complete(result.status);
+      messages.push(this.#response(request, result));
+      return messages;
     });
-    messages.push(this.#response(request, result));
-    return messages;
   }
 
   #response(request: JsonRpcRequest, result: unknown): JsonRpcMessage {

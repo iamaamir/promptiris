@@ -45,6 +45,23 @@ async function capturedFailure(operation: Promise<unknown>): Promise<string> {
 }
 
 describe('defineNativePlugin', () => {
+  it('exposes idempotent explicit disposal for an activated native process', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'promptiris-native-dispose-'));
+    try {
+      const marker = join(directory, 'trace');
+      const implementation = await native('ignore-shutdown', {
+        args: [fixture, 'ignore-shutdown', marker],
+      }).activate();
+
+      expect(implementation[Symbol.asyncDispose]).toBeTypeOf('function');
+      await implementation[Symbol.asyncDispose]?.();
+      await implementation[Symbol.asyncDispose]?.();
+      expect(await readFile(marker, 'utf8')).toContain('sigterm');
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+
   it('does not start a process until activation and invokes a framed plugin', async () => {
     const directory = await mkdtemp(join(tmpdir(), 'meta-prompt-native-lazy-'));
     try {

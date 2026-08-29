@@ -308,6 +308,13 @@ class NativePluginSupervisor {
     await this.#ensureChild();
   }
 
+  async [Symbol.asyncDispose](): Promise<void> {
+    const child = this.#child;
+    if (child === undefined) return;
+    this.#child = undefined;
+    await stopChild(child, this.#config.cancellationGraceMs);
+  }
+
   async invoke(invocation: PluginInvocation): Promise<PluginOutput> {
     if (this.#inFlight) throw safeError('Native plugin concurrent invocation denied');
     this.#inFlight = true;
@@ -419,8 +426,8 @@ class NativePluginSupervisor {
       throw error instanceof Error && error.message.startsWith('Native plugin')
         ? error
         : safeError('Native plugin protocol error');
-      // Stryker disable next-line BlockStatement: a supervisor has one in-flight child, so clearing
-      // changes only defensive stale-process state after the public result is decided.
+      // A supervisor has one in-flight child, so clearing changes only defensive stale-process state after the public result is decided.
+      // Stryker disable next-line BlockStatement
     } finally {
       // Stryker disable next-line ConditionalExpression,EqualityOperator: a supervisor has one
       // in-flight child; identity variants cannot alter the already-decided public result.
@@ -458,6 +465,9 @@ export function defineNativePlugin(options: NativePluginOptions): PluginRegistra
       return Object.freeze({
         invoke(invocation: PluginInvocation): Promise<PluginOutput> {
           return supervisor.invoke(invocation);
+        },
+        [Symbol.asyncDispose](): Promise<void> {
+          return supervisor[Symbol.asyncDispose]();
         },
       });
     },

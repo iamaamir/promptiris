@@ -66,6 +66,9 @@ export interface CapabilityRequirementInput {
 }
 
 // @public (undocumented)
+export function captureDebugRecord(sink: DebugRecordSink | undefined, error: unknown, location: DebugRecordLocation): void;
+
+// @public (undocumented)
 export interface CompiledContribution {
     // (undocumented)
     readonly contribution: PluginContribution;
@@ -130,16 +133,95 @@ export type ConfigPolicy = {
 };
 
 // @public (undocumented)
+export function createEventDispatcher(runId: string, sink?: (event: Event_2) => void): EventDispatcher;
+
+// @public (undocumented)
 export function createRunContext(runId: string, emit: (event: Event_2) => void): RunContext;
 
 // @public (undocumented)
+export function createRunLifetime(options?: RunLifetimeOptions): RunLifetime;
+
+// @public (undocumented)
 export function createTransformationState(document: PromptDocument, revision?: number): TransformationState;
+
+// @public (undocumented)
+export interface DebugException {
+    // (undocumented)
+    readonly causes?: readonly DebugException[];
+    // (undocumented)
+    readonly message: string;
+    // (undocumented)
+    readonly stack?: string;
+    // (undocumented)
+    readonly type: string;
+}
+
+// @public (undocumented)
+export interface DebugRecord {
+    // (undocumented)
+    readonly contributionId?: string;
+    // (undocumented)
+    readonly exception: DebugException;
+    // (undocumented)
+    readonly id: string;
+    // (undocumented)
+    readonly operation: string;
+    // (undocumented)
+    readonly pluginId?: string;
+    // (undocumented)
+    readonly runId: string;
+    // (undocumented)
+    readonly traceId: string;
+}
+
+// @public (undocumented)
+export interface DebugRecordLocation {
+    // (undocumented)
+    readonly contributionId?: string;
+    // (undocumented)
+    readonly operation: string;
+    // (undocumented)
+    readonly pluginId?: string;
+    // (undocumented)
+    readonly runId: string;
+    // (undocumented)
+    readonly traceId: string;
+}
+
+// @public (undocumented)
+export interface DebugRecordSink {
+    capture(record: DebugRecord): void;
+}
 
 // @public (undocumented)
 export function deepFrozenClone(value: JsonValue): JsonValue;
 
 // @public (undocumented)
 export function evaluateCapabilities(requirements: readonly CapabilityRequirementInput[], evidence: readonly CapabilityEvidence[]): readonly CapabilityResolution[];
+
+// @public (undocumented)
+export interface EventDispatcher extends RunContext {
+    // (undocumented)
+    complete(status: RunResult['status']): void;
+    // (undocumented)
+    subscribe(options: EventSubscriptionOptions): EventSubscription;
+}
+
+// @public (undocumented)
+export interface EventSubscription extends AsyncIterableIterator<Event_2>, AsyncDisposable {
+    // (undocumented)
+    readonly observerId: string;
+    // (undocumented)
+    return(): Promise<IteratorResult<Event_2>>;
+}
+
+// @public (undocumented)
+export interface EventSubscriptionOptions {
+    // (undocumented)
+    readonly capacity?: number;
+    // (undocumented)
+    readonly observerId: string;
+}
 
 // @public (undocumented)
 export function executePluginPlan(input: PromptDocument, graph: CompiledPluginGraph, registrations: readonly PluginRegistration[], context: RunContext, options: ExecutionOptions): Promise<RunResult>;
@@ -149,12 +231,16 @@ export interface ExecutionOptions {
     // (undocumented)
     readonly artifacts?: ArtifactExposurePolicy;
     // (undocumented)
+    readonly debug?: DebugRecordSink;
+    // (undocumented)
     readonly recipe: {
         readonly id: string;
         readonly version: string;
     };
     // (undocumented)
     readonly signal?: AbortSignal;
+    // (undocumented)
+    readonly timeoutMs?: number;
 }
 
 // @public (undocumented)
@@ -243,6 +329,25 @@ export type ResolveResult = {
     readonly ok: false;
     readonly diagnostic: Diagnostic;
 };
+
+// @public (undocumented)
+export interface RunLifetime extends Disposable {
+    // (undocumented)
+    readonly signal: AbortSignal;
+    // (undocumented)
+    readonly termination: RunTermination;
+}
+
+// @public (undocumented)
+export interface RunLifetimeOptions {
+    // (undocumented)
+    readonly signal?: AbortSignal;
+    // (undocumented)
+    readonly timeoutMs?: number;
+}
+
+// @public (undocumented)
+export type RunTermination = 'active' | 'cancelled' | 'timed-out';
 
 // @public (undocumented)
 export function safePreview(schema: SchemaRule, value: JsonValue): SafePreview;

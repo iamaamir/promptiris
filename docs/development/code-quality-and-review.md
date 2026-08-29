@@ -6,17 +6,28 @@ Quality means that behavior, structure, boundaries, and evidence remain understa
 
 Use the simplest primitive whose semantics match the problem:
 
-| Need                                                     | Prefer                             | Avoid                                                                                     |
-| -------------------------------------------------------- | ---------------------------------- | ----------------------------------------------------------------------------------------- |
-| JSON-shaped portable data                                | plain immutable records and arrays | class instances, symbols, accessors, or proxies crossing serialization boundaries         |
-| uniqueness or membership                                 | `Set`                              | array scans and duplicate-prone registries                                                |
-| keyed process-local state                                | `Map`                              | object dictionaries when keys are not JSON field names                                    |
-| object-identity metadata                                 | `WeakMap`/`WeakSet`                | enumerable or serialized state; relying on garbage collection timing                      |
-| lazy or potentially large traversal                      | iterator/generator                 | eager intermediate arrays; generators for small bounded values that are clearer as arrays |
-| collision-resistant internal identity or a language hook | `Symbol` or a well-known symbol    | public wire/configuration keys that must serialize or interoperate across languages       |
-| transparent interception as the actual contract          | narrowly scoped `Proxy`            | ordinary validation, configuration, or state where traps hide control flow                |
+| Need                                                     | Prefer                                                                | Avoid                                                                                         |
+| -------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| JSON-shaped portable data                                | plain immutable records and arrays                                    | class instances, symbols, accessors, or proxies crossing serialization boundaries             |
+| uniqueness or membership                                 | `Set`                                                                 | array scans and duplicate-prone registries                                                    |
+| keyed process-local state                                | `Map`                                                                 | object dictionaries when keys are not JSON field names                                        |
+| object-identity metadata                                 | `WeakMap`/`WeakSet`                                                   | enumerable or serialized state; relying on garbage collection timing                          |
+| lazy or potentially large traversal                      | iterator/generator                                                    | eager intermediate arrays; generators for small bounded values that are clearer as arrays     |
+| collision-resistant internal identity or a language hook | `Symbol` or a well-known symbol                                       | public wire/configuration keys that must serialize or interoperate across languages           |
+| transparent interception as the actual contract          | narrowly scoped `Proxy`                                               | ordinary validation, configuration, or state where traps hide control flow                    |
+| cancellation and deadlines                               | `AbortSignal` with one owner                                          | boolean cancellation flags, unowned timers, or accepting late async results                   |
+| deterministic resource cleanup                           | `using`/`await using`, disposable stacks, well-known disposal symbols | cleanup scattered across success and failure branches or finalizers used for correctness      |
+| ordered progressive delivery                             | bounded `AsyncIterable`                                               | unbounded queues, polling, or making slow observers block production work                     |
+| preserving internal failure causality                    | `Error.cause`, `AggregateError`, `SuppressedError`                    | putting exceptions, stacks, or sensitive messages into portable Results                       |
+| lazy implementation loading                              | authorized dynamic `import()`                                         | eager loading, importing discovered-but-unselected code, network or traversal ambiguity       |
+| operational async correlation                            | runtime-scoped execution context                                      | ambient domain Context, credentials, Input, or correctness-critical state                     |
+| isolated structured copying                              | `structuredClone` and explicit transfer                               | JSON stringify cloning, accidental shared mutation, or cloning values whose prototypes matter |
+| binary representation                                    | `ArrayBuffer`, typed arrays, `DataView`, `Blob`                       | number arrays for bytes or embedding binary values in JSON protocols                          |
+| canonical resource identifiers                           | `URL` and `URLSearchParams`                                           | ad hoc string concatenation or treating a URL as authorization                                |
 
 Platform features are not a quota. A Reviewer must be able to name the semantic property gained—uniqueness, identity, laziness, disposal, or interception—and the tests that constrain it. `Proxy` requires trap-invariant, reflection, serialization, identity, and debugging consideration. Resource-owning iterators require explicit early-termination cleanup. Symbols never enter JSON, schemas, Events, Diagnostics, or cross-process protocols.
+
+Cancellation, disposal, progressive delivery, and execution context form one lifecycle contract. A Reviewer checks ownership, terminal-state precedence, queue bounds, early return, idempotent cleanup, late completion, and observer isolation together. `WeakRef` and `FinalizationRegistry` never provide correctness-critical cleanup; `SharedArrayBuffer` and `Atomics` require measured cross-worker contention and race evidence before adoption.
 
 ## Boundaries and types
 

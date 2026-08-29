@@ -42,6 +42,7 @@ Default to `audit` when the user has not authorized repository changes.
 - Never weaken a test, threshold, security control, or acceptance criterion to make adoption pass.
 - Keep local content collection and external telemetry disabled by default.
 - Do not turn ordinary development scripts into a plugin platform without measured replacement pressure.
+- Give every asynchronous task one cancellation/terminal-state owner; bound event queues and dispose subprocesses, timers, listeners, and subscriptions deterministically.
 
 ## Reference routing
 

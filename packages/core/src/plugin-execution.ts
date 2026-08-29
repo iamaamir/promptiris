@@ -23,6 +23,8 @@ import {
   createTransformationState,
   type TransformationState,
 } from './transformation-state.js';
+import { createRunLifetime, type RunLifetime, type RunTermination } from './run-lifetime.js';
+import { captureDebugRecord, type DebugRecordSink } from './debug-record.js';
 
 /** @public */
 export interface ArtifactExposurePolicy {
@@ -35,7 +37,9 @@ export interface ArtifactExposurePolicy {
 export interface ExecutionOptions {
   readonly recipe: { readonly id: string; readonly version: string };
   readonly signal?: AbortSignal;
+  readonly timeoutMs?: number;
   readonly artifacts?: ArtifactExposurePolicy;
+  readonly debug?: DebugRecordSink;
 }
 
 interface ExecutionState {
@@ -46,12 +50,16 @@ interface ExecutionState {
   readonly patchIds: string[];
   readonly completedPhases: Phase[];
   readonly failedPhases: Phase[];
+  readonly resources: AsyncDisposableStack;
+  readonly debug?: DebugRecordSink;
+  terminalStatus?: 'cancelled';
   transformed: boolean;
 }
 
 type InvocationOutcome =
   | { readonly ok: true; readonly output: PluginOutput }
-  | { readonly ok: false; readonly diagnostic: Diagnostic };
+  | { readonly ok: false; readonly diagnostic: Diagnostic }
+  | { readonly ok: false; readonly termination: Exclude<RunTermination, 'active'> };
 type ActivationOutcome =
   | { readonly ok: true; readonly implementation: PluginImplementation }
   | { readonly ok: false; readonly diagnostic: Diagnostic };
@@ -65,6 +73,13 @@ function coreDiagnostic(code: string, category = 'plugin'): Diagnostic {
     severity: 'error',
     title: code,
   });
+}
+
+function terminationDiagnostic(termination: Exclude<RunTermination, 'active'>): Diagnostic {
+  return coreDiagnostic(
+    termination === 'timed-out' ? 'promptiris.run.timeout' : 'promptiris.run.cancelled',
+    termination === 'timed-out' ? 'timeout' : 'cancellation',
+  );
 }
 
 function emitPluginEvent(
@@ -110,6 +125,15 @@ function isPluginImplementation(value: unknown): value is PluginImplementation {
     'invoke' in value &&
     typeof value.invoke === 'function'
   );
+}
+
+function pluginDisposer(implementation: PluginImplementation): (() => Promise<void>) | undefined {
+  const dispose: unknown = Reflect.get(implementation, Symbol.asyncDispose);
+  if (typeof dispose !== 'function') return undefined;
+  return async () => {
+    const result: unknown = Reflect.apply(dispose, implementation, []);
+    await result;
+  };
 }
 
 function isArtifactClassification(value: unknown): value is ArtifactProposal['classification'] {
@@ -164,9 +188,20 @@ async function activatePlugin(
     const implementation: unknown = await registration.activate();
     if (!isPluginImplementation(implementation)) throw new TypeError();
     state.activated.set(node.pluginId, implementation);
+    const dispose = pluginDisposer(implementation);
+    if (dispose !== undefined) {
+      state.resources.defer(() => Promise.resolve(dispose()));
+    }
     emitPluginEvent(context, 'promptiris.plugin.activation-completed', node, 'success');
     return { ok: true, implementation };
-  } catch {
+  } catch (error) {
+    captureDebugRecord(state.debug, error, {
+      runId: context.runId,
+      traceId: context.runId,
+      operation: 'plugin.activate',
+      pluginId: node.pluginId,
+      contributionId: node.contribution.id,
+    });
     emitPluginEvent(context, 'promptiris.plugin.activation-completed', node, 'failed');
     return { ok: false, diagnostic: coreDiagnostic('promptiris.plugin.activation-failed') };
   }
@@ -177,21 +212,59 @@ async function invokePlugin(
   request: PluginInvocation,
   node: CompiledContribution,
   context: RunContext,
+  debug: DebugRecordSink | undefined,
 ): Promise<InvocationOutcome> {
   emitPluginEvent(context, 'promptiris.plugin.invocation-started', node);
-  let output: unknown;
-  try {
-    output = await implementation.invoke(request);
-  } catch {
+  const settled = await settleInvocation(implementation, request);
+  if (settled.kind === 'failure') {
+    captureDebugRecord(debug, settled.error, {
+      runId: context.runId,
+      traceId: context.runId,
+      operation: 'plugin.invoke',
+      pluginId: node.pluginId,
+      contributionId: node.contribution.id,
+    });
+  }
+  if (settled.kind === 'cancelled') {
+    emitPluginEvent(context, 'promptiris.plugin.invocation-completed', node, 'failed');
+    return { ok: false, termination: 'cancelled' };
+  }
+  if (settled.kind === 'failure') {
     emitPluginEvent(context, 'promptiris.plugin.invocation-completed', node, 'failed');
     return { ok: false, diagnostic: coreDiagnostic('promptiris.plugin.invocation-failed') };
   }
-  if (!isPluginOutput(output)) {
+  if (!isPluginOutput(settled.output)) {
     emitPluginEvent(context, 'promptiris.plugin.invocation-completed', node, 'failed');
     return { ok: false, diagnostic: coreDiagnostic('promptiris.plugin.invalid-output') };
   }
   emitPluginEvent(context, 'promptiris.plugin.invocation-completed', node, 'success');
-  return { ok: true, output };
+  return { ok: true, output: settled.output };
+}
+
+type InvocationSettlement =
+  | { readonly kind: 'output'; readonly output: unknown }
+  | { readonly kind: 'failure'; readonly error: unknown }
+  | { readonly kind: 'cancelled' };
+
+async function settleInvocation(
+  implementation: PluginImplementation,
+  request: PluginInvocation,
+): Promise<InvocationSettlement> {
+  const invocation = Promise.resolve()
+    .then(() => implementation.invoke(request))
+    .then(
+      (output: unknown) => ({ kind: 'output' as const, output }),
+      (error: unknown) => ({ kind: 'failure' as const, error }),
+    );
+  let onAbort: (() => void) | undefined;
+  const cancellation = new Promise<{ readonly kind: 'cancelled' }>((resolve) => {
+    onAbort = () => resolve({ kind: 'cancelled' });
+    request.signal.addEventListener('abort', onAbort, { once: true });
+    if (request.signal.aborted) onAbort();
+  });
+  const settled = await Promise.race([invocation, cancellation]);
+  if (onAbort !== undefined) request.signal.removeEventListener('abort', onAbort);
+  return settled;
 }
 
 function ownsNamespace(pluginId: string, key: string): boolean {
@@ -320,27 +393,58 @@ async function executeContribution(
   registrations: readonly PluginRegistration[],
   state: ExecutionState,
   context: RunContext,
-  signal: AbortSignal,
+  lifetime: RunLifetime,
 ): Promise<boolean> {
+  if (lifetime.termination !== 'active') {
+    markTermination(state, context, lifetime.termination);
+    return false;
+  }
   const registration = registrations.find((candidate) => candidate.manifest.id === node.pluginId);
   const activation = await activatePlugin(registration, node, state, context);
   if (!activation.ok) {
     state.diagnostics.push(activation.diagnostic);
     return false;
   }
+  if (lifetime.termination !== 'active') {
+    markTermination(state, context, lifetime.termination);
+    return false;
+  }
   const outcome = await invokePlugin(
     activation.implementation,
-    {
-      contributionId: node.contribution.id,
-      input: state.current.document,
-      revision: state.current.revision,
-      signal,
-    },
+    pluginInvocation(node, state, lifetime.signal),
     node,
     context,
+    state.debug,
   );
+  return handleInvocationOutcome(outcome, node, state, context, lifetime);
+}
+
+function pluginInvocation(
+  node: CompiledContribution,
+  state: ExecutionState,
+  signal: AbortSignal,
+): PluginInvocation {
+  return {
+    contributionId: node.contribution.id,
+    input: state.current.document,
+    revision: state.current.revision,
+    signal,
+  };
+}
+
+function handleInvocationOutcome(
+  outcome: InvocationOutcome,
+  node: CompiledContribution,
+  state: ExecutionState,
+  context: RunContext,
+  lifetime: RunLifetime,
+): boolean {
   if (!outcome.ok) {
-    state.diagnostics.push(outcome.diagnostic);
+    if ('termination' in outcome) {
+      const termination =
+        lifetime.termination === 'active' ? outcome.termination : lifetime.termination;
+      markTermination(state, context, termination);
+    } else state.diagnostics.push(outcome.diagnostic);
     return false;
   }
   const rejected = acceptOutput(outcome.output, node, state, context);
@@ -349,6 +453,24 @@ async function executeContribution(
     return false;
   }
   return true;
+}
+
+function markTermination(
+  state: ExecutionState,
+  context: RunContext,
+  termination: Exclude<RunTermination, 'active'>,
+): void {
+  if (state.terminalStatus === 'cancelled') return;
+  state.terminalStatus = 'cancelled';
+  state.diagnostics.push(terminationDiagnostic(termination));
+  context.emit({
+    type: 'promptiris.run.cancellation-requested',
+    source: 'core',
+    dataSchema: 'promptiris/event/run-cancellation-requested-v1',
+    data: { reason: termination },
+    classification: 'metadata',
+    delivery: 'critical',
+  });
 }
 
 function createResult(
@@ -368,7 +490,7 @@ function createResult(
     schemaVersion: '1',
     runId: context.runId,
     recipe: options.recipe,
-    status: state.diagnostics.length === 0 ? 'success' : 'degraded',
+    status: state.terminalStatus ?? (state.diagnostics.length === 0 ? 'success' : 'degraded'),
     primary: artifacts.primary,
     primaryOrigin:
       artifacts.primary.kind !== 'promptiris/prompt' || state.transformed
@@ -393,7 +515,7 @@ async function executeNodes(
   registrations: readonly PluginRegistration[],
   state: ExecutionState,
   context: RunContext,
-  signal: AbortSignal,
+  lifetime: RunLifetime,
 ): Promise<void> {
   let activePhase: Phase | undefined;
   for (const node of graph.contributions) {
@@ -405,8 +527,8 @@ async function executeNodes(
       activePhase = node.contribution.phase;
       emitPhaseEvent(context, 'promptiris.phase.started', activePhase);
     }
-    if (!(await executeContribution(node, registrations, state, context, signal))) {
-      state.failedPhases.push(activePhase);
+    if (!(await executeContribution(node, registrations, state, context, lifetime))) {
+      if (state.terminalStatus !== 'cancelled') state.failedPhases.push(activePhase);
       emitPhaseEvent(context, 'promptiris.phase.completed', activePhase, 'degraded');
       return;
     }
@@ -426,7 +548,25 @@ export async function executePluginPlan(
   options: ExecutionOptions,
 ): Promise<RunResult> {
   const started = Date.now();
-  const state: ExecutionState = {
+  using lifetime = createRunLifetime(options);
+  const resources = new AsyncDisposableStack();
+  const state = executionState(input, resources, options.debug);
+  if (lifetime.termination !== 'active') markTermination(state, context, lifetime.termination);
+  else if (!graph.ok) {
+    state.diagnostics.push(coreDiagnostic('promptiris.recipe.compile-failed', 'configuration'));
+  } else {
+    await executeNodes(graph, registrations, state, context, lifetime);
+  }
+  await disposeResources(resources, state, context, options.debug);
+  return createResult(state, context, options, Date.now() - started);
+}
+
+function executionState(
+  input: PromptDocument,
+  resources: AsyncDisposableStack,
+  debug: DebugRecordSink | undefined,
+): ExecutionState {
+  return {
     current: createTransformationState(input),
     activated: new Map(),
     diagnostics: [],
@@ -434,13 +574,26 @@ export async function executePluginPlan(
     patchIds: [],
     completedPhases: [],
     failedPhases: [],
+    resources,
+    ...(debug === undefined ? {} : { debug }),
     transformed: false,
   };
-  if (!graph.ok)
-    state.diagnostics.push(coreDiagnostic('promptiris.recipe.compile-failed', 'configuration'));
-  else {
-    const signal = options.signal ?? new AbortController().signal;
-    await executeNodes(graph, registrations, state, context, signal);
+}
+
+async function disposeResources(
+  resources: AsyncDisposableStack,
+  state: ExecutionState,
+  context: RunContext,
+  debug: DebugRecordSink | undefined,
+): Promise<void> {
+  try {
+    await resources.disposeAsync();
+  } catch (error) {
+    captureDebugRecord(debug, error, {
+      runId: context.runId,
+      traceId: context.runId,
+      operation: 'plugin.dispose',
+    });
+    state.diagnostics.push(coreDiagnostic('promptiris.internal.failure', 'internal'));
   }
-  return createResult(state, context, options, Date.now() - started);
 }

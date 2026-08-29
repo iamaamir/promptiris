@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "baselineDate": "2026-08-28",
+  "baselineDate": "2026-08-30",
   "aggregate": {
-    "minScore": 93.47,
+    "minScore": 94.13,
     "maxIgnored": 106,
-    "maxSurvived": 82,
+    "maxSurvived": 91,
     "maxNoCoverage": 10
   },
   "targets": {
@@ -14,8 +14,20 @@
       "maxSurvived": 5,
       "maxNoCoverage": 0
     },
+    "apps/runtime-node/src/execution-context.ts": {
+      "minScore": 100,
+      "maxIgnored": 0,
+      "maxSurvived": 0,
+      "maxNoCoverage": 0
+    },
+    "apps/runtime-node/src/lazy-plugin.ts": {
+      "minScore": 100,
+      "maxIgnored": 0,
+      "maxSurvived": 0,
+      "maxNoCoverage": 0
+    },
     "apps/runtime-node/src/native-plugin.ts": {
-      "minScore": 90.23,
+      "minScore": 90.29,
       "maxIgnored": 80,
       "maxSurvived": 12,
       "maxNoCoverage": 5
@@ -50,6 +62,18 @@
       "maxSurvived": 4,
       "maxNoCoverage": 2
     },
+    "packages/core/src/debug-record.ts": {
+      "minScore": 100,
+      "maxIgnored": 0,
+      "maxSurvived": 0,
+      "maxNoCoverage": 0
+    },
+    "packages/core/src/event-dispatcher.ts": {
+      "minScore": 93.13,
+      "maxIgnored": 0,
+      "maxSurvived": 11,
+      "maxNoCoverage": 0
+    },
     "packages/core/src/index.ts": {
       "minScore": 100,
       "maxIgnored": 0,
@@ -57,15 +81,21 @@
       "maxNoCoverage": 0
     },
     "packages/core/src/plugin-execution.ts": {
-      "minScore": 91.86,
+      "minScore": 94.85,
       "maxIgnored": 0,
-      "maxSurvived": 18,
+      "maxSurvived": 14,
       "maxNoCoverage": 0
     },
     "packages/core/src/plugin-graph.ts": {
       "minScore": 100,
       "maxIgnored": 8,
       "maxSurvived": 0,
+      "maxNoCoverage": 0
+    },
+    "packages/core/src/run-lifetime.ts": {
+      "minScore": 91.43,
+      "maxIgnored": 0,
+      "maxSurvived": 3,
       "maxNoCoverage": 0
     },
     "packages/core/src/transformation-state.ts": {

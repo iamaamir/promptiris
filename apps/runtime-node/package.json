@@ -11,6 +11,14 @@
     "./native-plugin": {
       "types": "./dist/native-plugin.d.ts",
       "default": "./dist/native-plugin.js"
+    },
+    "./execution-context": {
+      "types": "./dist/execution-context.d.ts",
+      "default": "./dist/execution-context.js"
+    },
+    "./lazy-plugin": {
+      "types": "./dist/lazy-plugin.d.ts",
+      "default": "./dist/lazy-plugin.js"
     }
   },
   "bin": {

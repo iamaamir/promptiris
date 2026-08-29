@@ -4,6 +4,8 @@
 
 A manifest declares a namespaced ID, package SemVer, protocol version, engine range, Plugin type and entrypoint, contributions, dependencies, conflicts, capabilities, Permission Hints, configuration schema, diagnostic and custom-event schemas, and lazy activation conditions. The manifest is authoritative; package tags only aid discovery.
 
+The Node loader resolves a declared relative entrypoint beneath the Plugin package's real path, requests Host authorization, and only then dynamically imports selected code. Absolute, network, traversal, and symlink-escaping entrypoints are rejected, and the loaded Registration must match the selected manifest. Discovery never executes code.
+
 The authoring API centers on `definePlugin(...)`. It infers a Plugin's configuration, services, hooks, Artifacts, and events while checking its public contract. Plugin authors depend on `@promptiris/plugin-sdk` as a peer dependency and should not import Kernel internals.
 
 Runtime JSON Schema is authoritative across languages. TypeScript types are inferred where possible. Public types use controlled package exports and instance-scoped generics; global module augmentation is not required.
@@ -26,22 +28,24 @@ Arbitrary algorithms, I/O, loops, or provider integrations use native Plugins. T
 
 This isolation contains faults and resources; it is not a complete security boundary.
 
+Activated implementations may participate in explicit resource management through `Symbol.asyncDispose`. The Kernel owns reverse-activation-order disposal; adapters keep cleanup idempotent and preserve their existing timeout, cancellation-grace, and forced-containment semantics.
+
 ### Native Plugin supervisor profile
 
 V1 defines deterministic defaults so “supervised” has the same meaning across Hosts:
 
-| Limit | Default | Absolute v1 ceiling |
-| --- | ---: | ---: |
-| Content-Length header | 8 KiB | 8 KiB |
-| JSON frame | 8 MiB | 32 MiB after initialization negotiation |
-| JSON nesting | 64 levels | 64 levels |
-| Inline Artifact value | 4 MiB | 8 MiB subject to frame ceiling |
-| Event `data` | 64 KiB | 256 KiB for registered content Events |
-| Progress Event `data` | 8 KiB | 8 KiB |
-| Safe Diagnostic | 32 KiB | 32 KiB |
-| Captured Debug Record | 256 KiB | 256 KiB |
-| Retained stderr tail | 64 KiB | 64 KiB |
-| Concurrent invocations per process | 1 | 32 when declared and negotiated |
+| Limit                              |   Default |                     Absolute v1 ceiling |
+| ---------------------------------- | --------: | --------------------------------------: |
+| Content-Length header              |     8 KiB |                                   8 KiB |
+| JSON frame                         |     8 MiB | 32 MiB after initialization negotiation |
+| JSON nesting                       | 64 levels |                               64 levels |
+| Inline Artifact value              |     4 MiB |          8 MiB subject to frame ceiling |
+| Event `data`                       |    64 KiB |   256 KiB for registered content Events |
+| Progress Event `data`              |     8 KiB |                                   8 KiB |
+| Safe Diagnostic                    |    32 KiB |                                  32 KiB |
+| Captured Debug Record              |   256 KiB |                                 256 KiB |
+| Retained stderr tail               |    64 KiB |                                  64 KiB |
+| Concurrent invocations per process |         1 |         32 when declared and negotiated |
 
 All sizes measure serialized UTF-8 bytes before framing. Oversized values fail before sending or are rejected before parsing; they never truncate into schema-valid data. Large content uses Resource References. JSON rejects duplicate object keys, non-finite numbers, invalid Unicode, unknown envelope fields, and excessive nesting.
 
@@ -71,9 +75,7 @@ Example conceptually:
 {
   "id": "acme/enhance-with-memory",
   "extends": "promptiris/enhance",
-  "changes": [
-    { "op": "add", "phase": "analyze", "plugin": "acme/memory-context" }
-  ]
+  "changes": [{ "op": "add", "phase": "analyze", "plugin": "acme/memory-context" }]
 }
 ```
 
