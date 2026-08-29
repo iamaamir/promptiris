@@ -23,6 +23,7 @@ export type SchemaRule =
       readonly properties: Readonly<Record<string, SchemaRule>>;
       readonly merge?: boolean;
     } & RuleOptions);
+type ScalarSchemaRule = Exclude<SchemaRule, { readonly type: 'array' | 'object' }>;
 
 export type SchemaResult =
   | { readonly ok: true; readonly value: JsonValue }
@@ -51,7 +52,7 @@ interface ValidationIssue {
   readonly pointer: string;
 }
 
-function scalarValid(rule: SchemaRule, value: unknown): boolean {
+function scalarValid(rule: ScalarSchemaRule, value: unknown): boolean {
   switch (rule.type) {
     case 'string':
       return typeof value === 'string';

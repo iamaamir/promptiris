@@ -2,16 +2,16 @@
   "schemaVersion": 1,
   "baselineDate": "2026-08-28",
   "aggregate": {
-    "minScore": 93.44,
+    "minScore": 93.47,
     "maxIgnored": 106,
-    "maxSurvived": 83,
+    "maxSurvived": 82,
     "maxNoCoverage": 10
   },
   "targets": {
     "apps/runtime-node/src/configuration.ts": {
-      "minScore": 92.21,
+      "minScore": 91.53,
       "maxIgnored": 0,
-      "maxSurvived": 6,
+      "maxSurvived": 5,
       "maxNoCoverage": 0
     },
     "apps/runtime-node/src/native-plugin.ts": {
@@ -21,7 +21,7 @@
       "maxNoCoverage": 5
     },
     "apps/runtime-node/src/server.ts": {
-      "minScore": 93.48,
+      "minScore": 93.81,
       "maxIgnored": 0,
       "maxSurvived": 6,
       "maxNoCoverage": 0
@@ -39,7 +39,7 @@
       "maxNoCoverage": 0
     },
     "packages/core/src/configuration-resolution.ts": {
-      "minScore": 90.48,
+      "minScore": 90.75,
       "maxIgnored": 0,
       "maxSurvived": 13,
       "maxNoCoverage": 3

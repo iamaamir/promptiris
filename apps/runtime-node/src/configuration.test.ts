@@ -4,20 +4,20 @@ import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { loadConfiguration } from './configuration.js';
 
-const temporaryDirectories: string[] = [];
+const temporaryDirectories = new Set<string>();
 
 async function configurationFile(contents: string): Promise<string> {
   const directory = await mkdtemp(join(tmpdir(), 'promptiris-configuration-'));
-  temporaryDirectories.push(directory);
+  temporaryDirectories.add(directory);
   const path = join(directory, 'promptiris.jsonc');
   await writeFile(path, contents);
   return path;
 }
 
 afterEach(async () => {
-  await Promise.all(
-    temporaryDirectories.splice(0).map((directory) => rm(directory, { recursive: true })),
-  );
+  const directories = [...temporaryDirectories];
+  temporaryDirectories.clear();
+  await Promise.all(directories.map((directory) => rm(directory, { recursive: true })));
 });
 
 describe('runtime configuration loading', () => {

@@ -9,7 +9,6 @@ import {
   type InspectResult,
   type JsonRpcMessage,
   type JsonRpcRequest,
-  type RunStartParams,
 } from '@promptiris/protocol';
 import { loadConfiguration } from './configuration.js';
 
@@ -25,11 +24,14 @@ const permissionHints = [
   },
 ] as const;
 
+function field(value: unknown, key: string): unknown {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) return undefined;
+  return Reflect.get(value, key);
+}
+
 function configUri(request: JsonRpcRequest): string | undefined {
-  const params = request.params as { configUri?: unknown } | undefined;
-  return typeof params?.configUri === 'string' && params.configUri.length > 0
-    ? params.configUri
-    : undefined;
+  const uri = field(request.params, 'configUri');
+  return typeof uri === 'string' && uri.length > 0 ? uri : undefined;
 }
 
 function blocking(resolution: CapabilityResolution): boolean {
@@ -71,8 +73,7 @@ export class RuntimeServer {
   }
 
   #initialize(request: JsonRpcRequest): JsonRpcMessage {
-    const params = request.params as { protocolVersion?: unknown } | undefined;
-    if (params?.protocolVersion !== '1') {
+    if (field(request.params, 'protocolVersion') !== '1') {
       return this.#error(request, INVALID_PARAMS, 'unsupported protocol version');
     }
     this.#initialized = true;
@@ -134,8 +135,9 @@ export class RuntimeServer {
     if (!this.#initialized) {
       return [this.#error(request, NOT_INITIALIZED, 'peer is not initialized')];
     }
-    const params = request.params as RunStartParams | undefined;
-    if (params?.recipe !== 'builtin.identity' || !validatePromptDocument(params.input)) {
+    const recipe = field(request.params, 'recipe');
+    const input = field(request.params, 'input');
+    if (recipe !== 'builtin.identity' || !validatePromptDocument(input)) {
       return [this.#error(request, INVALID_PARAMS, 'invalid identity run input')];
     }
 
@@ -144,7 +146,7 @@ export class RuntimeServer {
     const context = createRunContext(runId, (event: Event) => {
       messages.push({ jsonrpc: '2.0', method: 'run/event', params: event });
     });
-    const result = await identityRecipe.run(params.input, context);
+    const result = await identityRecipe.run(input, context);
     context.emit({
       type: 'promptiris.run.completed',
       source: 'core',

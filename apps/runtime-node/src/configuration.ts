@@ -103,8 +103,14 @@ function nonempty(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
+function jsonRecord(value: JsonValue): Readonly<Record<string, JsonValue>> | undefined {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) return undefined;
+  return value;
+}
+
 function requirement(value: JsonValue): CapabilityRequirementInput | undefined {
-  const item = value as Readonly<Record<string, JsonValue>>;
+  const item = jsonRecord(value);
+  if (!item) return undefined;
   const kind = item.requirement;
   if (!namespaced(item.capability) || !nonempty(item.bindingFingerprint)) return undefined;
   if (kind !== 'required' && kind !== 'preferred' && kind !== 'optional') return undefined;
@@ -115,9 +121,10 @@ function requirement(value: JsonValue): CapabilityRequirementInput | undefined {
   };
 }
 
-function evidenceSource(value: unknown) {
-  if (value === null || typeof value !== 'object' || Array.isArray(value)) return undefined;
-  const item = value as Readonly<Record<string, JsonValue>>;
+function evidenceSource(value: JsonValue | undefined) {
+  if (value === undefined) return undefined;
+  const item = jsonRecord(value);
+  if (!item) return undefined;
   if (!nonempty(item.id)) return undefined;
   const kind = item.kind;
   if (kind !== 'policy' && kind !== 'configuration' && kind !== 'profile' && kind !== 'observation')
@@ -132,7 +139,8 @@ function evidenceState(value: unknown) {
 }
 
 function evidence(value: JsonValue): CapabilityEvidence | undefined {
-  const item = value as Readonly<Record<string, JsonValue>>;
+  const item = jsonRecord(value);
+  if (!item) return undefined;
   const source = evidenceSource(item.source);
   const state = evidenceState(item.state);
   if (!source || !namespaced(item.capability) || !nonempty(item.evidenceId)) return undefined;
@@ -149,18 +157,31 @@ function evidence(value: JsonValue): CapabilityEvidence | undefined {
   };
 }
 
+function collect<T>(
+  values: readonly JsonValue[],
+  convert: (value: JsonValue) => T | undefined,
+): readonly T[] | undefined {
+  const converted: T[] = [];
+  for (const value of values) {
+    const item = convert(value);
+    if (item === undefined) return undefined;
+    converted.push(item);
+  }
+  return converted;
+}
+
 function capabilityResolutions(config: ProjectConfig): readonly CapabilityResolution[] | undefined {
-  const requirements = config.capabilities.map(requirement);
-  const evidenceItems = config.evidence.map(evidence);
-  if (
-    requirements.some((item) => item === undefined) ||
-    evidenceItems.some((item) => item === undefined)
-  )
+  const requirements = collect(config.capabilities, requirement);
+  const evidenceItems = collect(config.evidence, evidence);
+  if (!requirements || !evidenceItems) return undefined;
+  return evaluateCapabilities(requirements, evidenceItems);
+}
+
+function projectConfig(value: JsonValue): ProjectConfig | undefined {
+  const record = jsonRecord(value);
+  if (!record || !Array.isArray(record.capabilities) || !Array.isArray(record.evidence))
     return undefined;
-  return evaluateCapabilities(
-    requirements as readonly CapabilityRequirementInput[],
-    evidenceItems as readonly CapabilityEvidence[],
-  );
+  return { capabilities: record.capabilities, evidence: record.evidence };
 }
 
 export async function loadConfiguration(uri: string): Promise<ConfigurationLoadResult> {
@@ -173,7 +194,8 @@ export async function loadConfiguration(uri: string): Promise<ConfigurationLoadR
     layers: [{ sourceId: 'project', value: parsed.value, location: { uri } }],
   });
   if (!resolved.ok) return invalid();
-  const config = resolved.config as unknown as ProjectConfig;
+  const config = projectConfig(resolved.config);
+  if (!config) return invalid();
   const resolutions = capabilityResolutions(config);
   if (!resolutions) return invalid();
   return {

@@ -27,8 +27,10 @@ Optimize for correctness and verified acceptance before efficiency. The target m
 8. Stop blind retry loops when normalized failures repeat; broaden evidence or escalate reasoning deliberately.
 9. Record operational Tool Traces, not private reasoning. Redact secrets and avoid collecting user content unless explicitly required and authorized.
 10. Treat recurring agent actions as Automation Candidates; never self-activate generated automation without tests and deterministic acceptance.
+11. Select language/platform primitives by semantic fit. Prefer explicit built-ins such as `Map`/`Set`, iterators, `Symbol`, or `Proxy` only when their ownership, identity, laziness, or interception semantics make the contract clearer; feature usage is never a quality score.
+12. High-risk protocol, Kernel, configuration, Provider, native-Plugin, and security changes require an independent Reviewer responsibility. Reviewer output follows `spec/schemas/reviewer-report.schema.json` and unresolved blocker/high findings prevent completion.
 
-The full operating model is [docs/development/agent-operating-model.md](docs/development/agent-operating-model.md), with the execution substrate specified in [docs/development/tool-aware-execution.md](docs/development/tool-aware-execution.md). During the documentation-only phase, inspect repository state with deterministic tools. Once implemented, `scripts/agent-context` is the standard local orientation entrypoint.
+The full operating model is [docs/development/agent-operating-model.md](docs/development/agent-operating-model.md), with the execution substrate specified in [docs/development/tool-aware-execution.md](docs/development/tool-aware-execution.md) and code/review requirements in [docs/development/code-quality-and-review.md](docs/development/code-quality-and-review.md). During the documentation-only phase, inspect repository state with deterministic tools. Once implemented, `scripts/agent-context` is the standard local orientation entrypoint.
 
 Commits follow Conventional Commits. Put the required emoji after the type/scope prefix, for example `docs(agents): 📝 record the operating model`.
 

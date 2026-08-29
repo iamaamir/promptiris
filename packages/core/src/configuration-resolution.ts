@@ -97,11 +97,10 @@ const freeze = <T>(v: T): T => {
   }
   return v;
 };
+const decodePointerPart = (part: string): string =>
+  part.replace(/~([01])/g, (_escape, digit: string) => (digit === '1' ? '/' : '~'));
 const pointerParts = (pointer: string): readonly string[] =>
-  pointer
-    .slice(1)
-    .split('/')
-    .map((part) => part.replace(/~1/g, '/').replace(/~0/g, '~'));
+  pointer.slice(1).split('/').map(decodePointerPart);
 const at = (root: unknown, pointer: string): unknown => {
   if (!pointer) return root;
   let value = root;
@@ -241,11 +240,14 @@ const policyRecord = (p: ConfigPolicy): PolicyRecord => ({
   ...(p.sourceId ? { sourceId: p.sourceId } : {}),
   reason: p.reason ?? `Policy ${p.action} applied.`,
 });
+type PolicyMutationResult =
+  | { readonly ok: true; readonly config: unknown }
+  | { readonly ok: false; readonly diagnostic: Diagnostic };
 const applyOnePolicy = (
   config: unknown,
   policy: ConfigPolicy,
   schema: SchemaRule,
-): { ok: true; config: unknown } | { ok: false; diagnostic: Diagnostic } => {
+): PolicyMutationResult => {
   if (!validPointer(policy.pointer) || !schemaAt(schema, policy.pointer))
     return fail(`Policy ${policy.policyId} references an invalid pointer.`);
   const current = at(config, policy.pointer);
@@ -260,7 +262,7 @@ function forcePolicy(
   config: unknown,
   policy: Extract<ConfigPolicy, { readonly action: 'forced' }>,
   schema: SchemaRule,
-) {
+): PolicyMutationResult {
   const next = setAt(config, policy.pointer, policy.value);
   const check = validateConfig(schema, next);
   return check.ok ? ({ ok: true, config: next } as const) : check;
@@ -270,7 +272,7 @@ function clampPolicy(
   config: unknown,
   current: unknown,
   policy: Extract<ConfigPolicy, { readonly action: 'clamped' }>,
-) {
+): PolicyMutationResult {
   if (
     typeof current !== 'number' ||
     !Number.isFinite(current) ||

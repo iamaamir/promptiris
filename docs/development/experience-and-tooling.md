@@ -20,6 +20,8 @@ The TypeScript implementation uses:
 
 Use ESLint flat configuration for semantic/static rules and Prettier for stable source, JSON, Markdown, and YAML formatting. Architecture checks forbid imports from Kernel internals and cycles across public package boundaries. Do not make a formatter or linter part of runtime behavior.
 
+The [code-quality and review standard](./code-quality-and-review.md) governs boundary typing, collection and platform-primitive choice, fixtures, suppressions, and semantic review. Exhaustive switches are enforced for typed unions. Unsafe narrowing assertions are forbidden first at configuration and runtime RPC boundaries and expand to other untrusted boundaries as existing debt is removed.
+
 The Go implementation uses a supported stable Go line (Go 1.27 and 1.26 are supported as checked on 2026-08-26), `gofmt`, `go vet`, the race detector where supported, Cobra for the command tree, the standard library for process/HTTP/JSON where sufficient, and `santhosh-tekuri/jsonschema/v6` for protocol validation. One generated binding package consumes the same schemas/fixtures as TypeScript; generated code is never hand-edited.
 
 ## Public workspace surfaces
