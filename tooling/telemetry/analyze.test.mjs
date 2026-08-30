@@ -104,6 +104,8 @@ test('excludes unsupported historical traces from current aggregates', async () 
     'discovery',
   ]);
   assert.equal(report.usage.inventory.find((item) => item.id === 'codeql').state, 'ci-only');
+  assert.equal(report.quality.mutation.provenance.state, 'unbound');
+  assert.equal(report.quality.coverageProvenance.state, 'unbound');
   assert.equal(
     report.usage.inventory.find((item) => item.id === 'unregistered-tool').state,
     'unregistered',
@@ -147,6 +149,7 @@ test('summarizes verification runs and mutation evidence', async () => {
   assert.equal(report.summary.latestVerification.telemetry.traceCount, 0);
   assert.deepEqual(report.summary.latestVerification.candidateRevisions, []);
   assert.deepEqual(report.summary.latestVerification.branches, []);
+  assert.equal(report.summary.latestVerification.validatesCurrentHead, false);
   assert.equal(report.quality.mutation.total, 3);
   assert.equal(report.quality.mutation.score, 50);
   assert.equal(report.quality.mutation.policy.status, 'stable');

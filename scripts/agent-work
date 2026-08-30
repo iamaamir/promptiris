@@ -73,12 +73,17 @@ case "$mode" in
       fi
     fi
     trap 'rmdir "$lock" 2>/dev/null || true' EXIT
+    now_ms="$(node -e 'process.stdout.write(String(Date.now()))')"
     for existing_claim in "$claims_root"/*.json; do
       [[ -e "$existing_claim" ]] || continue
-      now_ms="$(node -e 'process.stdout.write(String(Date.now()))')"
       expires_ms="$(jq -r '.expiresAtEpochMs // 0' "$existing_claim")"
       if (( expires_ms > 0 && expires_ms <= now_ms )); then
-        echo "warning: ignoring expired claim: $existing_claim" >&2
+        if [[ "$existing_claim" == "$claim_file" ]]; then
+          rm -f "$existing_claim"
+          echo "warning: reclaimed expired claim: $existing_claim" >&2
+        else
+          echo "warning: ignoring expired claim: $existing_claim" >&2
+        fi
         continue
       fi
       existing_worktree="$(jq -r .worktree "$existing_claim")"
@@ -126,6 +131,11 @@ case "$mode" in
     [[ -f "$claim_file" ]] || { echo "no claim for branch: $branch" >&2; exit 66; }
     replacement="$(mktemp "${TMPDIR:-/tmp}/promptiris-claim.XXXXXX")"
     now_ms="$(node -e 'process.stdout.write(String(Date.now()))')"
+    expires_ms="$(jq -r '.expiresAtEpochMs // 0' "$claim_file")"
+    if (( expires_ms > 0 && expires_ms <= now_ms )); then
+      echo "claim expired; reclaim the Work Item before changing stage: $branch" >&2
+      exit 73
+    fi
     expires_at_ms=$((now_ms + lease_ms))
     jq --arg stage "$stage" --arg revision "$(git -C "$worktree_root" rev-parse HEAD)" \
       --argjson expiresAtEpochMs "$expires_at_ms" \

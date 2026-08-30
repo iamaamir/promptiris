@@ -18,6 +18,8 @@ if [[ -n "$branch" ]]; then
 fi
 packet="${packet#"$worktree_root/"}"
 claim_file="$agent_root/claims/$branch.json"
+now_ms="$(node -e 'process.stdout.write(String(Date.now()))')"
+worktree_id="$(printf '%s' "$worktree_root" | shasum -a 256 | awk '{print substr($1,1,16)}')"
 
 echo '## REPOSITORY'
 printf 'shared-root: %s\nworktree: %s\nbranch: %s\nhead: %s\nbase: %s\nupstream: %s\n' \
@@ -35,7 +37,7 @@ else
   echo 'none matched to branch'
 fi
 if [[ -f "$claim_file" ]]; then
-  jq '{taskId,agentId,stage,branch,worktree,claimedRevision:(.claimedRevision // .candidateRevision // null),lastStageRevision:(.lastStageRevision // .candidateRevision // null),claimedAt,expiresAtEpochMs}' "$claim_file"
+  jq --argjson now "$now_ms" '{taskId,agentId,stage,branch,worktree,claimedRevision:(.claimedRevision // .candidateRevision // null),lastStageRevision:(.lastStageRevision // .candidateRevision // null),claimedAt,expiresAtEpochMs,leaseState:(if (.expiresAtEpochMs // 0) == 0 then "legacy" elif .expiresAtEpochMs <= $now then "expired" else "active" end)}' "$claim_file"
 else
   echo 'lease: none'
 fi
@@ -52,7 +54,7 @@ echo
 echo '## CLAIMS'
 claim_files=("$agent_root"/claims/*.json)
 if [[ -e "${claim_files[0]}" ]]; then
-  jq -s -r '.[] | "\(.branch)\t\(.agentId)\t\(.stage)\t\(.worktree)"' "${claim_files[@]}" | LC_ALL=C sort
+  jq -s -r --argjson now "$now_ms" '.[] | "\(.branch)\t\(.agentId)\t\(.stage)\t\(if (.expiresAtEpochMs // 0) == 0 then "legacy" elif .expiresAtEpochMs <= $now then "expired" else "active" end)\t\(.worktree)"' "${claim_files[@]}" | LC_ALL=C sort
   conflicts="$(jq -s -r 'group_by(.worktree)[] | select(length > 1) | .[0].worktree' "${claim_files[@]}")"
   if [[ -n "$conflicts" ]]; then
     printf 'warning: multiple claims share a mutable worktree:\n%s\n' "$conflicts"
@@ -82,27 +84,31 @@ printf 'compare: %s..%s\n' "${base_revision:0:12}" "$head"
 echo
 echo '## ACTIVE WORK'
 if [[ -f "$claim_file" ]]; then
-  jq --arg head "$head_revision" '{taskId,agentId,stage,claimedRevision:(.claimedRevision // .candidateRevision // null),lastStageRevision:(.lastStageRevision // .candidateRevision // null),claimedAt,expiresAtEpochMs,currentHead:$head}' "$claim_file"
+  jq --arg head "$head_revision" --argjson now "$now_ms" '{taskId,agentId,stage,claimedRevision:(.claimedRevision // .candidateRevision // null),lastStageRevision:(.lastStageRevision // .candidateRevision // null),claimedAt,expiresAtEpochMs,leaseState:(if (.expiresAtEpochMs // 0) == 0 then "legacy" elif .expiresAtEpochMs <= $now then "expired" else "active" end),currentHead:$head}' "$claim_file"
 else
   echo 'none for this branch'
 fi
 
 echo
-echo '## LAST OBSERVED TOOL TRACE'
+echo '## LAST OBSERVED CURRENT-WORKTREE TRACE'
 last_trace="$(node -e '
   const fs = require("node:fs");
   const path = require("node:path");
-  const directory = process.argv[1];
+  const [directory, branch, worktreeId] = process.argv.slice(1);
   try {
-    const files = fs.readdirSync(directory).filter((file) => file.endsWith(".json"));
-    files.sort((left, right) => fs.statSync(path.join(directory, right)).mtimeMs - fs.statSync(path.join(directory, left)).mtimeMs);
-    process.stdout.write(files[0] ? path.join(directory, files[0]) : "");
+    const traces = fs.readdirSync(directory)
+      .filter((file) => file.endsWith(".json"))
+      .map((file) => path.join(directory, file))
+      .map((file) => ({ file, trace: JSON.parse(fs.readFileSync(file, "utf8")) }))
+      .filter(({ trace }) => trace.context?.branch === branch && trace.context?.worktreeId === worktreeId)
+      .sort((left, right) => (right.trace.startedAtEpochMs ?? 0) - (left.trace.startedAtEpochMs ?? 0));
+    process.stdout.write(traces[0]?.file ?? "");
   } catch {}
-' "$agent_root/traces")"
+' "$agent_root/traces" "$branch" "$worktree_id")"
 if [[ -n "$last_trace" ]]; then
   jq '{taskId,provider:(.providerId // .command),exitCode,durationMs,startedAt,branch:(.context.branch // "unattributed"),candidateRevision:(.context.candidateRevision // "unattributed"),evidenceRef:(.evidence.ref // .rawEvidenceRef)}' "$last_trace"
 else
-  echo 'none'
+  echo 'none for current branch and worktree'
 fi
 
 echo

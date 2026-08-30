@@ -19,11 +19,19 @@ EOF
 cd "$workspace/repo"
 ./scripts/import-ci-evidence "$workspace/source" run-42 >/dev/null
 destination="$workspace/repo/.agent/imports/run-42/traces"
-[[ -f "$destination/trace.json" ]]
+[[ -f "$destination/0-trace.json" ]]
 [[ ! -f "$destination/report.json" ]]
 if ./scripts/import-ci-evidence "$workspace/source" run-42 >/dev/null 2>&1; then
   echo 'duplicate CI import unexpectedly succeeded' >&2
   exit 1
 fi
+
+mkdir -p "$workspace/invalid"
+printf 'not json\n' >"$workspace/invalid/broken.json"
+if ./scripts/import-ci-evidence "$workspace/invalid" invalid >/dev/null 2>&1; then
+  echo 'invalid CI evidence unexpectedly succeeded' >&2
+  exit 1
+fi
+[[ ! -e "$workspace/repo/.agent/imports/invalid" ]]
 
 echo 'CI import tests passed'

@@ -13,3 +13,4 @@ trap 'rm -f "$temporary_report"' EXIT
   -- hyperfine --warmup 3 --runs 20 --export-json "$temporary_report" \
   './scripts/agent-context >/dev/null'
 mv "$temporary_report" .agent/reports/agent-context-benchmark.json
+node scripts/stamp-quality-artifact.mjs benchmark

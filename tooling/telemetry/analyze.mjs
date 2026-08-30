@@ -242,6 +242,22 @@ const benchmarkSummary = (report) => {
   };
 };
 
+const artifactProvenance = (manifest, artifact, currentCandidateRevision, currentDirty) => {
+  const record = manifest?.artifacts?.[artifact];
+  if (!record) return { state: 'unbound' };
+  return {
+    state:
+      record.candidateRevision === currentCandidateRevision &&
+      record.dirty === false &&
+      !currentDirty
+        ? 'current'
+        : 'stale',
+    candidateRevision: record.candidateRevision,
+    dirty: record.dirty,
+    measuredAt: record.measuredAt,
+  };
+};
+
 const roleEvidenceSummary = (reports) => {
   const rows = reports
     .filter((report) => report?.taskId && (report.role || report.verdict))
@@ -432,6 +448,9 @@ const deriveInsights = ({ summary, providers, tools, capabilities, quality }) =>
 export const analyzeTelemetry = async (options = {}) => {
   const root = resolve(options.root ?? '.');
   const layout = repositoryLayout(root);
+  const currentCandidateRevision = gitOutput(root, ['rev-parse', 'HEAD']);
+  const currentBranch = gitOutput(root, ['branch', '--show-current']) || 'detached';
+  const currentDirty = gitOutput(root, ['status', '--porcelain']) !== '';
   const agentRoots = uniqueBy(
     options.agentRoots ??
       [layout.sharedRoot, ...layout.worktrees].map((path) => join(path, '.agent')),
@@ -457,15 +476,47 @@ export const analyzeTelemetry = async (options = {}) => {
   observedTools.set('scripts/tool-trace', summary.exactReductionTraceCount);
   const capabilities = capabilityRows(capabilitiesRegistry, observedTools);
   const inventory = providerInventory(capabilitiesRegistry, tools, observedTools, traces);
-  const mutationReport = await safeJson(join(sharedAgentRoot, 'reports/mutation.json'));
+  const localAgentRoot = join(root, '.agent');
+  const provenanceManifest = await safeJson(join(localAgentRoot, 'reports/quality-artifacts.json'));
+  const mutationReport = await safeJson(join(localAgentRoot, 'reports/mutation.json'));
   const mutationPolicy = await safeJson(join(root, 'tooling/quality/mutation-policy.json'));
   const quality = {
-    mutation: mutationSummary(mutationReport, mutationPolicy),
+    mutation: {
+      ...mutationSummary(mutationReport, mutationPolicy),
+      provenance: artifactProvenance(
+        provenanceManifest,
+        'mutation',
+        currentCandidateRevision,
+        currentDirty,
+      ),
+    },
     coverage: await coverageSummary(root),
-    goCoverage: await goCoverageSummary(join(sharedAgentRoot, 'reports/go-coverage.out')),
-    crap: crapSummary(await safeJson(join(sharedAgentRoot, 'reports/crap.json'))),
-    agentContextBenchmark: benchmarkSummary(
-      await safeJson(join(sharedAgentRoot, 'reports/agent-context-benchmark.json')),
+    goCoverage: await goCoverageSummary(join(localAgentRoot, 'reports/go-coverage.out')),
+    crap: {
+      ...crapSummary(await safeJson(join(localAgentRoot, 'reports/crap.json'))),
+      provenance: artifactProvenance(
+        provenanceManifest,
+        'crap',
+        currentCandidateRevision,
+        currentDirty,
+      ),
+    },
+    agentContextBenchmark: {
+      ...benchmarkSummary(
+        await safeJson(join(localAgentRoot, 'reports/agent-context-benchmark.json')),
+      ),
+      provenance: artifactProvenance(
+        provenanceManifest,
+        'benchmark',
+        currentCandidateRevision,
+        currentDirty,
+      ),
+    },
+    coverageProvenance: artifactProvenance(
+      provenanceManifest,
+      'coverage',
+      currentCandidateRevision,
+      currentDirty,
     ),
     roles: roleEvidenceSummary(await readJsonTree(join(root, '.scratch'))),
   };
@@ -491,10 +542,15 @@ export const analyzeTelemetry = async (options = {}) => {
           .filter(Boolean),
       ),
     ].sort(),
+    validatesCurrentHead: false,
   }));
+  for (const run of verificationRuns)
+    run.validatesCurrentHead =
+      currentCandidateRevision !== '' && run.candidateRevisions.includes(currentCandidateRevision);
   const report = {
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
+    repository: { currentCandidateRevision, currentBranch },
     summary: { ...summary, latestVerification: verificationRuns[0] ?? null },
     dataQuality: {
       exactTraceCount: traces.length,

@@ -37,11 +37,13 @@ git -C "$repo" add .
 git -C "$repo" commit -qm 'test fixture'
 
 head="$(git -C "$repo" rev-parse HEAD)"
+physical_repo="$(cd "$repo" && pwd -P)"
+worktree_id="$(printf '%s' "$physical_repo" | shasum -a 256 | awk '{print substr($1,1,16)}')"
 cat >"$repo/.agent/claims/isolated-task.json" <<EOF
-{"schemaVersion":3,"taskId":".scratch/test/issues/01-test.md","agentId":"agent-a","stage":"reviewer","branch":"isolated-task","worktree":"$repo","claimedRevision":"$head","lastStageRevision":"$head","claimedAt":"2026-08-30T00:00:00Z","expiresAtEpochMs":1788121157865}
+{"schemaVersion":3,"taskId":".scratch/test/issues/01-test.md","agentId":"agent-a","stage":"reviewer","branch":"isolated-task","worktree":"$physical_repo","claimedRevision":"$head","lastStageRevision":"$head","claimedAt":"2026-08-30T00:00:00Z","expiresAtEpochMs":4102444800000}
 EOF
 cat >"$repo/.agent/traces/trace.json" <<EOF
-{"schemaVersion":3,"traceId":"trace-1","runId":"run-1","taskId":"verify.unit","providerId":"test-runner","tools":["rg"],"executor":"node","startedAt":"2026-08-30T00:00:00Z","startedAtEpochMs":1,"durationMs":2,"exitCode":0,"context":{"repositoryId":"repo","worktreeId":"worktree-1","branch":"isolated-task","candidateRevision":"$head","workspaceDigest":"sha256:$(printf 'a%.0s' {1..64})","dirty":false,"agentId":"agent-a"},"output":{"rawBytes":8,"modelVisibleBytes":4,"reducedBytes":4,"estimatedRawTokens":2,"estimatedModelVisibleTokens":1,"estimatedTokensAvoided":1},"evidence":{"ref":".agent/logs/trace.log","sha256":"$(printf 'b%.0s' {1..64})","redaction":{"mode":"default","count":0}}}
+{"schemaVersion":3,"traceId":"trace-1","runId":"run-1","taskId":"verify.unit","providerId":"test-runner","tools":["rg"],"executor":"node","startedAt":"2026-08-30T00:00:00Z","startedAtEpochMs":1,"durationMs":2,"exitCode":0,"context":{"repositoryId":"repo","worktreeId":"$worktree_id","branch":"isolated-task","candidateRevision":"$head","workspaceDigest":"sha256:$(printf 'a%.0s' {1..64})","dirty":false,"agentId":"agent-a"},"output":{"rawBytes":8,"modelVisibleBytes":4,"reducedBytes":4,"estimatedRawTokens":2,"estimatedModelVisibleTokens":1,"estimatedTokensAvoided":1},"evidence":{"ref":".agent/logs/trace.log","sha256":"$(printf 'b%.0s' {1..64})","redaction":{"mode":"default","count":0}}}
 EOF
 echo '{"runId":"run-1","profile":"candidate","status":"passed","startedAt":"2026-08-30T00:00:00Z","endedAt":"2026-08-30T00:00:01Z","failedGateCount":0}' >"$repo/.agent/reports/verification-runs.jsonl"
 
@@ -50,6 +52,8 @@ output="$(cd "$repo" && ./scripts/agent-context)"
 grep -Fqx 'tree: clean' <<<"$output"
 grep -Fq "\"currentHead\": \"$head\"" <<<"$output"
 grep -Fq '"claimedRevision"' <<<"$output"
+grep -Fq '"leaseState": "active"' <<<"$output"
+grep -Fq '"taskId": "verify.unit"' <<<"$output"
 grep -Fq '"observedWorktrees": 1' <<<"$output"
 grep -Fq '"observedAgents": 1' <<<"$output"
 grep -Fq '"unattributed": 0' <<<"$output"

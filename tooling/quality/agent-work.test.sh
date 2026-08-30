@@ -26,7 +26,7 @@ git -C "$workspace/repo" add .
 git -C "$workspace/repo" commit -qm 'test fixture'
 
 cd "$workspace/repo"
-./scripts/agent-work claim .scratch/test/issues/01-test.md agent-a --local >/dev/null
+PROMPTIRIS_CLAIM_LEASE_MS=5000 ./scripts/agent-work claim .scratch/test/issues/01-test.md agent-a --local >/dev/null
 grep -Fqx 'Status: in-progress' .scratch/test/issues/01-test.md
 claim="$workspace/repo/.agent/claims/isolated-task.json"
 jq -e '.schemaVersion == 3 and .agentId == "agent-a" and .stage == "generator" and .branch == "isolated-task" and (.claimedRevision | test("^[0-9a-f]{40}$")) and .lastStageRevision == .claimedRevision' "$claim" >/dev/null
@@ -36,8 +36,15 @@ if ./scripts/agent-work claim .scratch/test/issues/01-test.md agent-b --local >/
   exit 1
 fi
 
-./scripts/agent-work stage reviewer >/dev/null
+PROMPTIRIS_CLAIM_LEASE_MS=50 ./scripts/agent-work stage reviewer >/dev/null
 jq -e '.schemaVersion == 3 and .stage == "reviewer" and (.lastStageRevision | test("^[0-9a-f]{40}$"))' "$claim" >/dev/null
+sleep 0.1
+PROMPTIRIS_CLAIM_LEASE_MS=50 ./scripts/agent-work stage hardener >/dev/null 2>&1 && {
+  echo 'expired claim unexpectedly accepted a stage transition' >&2
+  exit 1
+}
+PROMPTIRIS_CLAIM_LEASE_MS=5000 ./scripts/agent-work claim .scratch/test/issues/01-test.md agent-b --local >/dev/null
+jq -e '.agentId == "agent-b" and .stage == "generator"' "$claim" >/dev/null
 ./scripts/agent-work release .scratch/test/issues/01-test.md ready-for-human --local >/dev/null
 grep -Fqx 'Status: ready-for-human' .scratch/test/issues/01-test.md
 [[ ! -e "$claim" ]]
