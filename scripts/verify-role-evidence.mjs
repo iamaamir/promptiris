@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { lstat, readFile, readdir } from 'node:fs/promises';
+import { constants } from 'node:fs';
+import { open, readFile, readdir } from 'node:fs/promises';
 import { basename, dirname, isAbsolute, join, resolve } from 'node:path';
 import { Ajv2020 } from 'ajv/dist/2020.js';
 
@@ -145,15 +146,19 @@ const loadReport = async (role, path, validate) => {
       continue;
     }
     try {
-      const metadata = await lstat(evidencePath);
-      if (!metadata.isFile() || metadata.isSymbolicLink())
-        throw new Error('evidence is not a regular file');
       git(['ls-files', '--error-unmatch', '--', evidence.evidenceRef], {
         stdio: ['ignore', 'ignore', 'ignore'],
       });
-      const digest = createHash('sha256')
-        .update(await readFile(evidencePath))
-        .digest('hex');
+      const file = await open(evidencePath, constants.O_RDONLY | constants.O_NOFOLLOW);
+      let digest;
+      try {
+        if (!(await file.stat()).isFile()) throw new Error('evidence is not a regular file');
+        digest = createHash('sha256')
+          .update(await file.readFile())
+          .digest('hex');
+      } finally {
+        await file.close();
+      }
       if (digest !== evidence.evidenceSha256)
         failures.push(`${role} evidence digest mismatch: ${evidence.evidenceRef}`);
     } catch {

@@ -18,3 +18,11 @@ test('the project query governs every Node process-launch API', async () => {
   }
   assert.match(query, /apps\/runtime-node\/src\/native-plugin\.ts/);
 });
+
+test('role evidence hashes the same no-follow file handle it verifies', async () => {
+  const verifier = await readFile('scripts/verify-role-evidence.mjs', 'utf8');
+  assert.match(verifier, /constants\.O_NOFOLLOW/);
+  assert.match(verifier, /await file\.stat\(\)/);
+  assert.match(verifier, /await file\.readFile\(\)/);
+  assert.doesNotMatch(verifier, /lstat\(evidencePath\)|readFile\(evidencePath\)/);
+});
