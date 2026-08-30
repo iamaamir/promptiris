@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, symlink, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
@@ -26,9 +26,13 @@ test('role evidence rejects symlinks and platforms without no-follow file opens'
   const directory = await mkdtemp(join(tmpdir(), 'promptiris-evidence-file-'));
   const target = join(directory, 'target.txt');
   const link = join(directory, 'link.txt');
-  await writeFile(target, 'trusted evidence');
-  assert.equal((await readRegularEvidenceFile(target)).toString(), 'trusted evidence');
-  await symlink(target, link);
-  await assert.rejects(readRegularEvidenceFile(link));
-  await assert.rejects(readRegularEvidenceFile(target, null));
+  try {
+    await writeFile(target, 'trusted evidence');
+    assert.equal((await readRegularEvidenceFile(target)).toString(), 'trusted evidence');
+    await symlink(target, link);
+    await assert.rejects(readRegularEvidenceFile(link));
+    await assert.rejects(readRegularEvidenceFile(target, null));
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
 });
