@@ -35,6 +35,60 @@ export interface BundleInput {
   readonly configTraceId?: string;
   readonly runId?: string;
   readonly traceId?: string;
+  readonly createdAt?: string;
+}
+
+const ALLOWLISTED_DATA_KEYS = new Set([
+  'phase',
+  'status',
+  'pluginId',
+  'contributionId',
+  'observerId',
+  'reason',
+  'fallback',
+  'from',
+  'to',
+  'durationMs',
+  'timing',
+  'timings',
+  'kind',
+  'artifactKind',
+  'mediaType',
+  'digest',
+]);
+
+const MAX_STRING_LENGTH = 256;
+
+function isPlainValue(value: unknown): boolean {
+  const t = typeof value;
+  return t === 'string' || t === 'number' || t === 'boolean';
+}
+
+function boundedString(value: string): string {
+  return value.length <= MAX_STRING_LENGTH ? value : `${value.slice(0, MAX_STRING_LENGTH)}…`;
+}
+
+function isPollutionKey(key: string): boolean {
+  return key === '__proto__' || key === 'constructor' || key === 'prototype';
+}
+
+function isAllowedEntry(key: string, value: unknown): boolean {
+  if (!ALLOWLISTED_DATA_KEYS.has(key)) return false;
+  if (isPollutionKey(key)) return false;
+  if (!isPlainValue(value)) return false;
+  if (typeof value === 'number' && !Number.isFinite(value)) return false;
+  return true;
+}
+
+function projectData(data: unknown): Record<string, unknown> | undefined {
+  if (typeof data !== 'object' || data === null) return undefined;
+  if (Array.isArray(data)) return undefined;
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(data as Record<string, unknown>)) {
+    if (!isAllowedEntry(k, v)) continue;
+    out[k] = typeof v === 'string' ? boundedString(v) : v;
+  }
+  return Object.keys(out).length === 0 ? undefined : out;
 }
 
 function stableStringify(value: unknown): string {
@@ -49,35 +103,65 @@ function stableStringify(value: unknown): string {
   });
 }
 
+function utf8ByteLength(value: string): number {
+  return new TextEncoder().encode(value).length;
+}
+
 function redactEvent(event: Event): Event {
   if (event.classification === 'sensitive') {
     return Object.freeze({
-      ...event,
+      schemaVersion: event.schemaVersion,
+      id: event.id,
+      type: event.type,
+      time: event.time,
+      sequence: event.sequence,
+      runId: event.runId,
+      traceId: event.traceId,
+      source: event.source,
+      dataSchema: event.dataSchema,
       data: { redacted: true },
+      classification: event.classification,
+      delivery: event.delivery,
     });
   }
-  const data = event.data as Record<string, unknown> | undefined;
-  if (data === undefined) return event;
-  const scrubbed: Record<string, unknown> = {};
-  for (const [k, v] of Object.entries(data)) {
-    if (k === 'prompt' || k === 'content' || k === 'value') scrubbed[k] = '[redacted]';
-    else scrubbed[k] = v;
-  }
-  return Object.freeze({ ...event, data: scrubbed });
+  const projected = projectData(event.data);
+  return Object.freeze({
+    schemaVersion: event.schemaVersion,
+    id: event.id,
+    type: event.type,
+    time: event.time,
+    sequence: event.sequence,
+    runId: event.runId,
+    traceId: event.traceId,
+    source: event.source,
+    dataSchema: event.dataSchema,
+    data: projected ?? {},
+    classification: event.classification,
+    delivery: event.delivery,
+  });
 }
 
-/** @public */
-export function createSupportBundle(input: BundleInput): SupportBundle {
-  const events = input.events.slice(0, MAX_BUNDLE_EVENTS).map(redactEvent);
-  // Deterministic: sort by sequence then id
-  events.sort((a, b) => a.sequence - b.sequence || a.id.localeCompare(b.id));
+function redactDebugRecord(record: DebugRecord): DebugRecord {
+  return Object.freeze({
+    id: record.id,
+    runId: record.runId,
+    traceId: record.traceId,
+    operation: record.operation,
+    ...(record.pluginId ? { pluginId: record.pluginId } : {}),
+    ...(record.contributionId ? { contributionId: record.contributionId } : {}),
+    exception: Object.freeze({ type: record.exception.type, message: '[redacted]' }),
+  });
+}
 
-  const debugRecords = input.debugRecords.slice(0, MAX_BUNDLE_DEBUG_RECORDS);
+function buildInitialBundle(
+  input: BundleInput,
+  events: readonly Event[],
+  debugRecords: readonly DebugRecord[],
+): SupportBundle {
   const manifestRefs = [...(input.manifestIds ?? [])].sort();
-
-  let bundle: SupportBundle = Object.freeze({
+  return Object.freeze({
     schemaVersion: SUPPORT_BUNDLE_SCHEMA_VERSION,
-    createdAt: new Date().toISOString(),
+    createdAt: input.createdAt ?? new Date().toISOString(),
     observerId: input.observerId,
     ...(input.runId ? { runId: input.runId } : {}),
     ...(input.traceId ? { traceId: input.traceId } : {}),
@@ -89,13 +173,25 @@ export function createSupportBundle(input: BundleInput): SupportBundle {
     manifestRefs: Object.freeze(manifestRefs),
     ...(input.configTraceId ? { configTraceRef: input.configTraceId } : {}),
   });
+}
 
-  // Bounded bytes: truncate if exceeds MAX_BUNDLE_BYTES by dropping oldest progress events first
-  const bytes = stableStringify(bundle).length;
-  if (bytes > MAX_BUNDLE_BYTES) {
-    const filtered = events.filter((e) => e.delivery !== 'progress');
-    const truncated = filtered.slice(0, Math.min(filtered.length, MAX_BUNDLE_EVENTS));
-    bundle = Object.freeze({ ...bundle, events: Object.freeze(truncated) });
-  }
-  return bundle;
+function enforceByteCap(bundle: SupportBundle, events: readonly Event[]): SupportBundle {
+  let bytes = utf8ByteLength(stableStringify(bundle));
+  if (bytes <= MAX_BUNDLE_BYTES) return bundle;
+  const truncatedEvents = events
+    .filter((e) => e.delivery !== 'progress')
+    .slice(0, MAX_BUNDLE_EVENTS);
+  const tmp: SupportBundle = Object.freeze({ ...bundle, events: Object.freeze(truncatedEvents) });
+  bytes = utf8ByteLength(stableStringify(tmp));
+  if (bytes <= MAX_BUNDLE_BYTES) return tmp;
+  return Object.freeze({ ...bundle, events: Object.freeze([]), debugRecords: Object.freeze([]) });
+}
+
+/** @public */
+export function createSupportBundle(input: BundleInput): SupportBundle {
+  const events = input.events.slice(0, MAX_BUNDLE_EVENTS).map(redactEvent);
+  events.sort((a, b) => a.sequence - b.sequence || a.id.localeCompare(b.id));
+  const debugRecords = input.debugRecords.slice(0, MAX_BUNDLE_DEBUG_RECORDS).map(redactDebugRecord);
+  const bundle = buildInitialBundle(input, events, debugRecords);
+  return enforceByteCap(bundle, events);
 }

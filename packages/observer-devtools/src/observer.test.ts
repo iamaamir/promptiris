@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { createEventDispatcher } from '@promptiris/core';
 import { captureDebugRecord } from '@promptiris/core';
-import type { Event, PromptDocument } from '@promptiris/protocol';
+import type { Event } from '@promptiris/protocol';
 import { createObserverDevtools } from './observer.js';
 import { JsonLinesSink, createConsoleSink, formatEvent } from './sinks.js';
 import { createSupportBundle, MAX_BUNDLE_BYTES, MAX_BUNDLE_EVENTS } from './support-bundle.js';
@@ -108,6 +108,31 @@ describe('observer devtools', () => {
     expect(jsonSink.lines[0]).toContain('promptiris.phase.started');
   });
 
+  it('console and json sinks show fallback, timing, artifact refs via allowlisted projection', async () => {
+    const lines: string[] = [];
+    const consoleSink = createConsoleSink({ writer: (l) => lines.push(l) });
+    const jsonSink = new JsonLinesSink({ capacity: 10 });
+    const dispatcher = createEventDispatcher('run-fallback');
+    const devtools = createObserverDevtools({ observerId: 'test/fallback', consoleSink, jsonSink });
+    devtools.attach(dispatcher);
+    emit(dispatcher, 'promptiris.fallback.triggered', {
+      fallback: 'original',
+      reason: 'policy',
+      durationMs: 123,
+      kind: 'prompt',
+      digest: 'sha256:abc',
+    });
+    dispatcher.complete('success');
+    await new Promise((r) => setTimeout(r, 20));
+    const joined = lines.join(' ');
+    expect(joined).toContain('fallback=original');
+    expect(joined).toContain('durationMs=123');
+    expect(joined).toContain('digest=sha256:abc');
+    const parsed = JSON.parse(jsonSink.lines[0] ?? '{}') as { data?: Record<string, unknown> };
+    expect(parsed.data?.fallback).toBe('original');
+    expect(parsed.data?.durationMs).toBe(123);
+  });
+
   it('sink failure cannot fail transformation', async () => {
     const failingSink = {
       write: (): void => {
@@ -153,13 +178,13 @@ describe('observer devtools', () => {
       delivery: 'critical',
     });
     dispatcher.complete('success');
-    captureDebugRecord(devtools, new Error('debug error'), {
+    captureDebugRecord(devtools, new Error('secret debug message with password=123'), {
       runId: 'run-6',
       traceId: 'run-6',
       operation: 'test',
     });
     await new Promise((r) => setTimeout(r, 10));
-    const bundle = devtools.createBundle();
+    const bundle = devtools.createBundle({ createdAt: '2026-01-01T00:00:00.000Z' });
     expect(bundle.bounded).toBe(true);
     expect(bundle.redacted).toBe(true);
     expect(bundle.deterministic).toBe(true);
@@ -168,9 +193,15 @@ describe('observer devtools', () => {
     expect(sensitive?.data).toEqual({ redacted: true });
     expect(bundle.manifestRefs).toEqual(['plug/a']);
     expect(bundle.configTraceRef).toBe('trace-1');
+    // debug records must be redacted, no raw message/stack
+    expect(bundle.debugRecords[0]?.exception.message).toBe('[redacted]');
+    expect(
+      (bundle.debugRecords[0] as unknown as { exception: { stack?: string } }).exception.stack,
+    ).toBeUndefined();
   });
 
-  it('bounds bundle bytes deterministically', () => {
+  it('bounds bundle bytes deterministically with exact UTF-8 cap', () => {
+    const fixedAt = '2026-01-01T00:00:00.000Z';
     const events: Event[] = Array.from({ length: MAX_BUNDLE_EVENTS + 20 }, (_, i) =>
       makeEvent({
         id: `id-${String(i)}`,
@@ -180,33 +211,34 @@ describe('observer devtools', () => {
         delivery: i % 2 === 0 ? 'progress' : 'critical',
       }),
     );
-    const bundle = createSupportBundle({ observerId: 'test', events, debugRecords: [] });
+    const bundle = createSupportBundle({
+      observerId: 'test',
+      events,
+      debugRecords: [],
+      createdAt: fixedAt,
+    });
     expect(bundle.events.length).toBeLessThanOrEqual(MAX_BUNDLE_EVENTS);
-    const bytes = JSON.stringify(bundle).length;
-    expect(bytes).toBeLessThanOrEqual(MAX_BUNDLE_BYTES + 5000); // allow small overhead
-    // deterministic: second call same
-    const bundle2 = createSupportBundle({ observerId: 'test', events, debugRecords: [] });
-    expect(JSON.stringify(bundle)).toBe(
-      JSON.stringify({ ...bundle2, createdAt: bundle.createdAt }),
-    );
+    const bytes = new TextEncoder().encode(JSON.stringify(bundle)).length;
+    expect(bytes).toBeLessThanOrEqual(MAX_BUNDLE_BYTES);
+    // deterministic: second call with same createdAt must be byte-for-byte equal
+    const bundle2 = createSupportBundle({
+      observerId: 'test',
+      events,
+      debugRecords: [],
+      createdAt: fixedAt,
+    });
+    expect(JSON.stringify(bundle)).toBe(JSON.stringify(bundle2));
   });
 
-  it('plugin registration is usable without runtime internals', async () => {
+  it('manifest is usable without runtime internals via public SDK', () => {
     const devtools = createObserverDevtools({ observerId: 'test/usable' });
-    const reg = devtools.createRegistration();
-    expect(reg.manifest.type).toBe('observer');
-    const impl = await reg.activate();
-    const input: PromptDocument = {
-      schemaVersion: '1',
-      content: [{ id: 'b1', text: 'hi' }],
-    };
-    const out = await impl.invoke({
-      contributionId: 'c',
-      input,
-      revision: 0,
-      signal: new AbortController().signal,
-    });
-    expect(out).toEqual({});
+    expect(devtools.manifest.type).toBe('observer');
+    expect(devtools.manifest.id).toBe('test/usable');
+    // plugin authors can attach via public EventDispatcher and DebugRecordSink interfaces
+    const dispatcher = createEventDispatcher('run-usable');
+    const handle = devtools.attach(dispatcher);
+    expect(handle).toBeDefined();
+    expect(typeof handle.detach).toBe('function');
   });
 
   it('formatEvent shows stage progress and artifact refs', () => {
@@ -225,5 +257,40 @@ describe('observer devtools', () => {
       delivery: 'critical',
     };
     expect(formatEvent(e)).toContain('phase=transform');
+  });
+
+  it('allowlisted projection strips unknown and nested values', async () => {
+    const jsonSink = new JsonLinesSink({ capacity: 10 });
+    const dispatcher = createEventDispatcher('run-allow');
+    const devtools = createObserverDevtools({
+      observerId: 'test/allow',
+      consoleSink: false,
+      jsonSink,
+    });
+    devtools.attach(dispatcher);
+    dispatcher.emit({
+      type: 'test.adversarial',
+      source: 'test',
+      dataSchema: 'test/v1',
+      data: {
+        phase: 'transform',
+        unknownKey: 'leak',
+        nested: { secret: 'leak' },
+        prompt: 'secret',
+        durationMs: 42,
+        // accessor and prototype pollution attempts
+        __proto__: { polluted: true },
+      },
+      classification: 'metadata',
+      delivery: 'critical',
+    });
+    dispatcher.complete('success');
+    await new Promise((r) => setTimeout(r, 20));
+    const parsed = JSON.parse(jsonSink.lines[0] ?? '{}') as { data?: Record<string, unknown> };
+    expect(parsed.data?.phase).toBe('transform');
+    expect(parsed.data?.durationMs).toBe(42);
+    expect(parsed.data?.unknownKey).toBeUndefined();
+    expect(parsed.data?.nested).toBeUndefined();
+    expect(parsed.data?.prompt).toBeUndefined();
   });
 });

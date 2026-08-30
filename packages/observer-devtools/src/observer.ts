@@ -1,11 +1,6 @@
 import type { DebugRecord, DebugRecordSink, EventDispatcher } from '@promptiris/core';
 import type { Event } from '@promptiris/protocol';
-import {
-  definePlugin,
-  type PluginImplementation,
-  type PluginInvocation,
-  type PluginRegistration,
-} from '@promptiris/plugin-sdk';
+import { definePlugin, type PluginRegistration } from '@promptiris/plugin-sdk';
 import { createConsoleSink, JsonLinesSink, type EventSink } from './sinks.js';
 import {
   createSupportBundle,
@@ -34,8 +29,7 @@ export interface ObserverDevtools extends DebugRecordSink {
   capture(record: DebugRecord): void;
   getEvents(): readonly Event[];
   getDebugRecords(): readonly DebugRecord[];
-  createBundle(): SupportBundle;
-  createRegistration(): PluginRegistration;
+  createBundle(options?: { createdAt?: string }): SupportBundle;
 }
 
 const DEFAULT_OBSERVER_ID = 'promptiris/observer-devtools';
@@ -58,20 +52,6 @@ function resolveMaxEvents(input?: number): number {
   if (!Number.isSafeInteger(v) || v <= 0)
     throw new RangeError('maxEvents must be positive integer');
   return v;
-}
-
-function makeRegistration(manifest: PluginRegistration['manifest']): PluginRegistration {
-  return {
-    manifest,
-    activate(): PluginImplementation {
-      return {
-        async invoke(request: PluginInvocation): Promise<Record<string, never>> {
-          void request;
-          return {};
-        },
-      };
-    },
-  };
 }
 
 function createSinks(
@@ -195,7 +175,7 @@ function buildDevtools(input: BuildInput): ObserverDevtools {
     getDebugRecords(): readonly DebugRecord[] {
       return state.debugRecords;
     },
-    createBundle(): SupportBundle {
+    createBundle(bundleOptions?: { createdAt?: string }): SupportBundle {
       return createSupportBundle({
         observerId,
         events: [...state.events],
@@ -204,10 +184,8 @@ function buildDevtools(input: BuildInput): ObserverDevtools {
         ...(options.configTraceId ? { configTraceId: options.configTraceId } : {}),
         ...(state.runId ? { runId: state.runId } : {}),
         ...(state.traceId ? { traceId: state.traceId } : {}),
+        ...(bundleOptions?.createdAt ? { createdAt: bundleOptions.createdAt } : {}),
       });
-    },
-    createRegistration(): PluginRegistration {
-      return makeRegistration(manifest);
     },
   };
 }

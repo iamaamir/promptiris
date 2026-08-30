@@ -1,2 +1,2 @@
 import { createVitestConfig } from '../../tooling/vitest-config.js';
-export default createVitestConfig(88);
+export default createVitestConfig(90);

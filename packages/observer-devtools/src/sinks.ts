@@ -10,9 +10,84 @@ export interface ConsoleSinkOptions {
   readonly writer?: (line: string) => void;
 }
 
+const ALLOWLISTED_DATA_KEYS = new Set([
+  'phase',
+  'status',
+  'pluginId',
+  'contributionId',
+  'observerId',
+  'reason',
+  'fallback',
+  'from',
+  'to',
+  'durationMs',
+  'timing',
+  'timings',
+  'kind',
+  'artifactKind',
+  'mediaType',
+  'digest',
+]);
+
+const MAX_STRING_LENGTH = 256;
+
+function isPlainValue(value: unknown): boolean {
+  const t = typeof value;
+  return t === 'string' || t === 'number' || t === 'boolean';
+}
+
+function boundedString(value: string): string {
+  return value.length <= MAX_STRING_LENGTH ? value : `${value.slice(0, MAX_STRING_LENGTH)}…`;
+}
+
+function isPollutionKey(key: string): boolean {
+  return key === '__proto__' || key === 'constructor' || key === 'prototype';
+}
+
+function isAllowedEntry(key: string, value: unknown): boolean {
+  if (!ALLOWLISTED_DATA_KEYS.has(key)) return false;
+  if (isPollutionKey(key)) return false;
+  if (!isPlainValue(value)) return false;
+  if (typeof value === 'number' && !Number.isFinite(value)) return false;
+  return true;
+}
+
+function projectData(data: unknown): unknown {
+  if (typeof data !== 'object' || data === null) return undefined;
+  if (Array.isArray(data)) return undefined;
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(data as Record<string, unknown>)) {
+    if (!isAllowedEntry(k, v)) continue;
+    out[k] = typeof v === 'string' ? boundedString(v) : v;
+  }
+  return Object.keys(out).length === 0 ? undefined : out;
+}
+
 function pushIfString(parts: string[], key: string, value: unknown): void {
   if (typeof value === 'string') parts.push(`${key}=${value}`);
 }
+
+function pushIfNumber(parts: string[], key: string, value: unknown): void {
+  if (typeof value === 'number' && Number.isFinite(value)) parts.push(`${key}=${String(value)}`);
+}
+
+const STRING_FIELDS: [string, string][] = [
+  ['phase', 'phase'],
+  ['plugin', 'pluginId'],
+  ['contrib', 'contributionId'],
+  ['status', 'status'],
+  ['observer', 'observerId'],
+  ['reason', 'reason'],
+  ['fallback', 'fallback'],
+  ['kind', 'kind'],
+  ['artifactKind', 'artifactKind'],
+  ['digest', 'digest'],
+];
+
+const NUMBER_FIELDS: [string, string][] = [
+  ['durationMs', 'durationMs'],
+  ['timing', 'timing'],
+];
 
 /** @public */
 export function formatEvent(event: Event): string {
@@ -21,11 +96,8 @@ export function formatEvent(event: Event): string {
   parts.push(`[${String(event.sequence)}]`);
   parts.push(event.type);
   parts.push(`source=${event.source}`);
-  pushIfString(parts, 'phase', data?.phase);
-  pushIfString(parts, 'plugin', data?.pluginId);
-  pushIfString(parts, 'contrib', data?.contributionId);
-  pushIfString(parts, 'status', data?.status);
-  pushIfString(parts, 'observer', data?.observerId);
+  for (const [label, key] of STRING_FIELDS) pushIfString(parts, label, data?.[key]);
+  for (const [label, key] of NUMBER_FIELDS) pushIfNumber(parts, label, data?.[key]);
   parts.push(`delivery=${event.delivery}`);
   return parts.join(' ');
 }
@@ -65,7 +137,8 @@ export class JsonLinesSink implements EventSink {
   write(event: Event): void {
     try {
       if (this.#lines.length >= this.#capacity) return;
-      // Deterministic: store only metadata fields, redact sensitive content.
+      const projectedData =
+        event.classification === 'sensitive' ? { redacted: true } : (projectData(event.data) ?? {});
       const projected = {
         schemaVersion: event.schemaVersion,
         id: event.id,
@@ -77,7 +150,7 @@ export class JsonLinesSink implements EventSink {
         dataSchema: event.dataSchema,
         classification: event.classification,
         delivery: event.delivery,
-        data: redactData(event.data, event.classification),
+        data: projectedData,
       };
       this.#lines.push(JSON.stringify(projected));
     } catch {
@@ -92,17 +165,4 @@ export class JsonLinesSink implements EventSink {
   clear(): void {
     this.#lines.length = 0;
   }
-}
-
-function redactData(data: unknown, classification: string): unknown {
-  if (classification === 'sensitive') return { redacted: true };
-  if (typeof data !== 'object' || data === null) return data;
-  // Shallow redact known content fields.
-  const record = data as Record<string, unknown>;
-  const out: Record<string, unknown> = {};
-  for (const [k, v] of Object.entries(record)) {
-    if (k === 'prompt' || k === 'content' || k === 'value' || k === 'secret') out[k] = '[redacted]';
-    else out[k] = v;
-  }
-  return out;
 }

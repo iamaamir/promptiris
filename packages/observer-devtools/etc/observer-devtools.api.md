@@ -15,6 +15,8 @@ export interface BundleInput {
     // (undocumented)
     readonly configTraceId?: string;
     // (undocumented)
+    readonly createdAt?: string;
+    // (undocumented)
     readonly debugRecords: readonly DebugRecord[];
     // (undocumented)
     readonly events: readonly Event_2[];
@@ -87,9 +89,9 @@ export interface ObserverDevtools extends DebugRecordSink {
     // (undocumented)
     capture(record: DebugRecord): void;
     // (undocumented)
-    createBundle(): SupportBundle;
-    // (undocumented)
-    createRegistration(): PluginRegistration;
+    createBundle(options?: {
+        createdAt?: string;
+    }): SupportBundle;
     // (undocumented)
     getDebugRecords(): readonly DebugRecord[];
     // (undocumented)
