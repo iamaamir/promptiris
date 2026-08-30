@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { mkdtemp, readFile, symlink, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { test } from 'node:test';
+import { readRegularEvidenceFile } from './evidence-file.mjs';
 
 test('CodeQL runs security-and-quality analysis and the project query pack', async () => {
   const workflow = await readFile('.github/workflows/codeql.yml', 'utf8');
@@ -19,10 +22,13 @@ test('the project query governs every Node process-launch API', async () => {
   assert.match(query, /apps\/runtime-node\/src\/native-plugin\.ts/);
 });
 
-test('role evidence hashes the same no-follow file handle it verifies', async () => {
-  const verifier = await readFile('scripts/verify-role-evidence.mjs', 'utf8');
-  assert.match(verifier, /constants\.O_NOFOLLOW/);
-  assert.match(verifier, /await file\.stat\(\)/);
-  assert.match(verifier, /await file\.readFile\(\)/);
-  assert.doesNotMatch(verifier, /lstat\(evidencePath\)|readFile\(evidencePath\)/);
+test('role evidence rejects symlinks and platforms without no-follow file opens', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'promptiris-evidence-file-'));
+  const target = join(directory, 'target.txt');
+  const link = join(directory, 'link.txt');
+  await writeFile(target, 'trusted evidence');
+  assert.equal((await readRegularEvidenceFile(target)).toString(), 'trusted evidence');
+  await symlink(target, link);
+  await assert.rejects(readRegularEvidenceFile(link));
+  await assert.rejects(readRegularEvidenceFile(target, null));
 });

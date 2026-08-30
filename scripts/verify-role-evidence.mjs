@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { constants } from 'node:fs';
-import { open, readFile, readdir } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import { basename, dirname, isAbsolute, join, resolve } from 'node:path';
 import { Ajv2020 } from 'ajv/dist/2020.js';
+import { readRegularEvidenceFile } from '../tooling/quality/evidence-file.mjs';
 
 const git = (args, options = {}) => execFileSync('git', args, options);
 const branch =
@@ -149,16 +149,9 @@ const loadReport = async (role, path, validate) => {
       git(['ls-files', '--error-unmatch', '--', evidence.evidenceRef], {
         stdio: ['ignore', 'ignore', 'ignore'],
       });
-      const file = await open(evidencePath, constants.O_RDONLY | constants.O_NOFOLLOW);
-      let digest;
-      try {
-        if (!(await file.stat()).isFile()) throw new Error('evidence is not a regular file');
-        digest = createHash('sha256')
-          .update(await file.readFile())
-          .digest('hex');
-      } finally {
-        await file.close();
-      }
+      const digest = createHash('sha256')
+        .update(await readRegularEvidenceFile(evidencePath))
+        .digest('hex');
       if (digest !== evidence.evidenceSha256)
         failures.push(`${role} evidence digest mismatch: ${evidence.evidenceRef}`);
     } catch {
