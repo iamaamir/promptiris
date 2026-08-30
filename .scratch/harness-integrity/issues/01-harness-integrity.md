@@ -16,6 +16,8 @@ Allowed paths:
 - `.scratch/harness-integrity/**`
 - `.scratch/verification-strategies/**`
 - `apps/dashboard/**`
+- `apps/runtime-node/src/native-plugin.test.ts`
+- `apps/runtime-node/test/fixtures/native-plugin.mjs`
 - `docs/agents/**`
 - `docs/development/**`
 - `knip.json`
