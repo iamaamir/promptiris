@@ -58,19 +58,29 @@ if (trustedMode) {
   if (!candidatePacket.split('\n').includes(`Branch: \`${branch}\``))
     throw new Error(`candidate removed or rebound the authoritative Work Item: ${packet}`);
 }
-const candidate = git([
-  '-c',
-  'core.autocrlf=false',
-  'diff',
-  '--no-ext-diff',
-  '--no-textconv',
-  '--no-renames',
-  '--binary',
-  baseRevision,
-  '--',
+const candidatePathspec = [
   '.',
   ':(exclude).scratch/**/evidence/**',
   ':(exclude,glob).scratch/**/*.evidence/**',
+];
+const candidateWorktreeChanges = git(['diff', '--name-only', 'HEAD', '--', ...candidatePathspec], {
+  encoding: 'utf8',
+}).trim();
+if (candidateWorktreeChanges)
+  throw new Error(
+    `candidate has uncommitted source outside evidence: ${candidateWorktreeChanges.split('\n').join(', ')}`,
+  );
+const candidate = git([
+  'diff',
+  '--raw',
+  '-z',
+  '--no-ext-diff',
+  '--no-textconv',
+  '--no-renames',
+  baseRevision,
+  'HEAD',
+  '--',
+  ...candidatePathspec,
 ]);
 const candidateRevision = `sha256:${createHash('sha256').update(candidate).digest('hex')}`;
 const untrackedCandidateFiles = git(['ls-files', '--others', '--exclude-standard'], {
