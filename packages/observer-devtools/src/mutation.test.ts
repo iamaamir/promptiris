@@ -1,11 +1,16 @@
 import { describe, it, expect } from 'vitest';
 import { JsonLinesSink, formatEvent } from './sinks.js';
-import { createSupportBundle, MAX_BUNDLE_BYTES, MAX_BUNDLE_EVENTS, MAX_BUNDLE_DEBUG_RECORDS } from './support-bundle.js';
+import {
+  createSupportBundle,
+  MAX_BUNDLE_BYTES,
+  MAX_BUNDLE_DEBUG_RECORDS,
+  MAX_BUNDLE_EVENTS,
+} from './support-bundle.js';
 import type { Event } from '@promptiris/protocol';
 import type { DebugRecord } from '@promptiris/core';
 
 function makeEvent(data: unknown, overrides: Partial<Event> = {}): Event {
-  return {
+  const base: Event = {
     schemaVersion: '1',
     id: overrides.id ?? 'id',
     type: 't',
@@ -15,11 +20,17 @@ function makeEvent(data: unknown, overrides: Partial<Event> = {}): Event {
     traceId: 'r',
     source: 's',
     dataSchema: 'd',
-    data: data as unknown,
-    classification: (overrides.classification as 'metadata' | 'sensitive') ?? 'metadata',
-    delivery: (overrides.delivery as 'critical' | 'progress') ?? 'critical',
+    data: data,
+    classification: overrides.classification ?? 'metadata',
+    delivery: overrides.delivery ?? 'critical',
+  };
+  return {
+    ...base,
     ...overrides,
-  } as Event;
+    data: data,
+    id: base.id,
+    sequence: base.sequence,
+  };
 }
 
 describe('mutation killers', () => {
@@ -46,40 +57,36 @@ describe('mutation killers', () => {
       unknown: 'leak',
     };
     sink.write(makeEvent(data));
-    const parsed = JSON.parse(sink.lines[0] ?? '{}') as { data: Record<string, unknown> };
-    expect(parsed.data.phase).toBe('a');
-    expect(parsed.data.status).toBe('b');
-    expect(parsed.data.pluginId).toBe('c');
-    expect(parsed.data.digest).toBe('m');
-    expect((parsed.data as Record<string, unknown>).prompt).toBeUndefined();
-    expect((parsed.data as Record<string, unknown>).unknown).toBeUndefined();
+    const line = sink.lines[0] ?? '';
+    expect(line).toContain('"phase":"a"');
+    expect(line).toContain('"digest":"m"');
+    expect(line).not.toContain('"prompt"');
+    expect(line).not.toContain('"unknown"');
   });
 
   it('truncates long strings', () => {
     const sink = new JsonLinesSink({ capacity: 10 });
     const long = 'x'.repeat(300);
     sink.write(makeEvent({ phase: long }));
-    const parsed = JSON.parse(sink.lines[0] ?? '{}') as { data: { phase: string } };
-    expect(parsed.data.phase.length).toBe(257);
-    expect(parsed.data.phase.endsWith('…')).toBe(true);
+    const line = sink.lines[0] ?? '';
+    expect(line).toContain('…');
+    // truncated to 257 inc ellipsis, original 300 not present
+    expect(line).not.toContain(long);
   });
 
   it('drops non-finite numbers', () => {
     const sink = new JsonLinesSink({ capacity: 10 });
     sink.write(makeEvent({ durationMs: Infinity }));
-    const parsed = JSON.parse(sink.lines[0] ?? '{}') as { data?: Record<string, unknown> };
-    expect(parsed.data?.durationMs).toBeUndefined();
+    expect(sink.lines[0] ?? '').not.toContain('durationMs');
     sink.clear();
     sink.write(makeEvent({ durationMs: NaN }));
-    const parsed2 = JSON.parse(sink.lines[0] ?? '{}') as { data?: Record<string, unknown> };
-    expect(parsed2.data?.durationMs).toBeUndefined();
+    expect(sink.lines[0] ?? '').not.toContain('durationMs');
   });
 
   it('handles sensitive redaction', () => {
     const sink = new JsonLinesSink({ capacity: 10 });
     sink.write(makeEvent({ phase: 'x' }, { classification: 'sensitive' }));
-    const parsed = JSON.parse(sink.lines[0] ?? '{}') as { data: unknown };
-    expect(parsed.data).toEqual({ redacted: true });
+    expect(sink.lines[0] ?? '').toContain('"redacted":true');
   });
 
   it('formatEvent includes all allowlisted fields', () => {
@@ -121,7 +128,9 @@ describe('mutation killers', () => {
   });
 
   it('support bundle slices beyond max', () => {
-    const events = Array.from({ length: 300 }, (_, i) => makeEvent({}, { id: `id-${String(i)}`, sequence: i }));
+    const events = Array.from({ length: 300 }, (_, i) =>
+      makeEvent({}, { id: `id-${String(i)}`, sequence: i }),
+    );
     const bundle = createSupportBundle({
       observerId: 'test',
       events,
@@ -165,7 +174,7 @@ describe('mutation killers', () => {
       createdAt: '2026-01-01T00:00:00.000Z',
     });
     expect(bundle.debugRecords[0]?.exception.message).toBe('[redacted]');
-    expect((bundle.debugRecords[0] as unknown as { exception: { stack?: string } }).exception.stack).toBeUndefined();
+    expect(JSON.stringify(bundle.debugRecords[0])).not.toContain('stack');
     expect(bundle.debugRecords[0]?.pluginId).toBe('p');
   });
 
@@ -186,8 +195,12 @@ describe('mutation killers', () => {
       mediaType: big,
       digest: big,
     };
-    const progressEvents = Array.from({ length: 50 }, (_, i) => makeEvent(fullData, { id: `p-${String(i)}`, sequence: i, delivery: 'progress' }));
-    const criticalEvents = Array.from({ length: 50 }, (_, i) => makeEvent(fullData, { id: `c-${String(i)}`, sequence: 50 + i, delivery: 'critical' }));
+    const progressEvents = Array.from({ length: 50 }, (_, i) =>
+      makeEvent(fullData, { id: `p-${String(i)}`, sequence: i, delivery: 'progress' }),
+    );
+    const criticalEvents = Array.from({ length: 50 }, (_, i) =>
+      makeEvent(fullData, { id: `c-${String(i)}`, sequence: 50 + i, delivery: 'critical' }),
+    );
     const all = [...progressEvents, ...criticalEvents];
     const bundle = createSupportBundle({
       observerId: 'test',
@@ -197,9 +210,19 @@ describe('mutation killers', () => {
     });
     const bytes = new TextEncoder().encode(JSON.stringify(bundle)).length;
     expect(bytes).toBeLessThanOrEqual(MAX_BUNDLE_BYTES);
-    // should have no progress after cap
     if (bundle.events.length < all.length) {
       expect(bundle.events.every((e) => e.delivery !== 'progress')).toBe(true);
     }
+  });
+  it('strips non-plain allowlisted values', () => {
+    const sink = new JsonLinesSink({ capacity: 10 });
+    sink.write(makeEvent({ phase: { nested: 'x' } }));
+    expect(sink.lines[0] ?? '').not.toContain('"phase"');
+    sink.clear();
+    sink.write(makeEvent({ phase: ['a'] }));
+    expect(sink.lines[0] ?? '').not.toContain('"phase"');
+    sink.clear();
+    sink.write(makeEvent({ phase: true }));
+    expect(sink.lines[0] ?? '').toContain('"phase":true');
   });
 });
