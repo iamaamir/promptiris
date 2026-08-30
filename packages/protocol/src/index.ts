@@ -279,75 +279,6 @@ export interface RunResult {
 }
 
 /** @public */
-export type ModelCapability = 'text-generation' | 'structured-output' | 'tool-use';
-/** @public */
-export interface ModelBinding {
-  readonly modelId: string;
-  readonly providerId: NamespacedId;
-  readonly fingerprint: string;
-}
-/** @public */
-export interface ProviderCapabilities {
-  readonly supported: readonly ModelCapability[];
-  readonly unsupported: readonly ModelCapability[];
-}
-/** @public */
-export interface ProviderConfig {
-  readonly id: NamespacedId;
-  readonly binding: ModelBinding;
-  readonly capabilities: ProviderCapabilities;
-  readonly secretRef?: SecretReference;
-  readonly endpoint?: string;
-}
-/** @public */
-export interface GenerateMessage {
-  readonly role: 'user' | 'assistant' | 'system';
-  readonly content: string;
-}
-/** @public */
-export interface GenerateParams {
-  readonly config: ProviderConfig;
-  readonly messages: readonly GenerateMessage[];
-  readonly system?: string;
-  readonly temperature?: number;
-  readonly maxTokens?: number;
-  /** AbortSignal is platform-specific and cannot be serialized. */
-  readonly signal?: AbortSignal;
-  /** Capability evidence bound to the active Provider configuration fingerprint. */
-  readonly evidence?: readonly CapabilityEvidence[];
-}
-/** @public */
-export interface Usage {
-  readonly promptTokens: number;
-  readonly completionTokens: number;
-  readonly totalTokens: number;
-}
-/** @public */
-export interface GenerateResult {
-  readonly content: string;
-  readonly model: string;
-  readonly usage: Usage;
-  readonly finishReason: 'stop' | 'length' | 'content-filter' | 'error';
-  readonly diagnostics?: readonly Diagnostic[];
-}
-/** @public */
-export type ProviderErrorKind =
-  | 'unsupported-capability'
-  | 'cancelled'
-  | 'malformed-output'
-  | 'timeout'
-  | 'rate-limit'
-  | 'authentication'
-  | 'network'
-  | 'unknown';
-/** @public */
-export interface ProviderError {
-  readonly kind: ProviderErrorKind;
-  readonly message: string;
-  readonly retryable: boolean;
-  readonly cause?: unknown;
-}
-/** @public */
 export interface InitializeParams {
   protocolVersion: '1';
   clientName?: string;
@@ -614,164 +545,7 @@ const patchSchema = {
     },
   },
 } as const;
-
-// Stryker disable all: Provider schema constants follow the same pattern as PromptDocument and Patch schemas; schema conformance tests verify their observable contract.
-const providerConfigSchema = {
-  $schema: 'https://json-schema.org/draft/2020-12/schema',
-  $id: 'urn:promptiris:schema:provider-config:v1',
-  type: 'object',
-  additionalProperties: false,
-  required: ['id', 'binding', 'capabilities'],
-  properties: {
-    id: { type: 'string', pattern: namespacedPattern },
-    binding: {
-      type: 'object',
-      additionalProperties: false,
-      required: ['modelId', 'providerId', 'fingerprint'],
-      properties: {
-        modelId: { type: 'string', minLength: 1 },
-        providerId: { type: 'string', pattern: namespacedPattern },
-        fingerprint: { type: 'string', minLength: 1 },
-      },
-    },
-    capabilities: {
-      type: 'object',
-      additionalProperties: false,
-      required: ['supported', 'unsupported'],
-      properties: {
-        supported: {
-          type: 'array',
-          items: { type: 'string', enum: ['text-generation', 'structured-output', 'tool-use'] },
-        },
-        unsupported: {
-          type: 'array',
-          items: { type: 'string', enum: ['text-generation', 'structured-output', 'tool-use'] },
-        },
-      },
-    },
-    secretRef: {
-      type: 'object',
-      additionalProperties: false,
-      required: ['ref'],
-      properties: { ref: { type: 'string', minLength: 1 } },
-    },
-    endpoint: { type: 'string' },
-  },
-} as const;
-
-const capabilityEvidenceSchema = {
-  $schema: 'https://json-schema.org/draft/2020-12/schema',
-  $id: 'urn:promptiris:schema:capability-evidence:v1',
-  type: 'object',
-  additionalProperties: false,
-  required: ['evidenceId', 'capability', 'bindingFingerprint', 'state', 'source'],
-  properties: {
-    evidenceId: { type: 'string', minLength: 1 },
-    capability: { type: 'string', pattern: namespacedPattern },
-    bindingFingerprint: { type: 'string', minLength: 1 },
-    state: { type: 'string', enum: ['supported', 'unsupported', 'unknown'] },
-    source: {
-      type: 'object',
-      additionalProperties: false,
-      required: ['kind', 'id'],
-      properties: {
-        kind: { type: 'string', enum: ['policy', 'configuration', 'profile', 'observation'] },
-        id: { type: 'string', minLength: 1 },
-      },
-    },
-    digest: { type: 'string' },
-    observedAt: { type: 'string' },
-    reason: { type: 'string' },
-  },
-} as const;
-
-const generateParamsSchema = {
-  $schema: 'https://json-schema.org/draft/2020-12/schema',
-  $id: 'urn:promptiris:schema:generate-params:v1',
-  type: 'object',
-  additionalProperties: false,
-  required: ['config', 'messages'],
-  properties: {
-    config: { $ref: providerConfigSchema.$id },
-    messages: {
-      type: 'array',
-      minItems: 1,
-      items: {
-        type: 'object',
-        additionalProperties: false,
-        required: ['role', 'content'],
-        properties: {
-          role: { type: 'string', enum: ['user', 'assistant', 'system'] },
-          content: { type: 'string' },
-        },
-      },
-    },
-    system: { type: 'string' },
-    temperature: { type: 'number', minimum: 0, maximum: 2 },
-    maxTokens: { type: 'integer', minimum: 1 },
-    evidence: {
-      type: 'array',
-      items: { $ref: capabilityEvidenceSchema.$id },
-    },
-  },
-} as const;
-
-const generateResultSchema = {
-  $schema: 'https://json-schema.org/draft/2020-12/schema',
-  $id: 'urn:promptiris:schema:generate-result:v1',
-  type: 'object',
-  additionalProperties: false,
-  required: ['content', 'model', 'usage', 'finishReason'],
-  properties: {
-    content: { type: 'string' },
-    model: { type: 'string', minLength: 1 },
-    usage: {
-      type: 'object',
-      additionalProperties: false,
-      required: ['promptTokens', 'completionTokens', 'totalTokens'],
-      properties: {
-        promptTokens: { type: 'integer', minimum: 0 },
-        completionTokens: { type: 'integer', minimum: 0 },
-        totalTokens: { type: 'integer', minimum: 0 },
-      },
-    },
-    finishReason: { type: 'string', enum: ['stop', 'length', 'content-filter', 'error'] },
-    diagnostics: {
-      type: 'array',
-      items: { type: 'object' },
-    },
-  },
-} as const;
-
-const providerErrorSchema = {
-  $schema: 'https://json-schema.org/draft/2020-12/schema',
-  $id: 'urn:promptiris:schema:provider-error:v1',
-  type: 'object',
-  additionalProperties: false,
-  required: ['kind', 'message', 'retryable'],
-  properties: {
-    kind: {
-      type: 'string',
-      enum: [
-        'unsupported-capability',
-        'cancelled',
-        'malformed-output',
-        'timeout',
-        'rate-limit',
-        'authentication',
-        'network',
-        'unknown',
-      ],
-    },
-    message: { type: 'string', minLength: 1 },
-    retryable: { type: 'boolean' },
-    cause: {},
-  },
-} as const;
-// Stryker restore all
-
-// Stryker disable all: constructor options are configuration policy; schema conformance tests
-// verify their observable contract.
+// Stryker disable all: these flags are compiler policy; schema conformance tests verify their observable contract.
 const ajv = new Ajv2020({
   strict: true,
   allErrors: true,
@@ -779,18 +553,14 @@ const ajv = new Ajv2020({
   useDefaults: false,
   removeAdditional: false,
 });
-// Stryker restore all
-const validator = ajv.compile(promptDocumentSchema);
+ajv.addSchema(promptDocumentSchema);
+const validator = ajv.getSchema(promptDocumentSchema.$id);
 const patchValidator = ajv.compile(patchSchema);
 const jsonValueValidator = ajv.compile({ $ref: `${promptDocumentSchema.$id}#/$defs/jsonValue` });
-const providerConfigValidator = ajv.compile(providerConfigSchema);
-const generateResultValidator = ajv.compile(generateResultSchema);
-const providerErrorValidator = ajv.compile(providerErrorSchema);
-const capabilityEvidenceValidator = ajv.compile(capabilityEvidenceSchema);
-const generateParamsValidator = ajv.compile(generateParamsSchema);
+// Stryker restore all
 /** @public */
 export function validatePromptDocument(value: unknown): value is PromptDocument {
-  return validator(value);
+  return validator?.(value) === true;
 }
 /** @public */
 export function validatePatch(value: unknown): value is Patch {
@@ -801,26 +571,6 @@ export function validateJsonValue(value: unknown): value is JsonValue {
   return jsonValueValidator(value);
 }
 
-/** @public */
-export function validateProviderConfig(value: unknown): value is ProviderConfig {
-  return providerConfigValidator(value);
-}
-/** @public */
-export function validateGenerateResult(value: unknown): value is GenerateResult {
-  return generateResultValidator(value);
-}
-/** @public */
-export function validateProviderError(value: unknown): value is ProviderError {
-  return providerErrorValidator(value);
-}
-/** @public */
-export function validateCapabilityEvidence(value: unknown): value is CapabilityEvidence {
-  return capabilityEvidenceValidator(value);
-}
-/** @public */
-export function validateGenerateParams(value: unknown): value is GenerateParams {
-  return generateParamsValidator(value);
-}
 /** @public */
 export function makeTextDocument(text: string): PromptDocument {
   return { schemaVersion: '1', content: [{ id: 'input-1', text }] };

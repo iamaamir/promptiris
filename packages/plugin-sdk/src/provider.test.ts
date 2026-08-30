@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { CapabilityEvidence, GenerateParams, ProviderConfig } from '@promptiris/protocol';
+import type { CapabilityEvidence, GenerateParams, ProviderConfig } from './provider.js';
 import { FakeProvider, ProviderFailureError, makeGenerateResult } from './provider.js';
 
 const baseConfig: ProviderConfig = {
@@ -131,8 +131,6 @@ describe('FakeProvider', () => {
     ]);
 
     const controller = new AbortController();
-
-    // Abort synchronously before the response is returned
     controller.abort();
 
     try {
