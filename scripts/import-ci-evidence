@@ -11,9 +11,10 @@ worktree_root="$(git rev-parse --show-toplevel)"
 common_git_dir="$(git -C "$worktree_root" rev-parse --path-format=absolute --git-common-dir)"
 shared_root="${PROMPTIRIS_REPOSITORY_ROOT:-${common_git_dir%/.git}}"
 imports_root="$shared_root/.agent/imports"
-destination="$imports_root/$label/traces"
-[[ ! -e "$destination" ]] || {
-  echo "CI evidence already imported: $destination" >&2
+destination_root="$imports_root/$label"
+destination="$destination_root/traces"
+[[ ! -e "$destination_root" ]] || {
+  echo "CI evidence already imported: $destination_root" >&2
   exit 73
 }
 mkdir -p "$imports_root"
@@ -32,12 +33,14 @@ if (( count == 0 )); then
   echo 'no schema-v2 Tool Traces found' >&2
   exit 65
 fi
-[[ ! -e "$destination" ]] || {
-  echo "CI evidence already imported: $destination" >&2
+if ! mkdir "$destination_root"; then
+  echo "CI evidence already imported: $destination_root" >&2
   exit 73
-}
-mkdir -p "$(dirname "$destination")"
-mv "$temporary_destination" "$destination"
+fi
+if ! mv "$temporary_destination" "$destination"; then
+  rmdir "$destination_root" 2>/dev/null || true
+  exit 74
+fi
 trap - EXIT
 rmdir "$temporary_root"
 echo "imported $count local CI Tool Traces: $destination"

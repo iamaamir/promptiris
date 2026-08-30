@@ -34,4 +34,17 @@ if ./scripts/import-ci-evidence "$workspace/invalid" invalid >/dev/null 2>&1; th
 fi
 [[ ! -e "$workspace/repo/.agent/imports/invalid" ]]
 
+./scripts/import-ci-evidence "$workspace/source" concurrent >"$workspace/first.log" 2>&1 &
+first_pid=$!
+./scripts/import-ci-evidence "$workspace/source" concurrent >"$workspace/second.log" 2>&1 &
+second_pid=$!
+first_status=0
+second_status=0
+wait "$first_pid" || first_status=$?
+wait "$second_pid" || second_status=$?
+(( first_status == 0 || second_status == 0 ))
+(( first_status != 0 || second_status != 0 ))
+[[ -f "$workspace/repo/.agent/imports/concurrent/traces/0-trace.json" ]]
+[[ ! -d "$workspace/repo/.agent/imports/concurrent/traces/traces" ]]
+
 echo 'CI import tests passed'
