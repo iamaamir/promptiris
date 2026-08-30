@@ -311,7 +311,10 @@ export interface GenerateParams {
   readonly system?: string;
   readonly temperature?: number;
   readonly maxTokens?: number;
+  /** AbortSignal is platform-specific and cannot be serialized. */
   readonly signal?: AbortSignal;
+  /** Capability evidence bound to the active Provider configuration fingerprint. */
+  readonly evidence?: readonly CapabilityEvidence[];
 }
 /** @public */
 export interface Usage {
@@ -325,6 +328,7 @@ export interface GenerateResult {
   readonly model: string;
   readonly usage: Usage;
   readonly finishReason: 'stop' | 'length' | 'content-filter' | 'error';
+  readonly diagnostics?: readonly Diagnostic[];
 }
 /** @public */
 export type ProviderErrorKind =
@@ -610,18 +614,8 @@ const patchSchema = {
     },
   },
 } as const;
-// Stryker disable all: these flags are compiler policy; schema conformance tests verify their observable contract.
-const ajv = new Ajv2020({
-  strict: true,
-  allErrors: true,
-  coerceTypes: false,
-  useDefaults: false,
-  removeAdditional: false,
-});
-ajv.addSchema(promptDocumentSchema);
-const validator = ajv.getSchema(promptDocumentSchema.$id);
-const patchValidator = ajv.compile(patchSchema);
-const jsonValueValidator = ajv.compile({ $ref: `${promptDocumentSchema.$id}#/$defs/jsonValue` });
+
+// Stryker disable all: Provider schema constants follow the same pattern as PromptDocument and Patch schemas; schema conformance tests verify their observable contract.
 const providerConfigSchema = {
   $schema: 'https://json-schema.org/draft/2020-12/schema',
   $id: 'urn:promptiris:schema:provider-config:v1',
@@ -665,6 +659,63 @@ const providerConfigSchema = {
   },
 } as const;
 
+const capabilityEvidenceSchema = {
+  $schema: 'https://json-schema.org/draft/2020-12/schema',
+  $id: 'urn:promptiris:schema:capability-evidence:v1',
+  type: 'object',
+  additionalProperties: false,
+  required: ['evidenceId', 'capability', 'bindingFingerprint', 'state', 'source'],
+  properties: {
+    evidenceId: { type: 'string', minLength: 1 },
+    capability: { type: 'string', pattern: namespacedPattern },
+    bindingFingerprint: { type: 'string', minLength: 1 },
+    state: { type: 'string', enum: ['supported', 'unsupported', 'unknown'] },
+    source: {
+      type: 'object',
+      additionalProperties: false,
+      required: ['kind', 'id'],
+      properties: {
+        kind: { type: 'string', enum: ['policy', 'configuration', 'profile', 'observation'] },
+        id: { type: 'string', minLength: 1 },
+      },
+    },
+    digest: { type: 'string' },
+    observedAt: { type: 'string' },
+    reason: { type: 'string' },
+  },
+} as const;
+
+const generateParamsSchema = {
+  $schema: 'https://json-schema.org/draft/2020-12/schema',
+  $id: 'urn:promptiris:schema:generate-params:v1',
+  type: 'object',
+  additionalProperties: false,
+  required: ['config', 'messages'],
+  properties: {
+    config: { $ref: providerConfigSchema.$id },
+    messages: {
+      type: 'array',
+      minItems: 1,
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['role', 'content'],
+        properties: {
+          role: { type: 'string', enum: ['user', 'assistant', 'system'] },
+          content: { type: 'string' },
+        },
+      },
+    },
+    system: { type: 'string' },
+    temperature: { type: 'number', minimum: 0, maximum: 2 },
+    maxTokens: { type: 'integer', minimum: 1 },
+    evidence: {
+      type: 'array',
+      items: { $ref: capabilityEvidenceSchema.$id },
+    },
+  },
+} as const;
+
 const generateResultSchema = {
   $schema: 'https://json-schema.org/draft/2020-12/schema',
   $id: 'urn:promptiris:schema:generate-result:v1',
@@ -685,6 +736,10 @@ const generateResultSchema = {
       },
     },
     finishReason: { type: 'string', enum: ['stop', 'length', 'content-filter', 'error'] },
+    diagnostics: {
+      type: 'array',
+      items: { type: 'object' },
+    },
   },
 } as const;
 
@@ -710,19 +765,32 @@ const providerErrorSchema = {
     },
     message: { type: 'string', minLength: 1 },
     retryable: { type: 'boolean' },
+    cause: {},
   },
 } as const;
-
-ajv.addSchema(providerConfigSchema);
-ajv.addSchema(generateResultSchema);
-ajv.addSchema(providerErrorSchema);
-const providerConfigValidator = ajv.getSchema(providerConfigSchema.$id);
-const generateResultValidator = ajv.getSchema(generateResultSchema.$id);
-const providerErrorValidator = ajv.getSchema(providerErrorSchema.$id);
 // Stryker restore all
+
+// Stryker disable all: constructor options are configuration policy; schema conformance tests
+// verify their observable contract.
+const ajv = new Ajv2020({
+  strict: true,
+  allErrors: true,
+  coerceTypes: false,
+  useDefaults: false,
+  removeAdditional: false,
+});
+// Stryker restore all
+const validator = ajv.compile(promptDocumentSchema);
+const patchValidator = ajv.compile(patchSchema);
+const jsonValueValidator = ajv.compile({ $ref: `${promptDocumentSchema.$id}#/$defs/jsonValue` });
+const providerConfigValidator = ajv.compile(providerConfigSchema);
+const generateResultValidator = ajv.compile(generateResultSchema);
+const providerErrorValidator = ajv.compile(providerErrorSchema);
+const capabilityEvidenceValidator = ajv.compile(capabilityEvidenceSchema);
+const generateParamsValidator = ajv.compile(generateParamsSchema);
 /** @public */
 export function validatePromptDocument(value: unknown): value is PromptDocument {
-  return validator?.(value) === true;
+  return validator(value);
 }
 /** @public */
 export function validatePatch(value: unknown): value is Patch {
@@ -735,15 +803,23 @@ export function validateJsonValue(value: unknown): value is JsonValue {
 
 /** @public */
 export function validateProviderConfig(value: unknown): value is ProviderConfig {
-  return providerConfigValidator?.(value) === true;
+  return providerConfigValidator(value);
 }
 /** @public */
 export function validateGenerateResult(value: unknown): value is GenerateResult {
-  return generateResultValidator?.(value) === true;
+  return generateResultValidator(value);
 }
 /** @public */
 export function validateProviderError(value: unknown): value is ProviderError {
-  return providerErrorValidator?.(value) === true;
+  return providerErrorValidator(value);
+}
+/** @public */
+export function validateCapabilityEvidence(value: unknown): value is CapabilityEvidence {
+  return capabilityEvidenceValidator(value);
+}
+/** @public */
+export function validateGenerateParams(value: unknown): value is GenerateParams {
+  return generateParamsValidator(value);
 }
 /** @public */
 export function makeTextDocument(text: string): PromptDocument {

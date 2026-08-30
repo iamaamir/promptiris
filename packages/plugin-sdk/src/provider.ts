@@ -3,6 +3,7 @@ import type {
   GenerateResult,
   ModelCapability,
   ProviderConfig,
+  ProviderErrorKind,
 } from '@promptiris/protocol';
 
 /**
@@ -39,7 +40,7 @@ export interface FakeProviderScenario {
  */
 export type FakeProviderResponse =
   | { readonly kind: 'success'; readonly result: GenerateResult }
-  | { readonly kind: 'error'; readonly message: string };
+  | { readonly kind: 'error'; readonly failureKind: ProviderErrorKind; readonly message: string };
 
 /**
  * Error thrown by the FakeProvider to represent a classified failure.
@@ -47,10 +48,10 @@ export type FakeProviderResponse =
  * @public
  */
 export class ProviderFailureError extends Error {
-  readonly failureKind: string;
+  readonly failureKind: ProviderErrorKind;
   readonly retryable: boolean;
 
-  constructor(failureKind: string, message: string, retryable = false) {
+  constructor(failureKind: ProviderErrorKind, message: string, retryable = false) {
     super(message);
     this.name = 'ProviderFailureError';
     this.failureKind = failureKind;
@@ -58,12 +59,15 @@ export class ProviderFailureError extends Error {
   }
 }
 
+const RETRYABLE_KINDS: readonly ProviderErrorKind[] = ['timeout', 'rate-limit', 'network'];
+
 /**
  * Deterministic in-memory Provider for conformance testing.
  *
  * The FakeProvider replays a fixed sequence of responses, making it suitable
  * for property tests, integration fixtures, and mutation targets. It validates
- * that requested capabilities are declared as supported before returning.
+ * that requested capabilities have evidence bound to the active Provider
+ * configuration fingerprint before returning.
  *
  * @public
  */
@@ -100,6 +104,8 @@ export class FakeProvider implements Provider {
   generate(params: GenerateParams): Promise<GenerateResult> {
     const scenario = this.#resolveScenario(params);
 
+    this.#validateCapabilityEvidence(params);
+
     for (const cap of params.config.capabilities.supported) {
       if (!scenario.capabilities.includes(cap)) {
         throw new ProviderFailureError(
@@ -113,7 +119,21 @@ export class FakeProvider implements Provider {
       throw new ProviderFailureError('cancelled', 'generation cancelled');
     }
 
-    return this.#nextResponse(scenario);
+    return this.#nextResponse(scenario, params.signal);
+  }
+
+  #validateCapabilityEvidence(params: GenerateParams): void {
+    if (params.evidence === undefined) return;
+    const fingerprint = params.config.binding.fingerprint;
+    const hasBoundEvidence = params.evidence.some(
+      (e) => e.bindingFingerprint === fingerprint && e.state === 'supported',
+    );
+    if (!hasBoundEvidence && params.config.capabilities.supported.length > 0) {
+      throw new ProviderFailureError(
+        'unsupported-capability',
+        `no supported evidence bound to fingerprint ${fingerprint}`,
+      );
+    }
   }
 
   #resolveScenario(params: GenerateParams): FakeProviderScenario {
@@ -126,15 +146,21 @@ export class FakeProvider implements Provider {
     return scenario;
   }
 
-  #nextResponse(scenario: FakeProviderScenario): Promise<GenerateResult> {
+  #nextResponse(scenario: FakeProviderScenario, signal?: AbortSignal): Promise<GenerateResult> {
     const index = this.#counters.get(scenario.id) ?? 0;
     const response = scenario.responses[index % scenario.responses.length];
     if (!response) throw new Error('no responses configured');
     this.#counters.set(scenario.id, index + 1);
 
     if (response.kind === 'error') {
-      throw new ProviderFailureError(response.message, response.message);
+      const retryable = RETRYABLE_KINDS.includes(response.failureKind);
+      throw new ProviderFailureError(response.failureKind, response.message, retryable);
     }
+
+    if (signal?.aborted) {
+      throw new ProviderFailureError('cancelled', 'generation cancelled during work');
+    }
+
     return Promise.resolve(response.result);
   }
 }

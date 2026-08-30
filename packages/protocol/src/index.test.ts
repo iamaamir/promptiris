@@ -12,6 +12,8 @@ import {
   validateProviderConfig,
   validateGenerateResult,
   validateProviderError,
+  validateCapabilityEvidence,
+  validateGenerateParams,
 } from './index.js';
 describe('Content-Length protocol', () => {
   it('models redacted configuration and binding-scoped capability contracts', () => {
@@ -414,5 +416,140 @@ describe('Provider schema validation', () => {
     expect(validateProviderConfig(null)).toBe(false);
     expect(validateGenerateResult(undefined)).toBe(false);
     expect(validateProviderError('error')).toBe(false);
+  });
+
+  it('accepts GenerateResult with diagnostics', () => {
+    expect(
+      validateGenerateResult({
+        content: 'hello',
+        model: 'test-model',
+        usage: { promptTokens: 10, completionTokens: 5, totalTokens: 15 },
+        finishReason: 'stop',
+        diagnostics: [
+          {
+            schemaVersion: '1',
+            id: 'd1',
+            code: 'W001',
+            category: 'quality',
+            severity: 'warning',
+            title: 'low quality',
+          },
+        ],
+      }),
+    ).toBe(true);
+  });
+
+  it('accepts ProviderError with cause', () => {
+    expect(
+      validateProviderError({
+        kind: 'network',
+        message: 'connection lost',
+        retryable: true,
+        cause: { code: 'ECONNREFUSED' },
+      }),
+    ).toBe(true);
+  });
+
+  it('validates a complete CapabilityEvidence', () => {
+    expect(
+      validateCapabilityEvidence({
+        evidenceId: 'ev-1',
+        capability: 'provider/text-generation',
+        bindingFingerprint: 'sha256:abc123',
+        state: 'supported',
+        source: { kind: 'observation', id: 'obs-1' },
+      }),
+    ).toBe(true);
+  });
+
+  it('rejects CapabilityEvidence with invalid state', () => {
+    expect(
+      validateCapabilityEvidence({
+        evidenceId: 'ev-1',
+        capability: 'provider/text-generation',
+        bindingFingerprint: 'sha256:abc123',
+        state: 'enabled',
+        source: { kind: 'observation', id: 'obs-1' },
+      }),
+    ).toBe(false);
+  });
+
+  it('rejects CapabilityEvidence with missing source', () => {
+    expect(
+      validateCapabilityEvidence({
+        evidenceId: 'ev-1',
+        capability: 'provider/text-generation',
+        bindingFingerprint: 'sha256:abc123',
+        state: 'supported',
+      }),
+    ).toBe(false);
+  });
+
+  it('validates a complete GenerateParams', () => {
+    expect(
+      validateGenerateParams({
+        config: {
+          id: 'promptiris/test',
+          binding: { modelId: 'm', providerId: 'promptiris/test', fingerprint: 'f' },
+          capabilities: { supported: ['text-generation'], unsupported: [] },
+        },
+        messages: [{ role: 'user', content: 'hi' }],
+      }),
+    ).toBe(true);
+  });
+
+  it('rejects GenerateParams with empty messages', () => {
+    expect(
+      validateGenerateParams({
+        config: {
+          id: 'promptiris/test',
+          binding: { modelId: 'm', providerId: 'promptiris/test', fingerprint: 'f' },
+          capabilities: { supported: ['text-generation'], unsupported: [] },
+        },
+        messages: [],
+      }),
+    ).toBe(false);
+  });
+
+  it('rejects GenerateParams with invalid message role', () => {
+    expect(
+      validateGenerateParams({
+        config: {
+          id: 'promptiris/test',
+          binding: { modelId: 'm', providerId: 'promptiris/test', fingerprint: 'f' },
+          capabilities: { supported: ['text-generation'], unsupported: [] },
+        },
+        messages: [{ role: 'tool', content: 'hi' }],
+      }),
+    ).toBe(false);
+  });
+
+  it('rejects GenerateParams with missing config', () => {
+    expect(
+      validateGenerateParams({
+        messages: [{ role: 'user', content: 'hi' }],
+      }),
+    ).toBe(false);
+  });
+
+  it('rejects GenerateParams with invalid temperature', () => {
+    expect(
+      validateGenerateParams({
+        config: {
+          id: 'promptiris/test',
+          binding: { modelId: 'm', providerId: 'promptiris/test', fingerprint: 'f' },
+          capabilities: { supported: ['text-generation'], unsupported: [] },
+        },
+        messages: [{ role: 'user', content: 'hi' }],
+        temperature: 5,
+      }),
+    ).toBe(false);
+  });
+
+  it('rejects CapabilityEvidence and GenerateParams for non-objects', () => {
+    expect(validateCapabilityEvidence(null)).toBe(false);
+    expect(validateCapabilityEvidence(undefined)).toBe(false);
+    expect(validateGenerateParams(null)).toBe(false);
+    expect(validateGenerateParams('bad')).toBe(false);
   });
 });

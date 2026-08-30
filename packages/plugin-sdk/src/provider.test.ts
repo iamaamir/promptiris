@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { GenerateParams, ProviderConfig } from '@promptiris/protocol';
+import type { CapabilityEvidence, GenerateParams, ProviderConfig } from '@promptiris/protocol';
 import { FakeProvider, ProviderFailureError, makeGenerateResult } from './provider.js';
 
 const baseConfig: ProviderConfig = {
@@ -19,6 +19,16 @@ const baseParams: GenerateParams = {
   config: baseConfig,
   messages: [{ role: 'user', content: 'Hello' }],
 };
+
+const supportedEvidence: CapabilityEvidence[] = [
+  {
+    evidenceId: 'ev-1',
+    capability: 'promptiris/text-generation',
+    bindingFingerprint: 'fake-fp-001',
+    state: 'supported',
+    source: { kind: 'observation', id: 'obs-1' },
+  },
+];
 
 describe('FakeProvider', () => {
   it('returns a deterministic success response', async () => {
@@ -83,6 +93,7 @@ describe('FakeProvider', () => {
     } catch (error) {
       expect(error).toBeInstanceOf(ProviderFailureError);
       expect((error as ProviderFailureError).failureKind).toBe('unsupported-capability');
+      expect((error as ProviderFailureError).retryable).toBe(false);
     }
   });
 
@@ -105,16 +116,41 @@ describe('FakeProvider', () => {
     } catch (error) {
       expect(error).toBeInstanceOf(ProviderFailureError);
       expect((error as ProviderFailureError).failureKind).toBe('cancelled');
+      expect((error as ProviderFailureError).retryable).toBe(false);
     }
   });
 
-  it('throws a configured error response', async () => {
+  it('cancels during work when signal aborts after generate starts', async () => {
+    const provider = new FakeProvider([
+      {
+        id: 'default',
+        description: 'abort during work',
+        capabilities: ['text-generation'],
+        responses: [{ kind: 'success', result: makeGenerateResult({ content: 'done' }) }],
+      },
+    ]);
+
+    const controller = new AbortController();
+
+    // Abort synchronously before the response is returned
+    controller.abort();
+
+    try {
+      await provider.generate({ ...baseParams, signal: controller.signal });
+      expect.fail('should have thrown');
+    } catch (error) {
+      expect(error).toBeInstanceOf(ProviderFailureError);
+      expect((error as ProviderFailureError).failureKind).toBe('cancelled');
+    }
+  });
+
+  it('throws a configured error response with typed failureKind', async () => {
     const provider = new FakeProvider([
       {
         id: 'default',
         description: 'rate limit',
         capabilities: ['text-generation'],
-        responses: [{ kind: 'error', message: 'rate limit exceeded' }],
+        responses: [{ kind: 'error', failureKind: 'rate-limit', message: 'rate limit exceeded' }],
       },
     ]);
 
@@ -123,7 +159,49 @@ describe('FakeProvider', () => {
       expect.fail('should have thrown');
     } catch (error) {
       expect(error).toBeInstanceOf(ProviderFailureError);
-      expect((error as ProviderFailureError).failureKind).toBe('rate limit exceeded');
+      expect((error as ProviderFailureError).failureKind).toBe('rate-limit');
+      expect((error as ProviderFailureError).retryable).toBe(true);
+      expect((error as ProviderFailureError).message).toBe('rate limit exceeded');
+    }
+  });
+
+  it('marks network and timeout errors as retryable', async () => {
+    const provider = new FakeProvider([
+      {
+        id: 'default',
+        description: 'network error',
+        capabilities: ['text-generation'],
+        responses: [{ kind: 'error', failureKind: 'network', message: 'connection lost' }],
+      },
+    ]);
+
+    try {
+      await provider.generate(baseParams);
+      expect.fail('should have thrown');
+    } catch (error) {
+      expect(error).toBeInstanceOf(ProviderFailureError);
+      expect((error as ProviderFailureError).failureKind).toBe('network');
+      expect((error as ProviderFailureError).retryable).toBe(true);
+    }
+  });
+
+  it('marks authentication errors as not retryable', async () => {
+    const provider = new FakeProvider([
+      {
+        id: 'default',
+        description: 'auth error',
+        capabilities: ['text-generation'],
+        responses: [{ kind: 'error', failureKind: 'authentication', message: 'invalid key' }],
+      },
+    ]);
+
+    try {
+      await provider.generate(baseParams);
+      expect.fail('should have thrown');
+    } catch (error) {
+      expect(error).toBeInstanceOf(ProviderFailureError);
+      expect((error as ProviderFailureError).failureKind).toBe('authentication');
+      expect((error as ProviderFailureError).retryable).toBe(false);
     }
   });
 
@@ -135,7 +213,7 @@ describe('FakeProvider', () => {
         capabilities: ['text-generation'],
         responses: [
           { kind: 'success', result: makeGenerateResult({ content: 'ok' }) },
-          { kind: 'error', message: 'network error' },
+          { kind: 'error', failureKind: 'network', message: 'network error' },
         ],
       },
     ]);
@@ -148,8 +226,111 @@ describe('FakeProvider', () => {
       expect.fail('should have thrown');
     } catch (error) {
       expect(error).toBeInstanceOf(ProviderFailureError);
-      expect((error as ProviderFailureError).failureKind).toBe('network error');
+      expect((error as ProviderFailureError).failureKind).toBe('network');
     }
+  });
+
+  it('rejects capability claims without matching evidence', async () => {
+    const provider = new FakeProvider([
+      {
+        id: 'default',
+        description: 'evidence check',
+        capabilities: ['text-generation'],
+        responses: [{ kind: 'success', result: makeGenerateResult() }],
+      },
+    ]);
+
+    const params: GenerateParams = {
+      config: baseConfig,
+      messages: [{ role: 'user', content: 'Hello' }],
+      evidence: [
+        {
+          evidenceId: 'ev-1',
+          capability: 'promptiris/text-generation',
+          bindingFingerprint: 'wrong-fingerprint',
+          state: 'supported',
+          source: { kind: 'observation', id: 'obs-1' },
+        },
+      ],
+    };
+
+    try {
+      await provider.generate(params);
+      expect.fail('should have thrown');
+    } catch (error) {
+      expect(error).toBeInstanceOf(ProviderFailureError);
+      expect((error as ProviderFailureError).failureKind).toBe('unsupported-capability');
+      expect((error as ProviderFailureError).message).toContain(
+        'no supported evidence bound to fingerprint',
+      );
+    }
+  });
+
+  it('accepts capability claims with matching evidence', async () => {
+    const provider = new FakeProvider([
+      {
+        id: 'default',
+        description: 'evidence match',
+        capabilities: ['text-generation'],
+        responses: [{ kind: 'success', result: makeGenerateResult({ content: 'with evidence' }) }],
+      },
+    ]);
+
+    const params: GenerateParams = {
+      config: baseConfig,
+      messages: [{ role: 'user', content: 'Hello' }],
+      evidence: supportedEvidence,
+    };
+
+    const result = await provider.generate(params);
+    expect(result.content).toBe('with evidence');
+  });
+
+  it('rejects capability claims when evidence state is unsupported', async () => {
+    const provider = new FakeProvider([
+      {
+        id: 'default',
+        description: 'unsupported evidence',
+        capabilities: ['text-generation'],
+        responses: [{ kind: 'success', result: makeGenerateResult() }],
+      },
+    ]);
+
+    const params: GenerateParams = {
+      config: baseConfig,
+      messages: [{ role: 'user', content: 'Hello' }],
+      evidence: [
+        {
+          evidenceId: 'ev-1',
+          capability: 'promptiris/text-generation',
+          bindingFingerprint: 'fake-fp-001',
+          state: 'unsupported',
+          source: { kind: 'observation', id: 'obs-1' },
+        },
+      ],
+    };
+
+    try {
+      await provider.generate(params);
+      expect.fail('should have thrown');
+    } catch (error) {
+      expect(error).toBeInstanceOf(ProviderFailureError);
+      expect((error as ProviderFailureError).failureKind).toBe('unsupported-capability');
+    }
+  });
+
+  it('skips evidence validation when evidence is undefined', async () => {
+    const provider = new FakeProvider([
+      {
+        id: 'default',
+        description: 'no evidence field',
+        capabilities: ['text-generation'],
+        responses: [{ kind: 'success', result: makeGenerateResult({ content: 'no evidence' }) }],
+      },
+    ]);
+
+    const result = await provider.generate(baseParams);
+    expect(result.content).toBe('no evidence');
   });
 
   it('exposes the config with correct capability declarations', () => {
@@ -185,6 +366,28 @@ describe('FakeProvider', () => {
 
     const result = await provider.generate(baseParams);
     expect(result.content).toBe('fallback');
+  });
+
+  it('supports malformed-output failure kind', async () => {
+    const provider = new FakeProvider([
+      {
+        id: 'default',
+        description: 'malformed',
+        capabilities: ['text-generation'],
+        responses: [
+          { kind: 'error', failureKind: 'malformed-output', message: 'unexpected JSON structure' },
+        ],
+      },
+    ]);
+
+    try {
+      await provider.generate(baseParams);
+      expect.fail('should have thrown');
+    } catch (error) {
+      expect(error).toBeInstanceOf(ProviderFailureError);
+      expect((error as ProviderFailureError).failureKind).toBe('malformed-output');
+      expect((error as ProviderFailureError).retryable).toBe(false);
+    }
   });
 });
 

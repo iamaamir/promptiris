@@ -3,7 +3,7 @@
   "baselineDate": "2026-08-30",
   "aggregate": {
     "minScore": 94.13,
-    "maxIgnored": 109,
+    "maxIgnored": 106,
     "maxSurvived": 91,
     "maxNoCoverage": 10
   },
@@ -112,7 +112,7 @@
     },
     "packages/protocol/src/index.ts": {
       "minScore": 100,
-      "maxIgnored": 13,
+      "maxIgnored": 10,
       "maxSurvived": 0,
       "maxNoCoverage": 0
     }
