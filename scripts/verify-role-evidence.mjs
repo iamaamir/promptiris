@@ -59,7 +59,12 @@ if (trustedMode) {
     throw new Error(`candidate removed or rebound the authoritative Work Item: ${packet}`);
 }
 const candidate = git([
+  '-c',
+  'core.autocrlf=false',
   'diff',
+  '--no-ext-diff',
+  '--no-textconv',
+  '--no-renames',
   '--binary',
   baseRevision,
   '--',

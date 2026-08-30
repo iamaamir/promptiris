@@ -16,7 +16,8 @@ git -C "$workspace/repo" add .
 git -C "$workspace/repo" commit -qm 'test fixture'
 
 cd "$workspace/repo"
-if ./scripts/tool-trace --task redaction --provider node --tools node -- \
+if GITHUB_HEAD_REF=ci-trace-test \
+  ./scripts/tool-trace --task redaction --provider node --tools node -- \
   node -e "console.error('Authorization: Bearer test-secret-value'); process.exit(7)" \
   >/dev/null 2>&1; then
   echo 'failing traced command unexpectedly succeeded' >&2
@@ -27,6 +28,7 @@ evidence="$(jq -r .evidence.ref "$trace")"
 jq -e '
   .schemaVersion == 3 and
   .exitCode == 7 and
+  .context.branch == "ci-trace-test" and
   .evidence.redaction.mode == "default" and
   .evidence.redaction.count > 0
 ' "$trace" >/dev/null

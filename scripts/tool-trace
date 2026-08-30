@@ -36,7 +36,11 @@ visible="$(mktemp "${TMPDIR:-/tmp}/promptiris-visible.XXXXXX")"
 trap 'rm -f "$visible" "$captured"' EXIT
 started_ms="$(node -e 'process.stdout.write(String(Date.now()))')"
 started_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-branch="$(git -C "$worktree_root" branch --show-current 2>/dev/null || echo detached)"
+branch="${PROMPTIRIS_BRANCH:-${GITHUB_HEAD_REF:-}}"
+if [[ -z "$branch" ]]; then
+  branch="$(git -C "$worktree_root" branch --show-current 2>/dev/null || true)"
+fi
+[[ -n "$branch" ]] || branch="detached"
 candidate_revision="$(git -C "$worktree_root" rev-parse HEAD 2>/dev/null || echo unknown)"
 workspace_state="$(mktemp "${TMPDIR:-/tmp}/promptiris-workspace.XXXXXX")"
 git -C "$worktree_root" status --porcelain=v1 >"$workspace_state"
