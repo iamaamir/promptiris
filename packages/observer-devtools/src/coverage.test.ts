@@ -1,9 +1,42 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unnecessary-type-assertion */
 import { describe, it, expect } from 'vitest';
 import { createObserverDevtools } from './observer.js';
 import { JsonLinesSink, createConsoleSink } from './sinks.js';
 import { createSupportBundle } from './support-bundle.js';
+import type { DebugRecord, DebugRecordSink } from '@promptiris/core';
 import type { Event } from '@promptiris/protocol';
+
+function makeEvent(overrides: {
+  id: string;
+  sequence: number;
+  delivery?: 'critical' | 'progress';
+  data?: unknown;
+  classification?: 'metadata' | 'sensitive';
+}): Event {
+  return {
+    schemaVersion: '1',
+    id: overrides.id,
+    type: 't',
+    time: new Date().toISOString(),
+    sequence: overrides.sequence,
+    runId: 'r',
+    traceId: 'r',
+    source: 's',
+    dataSchema: 'd',
+    data: overrides.data ?? {},
+    classification: overrides.classification ?? 'metadata',
+    delivery: overrides.delivery ?? 'critical',
+  };
+}
+
+function makeDebugRecord(id: string): DebugRecord {
+  return {
+    id,
+    runId: 'r',
+    traceId: 'r',
+    operation: 'op',
+    exception: { type: 'Error', message: 'm' },
+  };
+}
 
 describe('coverage branches', () => {
   it('rejects invalid observerId', () => {
@@ -25,20 +58,7 @@ describe('coverage branches', () => {
   });
   it('JsonLinesSink capacity overflow and clear', () => {
     const sink = new JsonLinesSink({ capacity: 2 });
-    const e = {
-      schemaVersion: '1',
-      id: '1',
-      type: 't',
-      time: new Date().toISOString(),
-      sequence: 0,
-      runId: 'r',
-      traceId: 'r',
-      source: 's',
-      dataSchema: 'd',
-      data: {},
-      classification: 'metadata',
-      delivery: 'critical',
-    } as unknown as Event;
+    const e = makeEvent({ id: '1', sequence: 0 });
     sink.write(e);
     sink.write(e);
     sink.write(e);
@@ -48,81 +68,47 @@ describe('coverage branches', () => {
   });
   it('console sink writer throws isolated', () => {
     const sink = createConsoleSink({
-      writer: () => {
+      writer: (): void => {
         throw new Error('boom');
       },
     });
-    const e = {
-      schemaVersion: '1',
-      id: '1',
-      type: 't',
-      time: new Date().toISOString(),
-      sequence: 0,
-      runId: 'r',
-      traceId: 'r',
-      source: 's',
-      dataSchema: 'd',
-      data: {},
-      classification: 'metadata',
-      delivery: 'critical',
-    } as unknown as Event;
+    const e = makeEvent({ id: '1', sequence: 0 });
     expect(() => sink.write(e)).not.toThrow();
   });
   it('redacts prompt/content/secret in JsonLinesSink', () => {
     const sink = new JsonLinesSink({ capacity: 5 });
-    const e = {
-      schemaVersion: '1',
+    const e = makeEvent({
       id: '1',
-      type: 't',
-      time: new Date().toISOString(),
       sequence: 0,
-      runId: 'r',
-      traceId: 'r',
-      source: 's',
-      dataSchema: 'd',
       data: { prompt: 'secret', secret: 's', other: 'keep' },
-      classification: 'metadata',
-      delivery: 'critical',
-    } as unknown as Event;
+    });
     sink.write(e);
-    expect(sink.lines[0]).toContain('[redacted]');
-    expect(sink.lines[0]).toContain('keep');
+    const first = sink.lines[0] ?? '';
+    expect(first).toContain('[redacted]');
+    expect(first).toContain('keep');
   });
   it('sensitive classification redacted', () => {
     const sink = new JsonLinesSink({ capacity: 5 });
-    const e = {
-      schemaVersion: '1',
+    const e = makeEvent({
       id: '1',
-      type: 't',
-      time: new Date().toISOString(),
       sequence: 0,
-      runId: 'r',
-      traceId: 'r',
-      source: 's',
-      dataSchema: 'd',
       data: { prompt: 'secret' },
       classification: 'sensitive',
-      delivery: 'critical',
-    } as unknown as Event;
+    });
     sink.write(e);
-    expect(sink.lines[0]).toContain('redacted');
+    const first = sink.lines[0] ?? '';
+    expect(first).toContain('redacted');
   });
   it('support bundle truncates when over MAX_BUNDLE_BYTES', () => {
     const largeData = 'x'.repeat(5000);
-    const events: Event[] = Array.from({ length: 60 }, (_, i) => ({
-      schemaVersion: '1',
-      id: `id-${String(i)}`,
-      type: 't',
-      time: new Date().toISOString(),
-      sequence: i,
-      runId: 'r',
-      traceId: 'r',
-      source: 's',
-      dataSchema: 'd',
-      data: { largeData },
-      classification: 'metadata',
-      delivery: i % 2 === 0 ? 'progress' : 'critical',
-    })) as unknown as Event[];
+    const events: Event[] = Array.from({ length: 60 }, (_, i) =>
+      makeEvent({
+        id: `id-${String(i)}`,
+        sequence: i,
+        data: { largeData },
+        delivery: i % 2 === 0 ? 'progress' : 'critical',
+      }),
+    );
     const bundle = createSupportBundle({ observerId: 'test', events, debugRecords: [] });
     // should have truncated progress events if over limit - at least produce bundle
     expect(bundle.events.length).toBeLessThanOrEqual(60);
@@ -130,7 +116,7 @@ describe('coverage branches', () => {
   });
   it('handles non-object data', () => {
     const sink = new JsonLinesSink({ capacity: 5 });
-    const e = {
+    const e: Event = {
       schemaVersion: '1',
       id: '1',
       type: 't',
@@ -140,24 +126,19 @@ describe('coverage branches', () => {
       traceId: 'r',
       source: 's',
       dataSchema: 'd',
-      data: 'string-data' as unknown,
+      data: 'string-data',
       classification: 'metadata',
       delivery: 'critical',
-    } as unknown as Event;
+    };
     sink.write(e);
-    expect(sink.lines[0]).toContain('string-data');
+    const first = sink.lines[0] ?? '';
+    expect(first).toContain('string-data');
   });
   it('observer getDebugRecords bounded', () => {
-    const d = createObserverDevtools({ observerId: 'test/bound' });
-    for (let i = 0; i < 200; i++)
-      d.capture({
-        id: String(i),
-        runId: 'r',
-        traceId: 'r',
-        operation: 'op',
-        exception: { type: 'Error', message: 'm' },
-      } as any);
-    expect(d.getDebugRecords().length).toBe(128);
+    const d: DebugRecordSink = createObserverDevtools({ observerId: 'test/bound' });
+    for (let i = 0; i < 200; i++) d.capture(makeDebugRecord(String(i)));
+    const devtools = d as unknown as ReturnType<typeof createObserverDevtools>;
+    expect(devtools.getDebugRecords().length).toBe(128);
   });
   it('observer getEvents bounded', async () => {
     const { createEventDispatcher } = await import('@promptiris/core');

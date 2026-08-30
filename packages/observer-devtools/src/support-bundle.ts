@@ -38,15 +38,14 @@ export interface BundleInput {
 }
 
 function stableStringify(value: unknown): string {
-  return JSON.stringify(value, (_, v: unknown) => {
-    if (v !== null && typeof v === 'object' && !Array.isArray(v)) {
+  return JSON.stringify(value, (_key: string, val: unknown) => {
+    if (val !== null && typeof val === 'object' && !Array.isArray(val)) {
+      const obj = val as Record<string, unknown>;
       const sorted: Record<string, unknown> = {};
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-      for (const k of Object.keys(v as Record<string, unknown>).sort())
-        sorted[k] = (v as Record<string, unknown>)[k];
+      for (const k of Object.keys(obj).sort()) sorted[k] = obj[k];
       return sorted;
     }
-    return v;
+    return val;
   });
 }
 

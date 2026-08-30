@@ -65,8 +65,8 @@ function makeRegistration(manifest: PluginRegistration['manifest']): PluginRegis
     manifest,
     activate(): PluginImplementation {
       return {
-        async invoke(_request: PluginInvocation): Promise<Record<string, never>> {
-          void _request;
+        async invoke(request: PluginInvocation): Promise<Record<string, never>> {
+          void request;
           return {};
         },
       };
@@ -74,107 +74,165 @@ function makeRegistration(manifest: PluginRegistration['manifest']): PluginRegis
   };
 }
 
-/** @public */
-// eslint-disable-next-line max-lines-per-function
-export function createObserverDevtools(options: ObserverDevtoolsOptions = {}): ObserverDevtools {
-  const observerId = resolveObserverId(options.observerId);
-  const capacity = resolveCapacity(options.capacity);
-  const maxEvents = resolveMaxEvents(options.maxEvents);
+function createSinks(
+  opts: ObserverDevtoolsOptions,
+  maxEvents: number,
+): { consoleSink: EventSink | undefined; jsonSink: JsonLinesSink } {
+  const consoleSink =
+    opts.consoleSink === false ? undefined : (opts.consoleSink ?? createConsoleSink());
+  const jsonSink = opts.jsonSink ?? new JsonLinesSink({ capacity: maxEvents });
+  return { consoleSink, jsonSink };
+}
 
-  const consoleSink: EventSink | undefined =
-    options.consoleSink === false ? undefined : (options.consoleSink ?? createConsoleSink());
-  const jsonSink = options.jsonSink ?? new JsonLinesSink({ capacity: maxEvents });
+interface DevtoolsState {
+  readonly events: Event[];
+  readonly debugRecords: DebugRecord[];
+  runId: string | undefined;
+  traceId: string | undefined;
+}
 
-  const events: Event[] = [];
-  const debugRecords: DebugRecord[] = [];
-  let runId: string | undefined;
-  let traceId: string | undefined;
+function createState(): DevtoolsState {
+  return { events: [], debugRecords: [], runId: undefined, traceId: undefined };
+}
 
-  function forwardToSinks(event: Event): void {
-    try {
-      consoleSink?.write(event);
-    } catch {
-      // sink failure isolated
-    }
-    try {
-      jsonSink.write(event);
-    } catch {
-      // sink failure isolated
-    }
+function forwardToSinks(
+  event: Event,
+  consoleSink: EventSink | undefined,
+  jsonSink: JsonLinesSink,
+): void {
+  try {
+    consoleSink?.write(event);
+  } catch {
+    // sink failure isolated
   }
-
-  function onEvent(event: Event): void {
-    try {
-      if (events.length < maxEvents) events.push(event);
-      forwardToSinks(event);
-      runId ??= event.runId;
-      traceId ??= event.traceId;
-    } catch {
-      // bounded retention failure isolated
-    }
+  try {
+    jsonSink.write(event);
+  } catch {
+    // sink failure isolated
   }
+}
 
-  const manifest = definePlugin({
-    id: observerId,
-    version: '0.1.0',
-    type: 'observer',
-    capabilities: [],
-  });
+function onEvent(
+  event: Event,
+  state: DevtoolsState,
+  maxEvents: number,
+  consoleSink: EventSink | undefined,
+  jsonSink: JsonLinesSink,
+): void {
+  try {
+    if (state.events.length < maxEvents) state.events.push(event);
+    forwardToSinks(event, consoleSink, jsonSink);
+    state.runId ??= event.runId;
+    state.traceId ??= event.traceId;
+  } catch {
+    // bounded retention failure isolated
+  }
+}
 
+function attachToDispatcher(
+  dispatcher: EventDispatcher,
+  observerId: string,
+  capacity: number,
+  handler: (event: Event) => void,
+): { detach(): Promise<void> } {
+  const subscription = dispatcher.subscribe({ observerId, capacity });
+  let detached = false;
+  void (async () => {
+    try {
+      for await (const event of subscription) {
+        if (detached) break;
+        handler(event);
+      }
+    } catch {
+      // backpressure isolated
+    }
+  })();
+  return {
+    async detach(): Promise<void> {
+      detached = true;
+      try {
+        await subscription.return();
+      } catch {
+        // detach isolated
+      }
+    },
+  };
+}
+
+interface BuildInput {
+  readonly observerId: string;
+  readonly capacity: number;
+  readonly maxEvents: number;
+  readonly consoleSink: EventSink | undefined;
+  readonly jsonSink: JsonLinesSink;
+  readonly manifest: PluginRegistration['manifest'];
+  readonly state: DevtoolsState;
+  readonly options: ObserverDevtoolsOptions;
+}
+
+function buildDevtools(input: BuildInput): ObserverDevtools {
+  const { observerId, capacity, maxEvents, consoleSink, jsonSink, manifest, state, options } =
+    input;
+  const handleEvent = (event: Event): void =>
+    onEvent(event, state, maxEvents, consoleSink, jsonSink);
   return {
     observerId,
     manifest,
     jsonSink,
     attach(dispatcher: EventDispatcher) {
-      const subscription = dispatcher.subscribe({ observerId, capacity });
-      let detached = false;
-      void (async () => {
-        try {
-          for await (const event of subscription) {
-            if (detached) break;
-            onEvent(event);
-          }
-        } catch {
-          // backpressure isolated
-        }
-      })();
-      return {
-        async detach(): Promise<void> {
-          detached = true;
-          try {
-            await subscription.return();
-          } catch {
-            // detach isolated
-          }
-        },
-      };
+      return attachToDispatcher(dispatcher, observerId, capacity, handleEvent);
     },
     capture(record: DebugRecord): void {
       try {
-        if (debugRecords.length < MAX_BUNDLE_DEBUG_RECORDS) debugRecords.push(record);
+        if (state.debugRecords.length < MAX_BUNDLE_DEBUG_RECORDS) state.debugRecords.push(record);
       } catch {
         // capture isolated
       }
     },
     getEvents(): readonly Event[] {
-      return events;
+      return state.events;
     },
     getDebugRecords(): readonly DebugRecord[] {
-      return debugRecords;
+      return state.debugRecords;
     },
     createBundle(): SupportBundle {
       return createSupportBundle({
         observerId,
-        events: [...events],
-        debugRecords: [...debugRecords],
+        events: [...state.events],
+        debugRecords: [...state.debugRecords],
         ...(options.manifestIds ? { manifestIds: options.manifestIds } : {}),
         ...(options.configTraceId ? { configTraceId: options.configTraceId } : {}),
-        ...(runId ? { runId } : {}),
-        ...(traceId ? { traceId } : {}),
+        ...(state.runId ? { runId: state.runId } : {}),
+        ...(state.traceId ? { traceId: state.traceId } : {}),
       });
     },
     createRegistration(): PluginRegistration {
       return makeRegistration(manifest);
     },
   };
+}
+
+/** @public */
+export function createObserverDevtools(options: ObserverDevtoolsOptions = {}): ObserverDevtools {
+  const observerId = resolveObserverId(options.observerId);
+  const capacity = resolveCapacity(options.capacity);
+  const maxEvents = resolveMaxEvents(options.maxEvents);
+  const { consoleSink, jsonSink } = createSinks(options, maxEvents);
+  const state = createState();
+  const manifest = definePlugin({
+    id: observerId,
+    version: '0.1.0',
+    type: 'observer',
+    capabilities: [],
+  });
+  return buildDevtools({
+    observerId,
+    capacity,
+    maxEvents,
+    consoleSink,
+    jsonSink,
+    manifest,
+    state,
+    options,
+  });
 }

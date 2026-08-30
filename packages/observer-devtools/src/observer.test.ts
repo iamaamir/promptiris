@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/restrict-template-expressions */
 import { describe, it, expect } from 'vitest';
 import { createEventDispatcher } from '@promptiris/core';
 import { captureDebugRecord } from '@promptiris/core';
-import type { Event } from '@promptiris/protocol';
+import type { Event, PromptDocument } from '@promptiris/protocol';
 import { createObserverDevtools } from './observer.js';
 import { JsonLinesSink, createConsoleSink, formatEvent } from './sinks.js';
 import { createSupportBundle, MAX_BUNDLE_BYTES, MAX_BUNDLE_EVENTS } from './support-bundle.js';
@@ -12,7 +11,7 @@ function emit(
   type: string,
   data: unknown,
   delivery: 'critical' | 'progress' = 'critical',
-) {
+): void {
   dispatcher.emit({
     type,
     source: 'test',
@@ -21,6 +20,30 @@ function emit(
     classification: 'metadata',
     delivery,
   });
+}
+
+function makeEvent(overrides: {
+  id: string;
+  sequence: number;
+  runId: string;
+  traceId: string;
+  delivery?: 'critical' | 'progress';
+  data?: unknown;
+}): Event {
+  return {
+    schemaVersion: '1',
+    id: overrides.id,
+    type: 'test.event',
+    time: new Date().toISOString(),
+    sequence: overrides.sequence,
+    runId: overrides.runId,
+    traceId: overrides.traceId,
+    source: 'test',
+    dataSchema: 'test/v1',
+    data: overrides.data ?? { index: overrides.sequence },
+    classification: 'metadata',
+    delivery: overrides.delivery ?? 'critical',
+  };
 }
 
 describe('observer devtools', () => {
@@ -87,7 +110,7 @@ describe('observer devtools', () => {
 
   it('sink failure cannot fail transformation', async () => {
     const failingSink = {
-      write: () => {
+      write: (): void => {
         throw new Error('sink boom');
       },
     };
@@ -105,7 +128,7 @@ describe('observer devtools', () => {
     const devtools = createObserverDevtools({ observerId: 'test/obs5', capacity: 1 });
     const h = devtools.attach(dispatcher);
     // flood progress events to trigger drop
-    for (let i = 0; i < 10; i++) emit(dispatcher, `test.progress-${i}`, { i }, 'progress');
+    for (let i = 0; i < 10; i++) emit(dispatcher, `test.progress-${String(i)}`, { i }, 'progress');
     dispatcher.complete('success');
     await new Promise((r) => setTimeout(r, 20));
     // should have at least drop event in dispatcher sink + not throw
@@ -148,20 +171,15 @@ describe('observer devtools', () => {
   });
 
   it('bounds bundle bytes deterministically', () => {
-    const events: Event[] = Array.from({ length: MAX_BUNDLE_EVENTS + 20 }, (_, i) => ({
-      schemaVersion: '1',
-      id: `id-${i}`,
-      type: 'test.event',
-      time: new Date().toISOString(),
-      sequence: i,
-      runId: 'r',
-      traceId: 'r',
-      source: 'test',
-      dataSchema: 'test/v1',
-      data: { i },
-      classification: 'metadata',
-      delivery: i % 2 === 0 ? 'progress' : 'critical',
-    })) as Event[];
+    const events: Event[] = Array.from({ length: MAX_BUNDLE_EVENTS + 20 }, (_, i) =>
+      makeEvent({
+        id: `id-${String(i)}`,
+        sequence: i,
+        runId: 'r',
+        traceId: 'r',
+        delivery: i % 2 === 0 ? 'progress' : 'critical',
+      }),
+    );
     const bundle = createSupportBundle({ observerId: 'test', events, debugRecords: [] });
     expect(bundle.events.length).toBeLessThanOrEqual(MAX_BUNDLE_EVENTS);
     const bytes = JSON.stringify(bundle).length;
@@ -178,9 +196,13 @@ describe('observer devtools', () => {
     const reg = devtools.createRegistration();
     expect(reg.manifest.type).toBe('observer');
     const impl = await reg.activate();
+    const input: PromptDocument = {
+      schemaVersion: '1',
+      content: [{ id: 'b1', text: 'hi' }],
+    };
     const out = await impl.invoke({
       contributionId: 'c',
-      input: { schemaVersion: '1', content: [{ id: 'b1', text: 'hi' }] } as any,
+      input,
       revision: 0,
       signal: new AbortController().signal,
     });
@@ -188,7 +210,7 @@ describe('observer devtools', () => {
   });
 
   it('formatEvent shows stage progress and artifact refs', () => {
-    const e = {
+    const e: Event = {
       schemaVersion: '1',
       id: '1',
       type: 'promptiris.phase.started',
@@ -201,7 +223,7 @@ describe('observer devtools', () => {
       data: { phase: 'transform' },
       classification: 'metadata',
       delivery: 'critical',
-    } as Event;
+    };
     expect(formatEvent(e)).toContain('phase=transform');
   });
 });
