@@ -18,6 +18,7 @@ Allowed paths:
 - `apps/dashboard/**`
 - `docs/agents/**`
 - `docs/development/**`
+- `knip.json`
 - `package.json`
 - `packages/core/src/transformation-state.test.ts`
 - `scripts/**`

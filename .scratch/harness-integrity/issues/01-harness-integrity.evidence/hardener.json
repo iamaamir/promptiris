@@ -3,7 +3,7 @@
   "role": "hardener",
   "taskId": ".scratch/harness-integrity/issues/01-harness-integrity.md",
   "baseRevision": "0e64da182604655a6d09a127781593423ac2197f",
-  "candidateRevision": "sha256:6c00dcd348ad38921211150b68c768e2437cb4c7e2f1e3e3b0b997f93c89ba6c",
+  "candidateRevision": "sha256:a78c2a2a7680224d234e2282b8542b7f39a65cc574684c4b5c289a381a38ca48",
   "producerId": "codex-root-hardener",
   "status": "passed",
   "scenarios": [

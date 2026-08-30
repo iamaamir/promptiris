@@ -1,5 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": ["scripts/redact-tool-output.mjs"],
   "workspaces": {
     "packages/*": { "entry": ["src/index.ts"], "project": ["src/**/*.ts"] },
     "apps/runtime-node": { "entry": ["src/index.ts", "src/server.ts"], "project": ["src/**/*.ts"] },
