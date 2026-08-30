@@ -8,6 +8,7 @@ shared_root="${PROMPTIRIS_REPOSITORY_ROOT:-${common_git_dir%/.git}}"
 agent_root="${PROMPTIRIS_AGENT_ROOT:-$shared_root/.agent}"
 branch="$(git -C "$worktree_root" branch --show-current 2>/dev/null || true)"
 head="$(git -C "$worktree_root" rev-parse --short HEAD 2>/dev/null || echo none)"
+head_revision="$(git -C "$worktree_root" rev-parse HEAD 2>/dev/null || echo none)"
 upstream="$(git -C "$worktree_root" rev-parse --abbrev-ref '@{upstream}' 2>/dev/null || echo none)"
 base_revision="$(git -C "$worktree_root" merge-base HEAD origin/main 2>/dev/null || git -C "$worktree_root" rev-parse HEAD 2>/dev/null || echo none)"
 
@@ -34,7 +35,7 @@ else
   echo 'none matched to branch'
 fi
 if [[ -f "$claim_file" ]]; then
-  jq '{taskId,agentId,stage,branch,worktree,candidateRevision,claimedAt}' "$claim_file"
+  jq '{taskId,agentId,stage,branch,worktree,claimedRevision:(.claimedRevision // .candidateRevision // null),lastStageRevision:(.lastStageRevision // .candidateRevision // null),claimedAt,expiresAtEpochMs}' "$claim_file"
 else
   echo 'lease: none'
 fi
@@ -62,7 +63,12 @@ fi
 
 echo
 echo '## STATUS'
-git -C "$worktree_root" status --short | head -30 || true
+status_lines="$(git -C "$worktree_root" status --short | head -30 || true)"
+if [[ -n "$status_lines" ]]; then
+  printf '%s\n' "$status_lines"
+else
+  echo 'tree: clean'
+fi
 
 echo
 echo '## RECENT COMMITS'
@@ -70,18 +76,19 @@ git -C "$worktree_root" log --oneline -5 2>/dev/null || true
 
 echo
 echo '## CHANGE SUMMARY'
-git -C "$worktree_root" diff --stat "$base_revision" 2>/dev/null | head -40 || true
+git -C "$worktree_root" diff --shortstat "$base_revision" HEAD 2>/dev/null || true
+printf 'compare: %s..%s\n' "${base_revision:0:12}" "$head"
 
 echo
 echo '## ACTIVE WORK'
 if [[ -f "$claim_file" ]]; then
-  jq '{taskId,agentId,stage,candidateRevision,claimedAt}' "$claim_file"
+  jq --arg head "$head_revision" '{taskId,agentId,stage,claimedRevision:(.claimedRevision // .candidateRevision // null),lastStageRevision:(.lastStageRevision // .candidateRevision // null),claimedAt,expiresAtEpochMs,currentHead:$head}' "$claim_file"
 else
   echo 'none for this branch'
 fi
 
 echo
-echo '## LAST VERIFICATION'
+echo '## LAST OBSERVED TOOL TRACE'
 last_trace="$(node -e '
   const fs = require("node:fs");
   const path = require("node:path");
@@ -93,18 +100,24 @@ last_trace="$(node -e '
   } catch {}
 ' "$agent_root/traces")"
 if [[ -n "$last_trace" ]]; then
-  jq '{taskId,provider:(.providerId // .command),exitCode,durationMs,context,evidenceRef:(.evidence.ref // .rawEvidenceRef)}' "$last_trace"
+  jq '{taskId,provider:(.providerId // .command),exitCode,durationMs,startedAt,branch:(.context.branch // "unattributed"),candidateRevision:(.context.candidateRevision // "unattributed"),evidenceRef:(.evidence.ref // .rawEvidenceRef)}' "$last_trace"
 else
   echo 'none'
 fi
 
 echo
 echo '## TELEMETRY'
-if [[ -f "$agent_root/reports/telemetry-summary.json" ]]; then
-  jq '{generatedAt,summary:{traceCount:.summary.traceCount,failedTraceCount:.summary.failedTraceCount,durationMs:.summary.durationMs,reducedBytes:.summary.reducedBytes,estimatedTokensAvoided:.summary.estimatedTokensAvoided,latestVerification:.summary.latestVerification},dataQuality:{worktreeCount:.dataQuality.worktreeCount,agentCount:.dataQuality.agentCount,unattributedTraceCount:.dataQuality.unattributedTraceCount},quality:{mutation:{score:.quality.mutation.score,status:.quality.mutation.policy.status,unresolved:.quality.mutation.debt.unresolved,ignored:.quality.mutation.debt.ignored},crapViolations:.quality.crap.violationCount}}' "$agent_root/reports/telemetry-summary.json"
-else
-  echo 'none; run pnpm telemetry:analyze'
-fi
+(
+  cd "$worktree_root"
+  node scripts/telemetry-analyze.mjs --stdout --no-write
+) | jq --arg head "$head_revision" '{
+  observedAt:.generatedAt,
+  traces:{count:.summary.traceCount,failed:.summary.failedTraceCount,durationMs:.summary.durationMs,tokensAvoidedEstimate:.summary.estimatedTokensAvoided},
+  attribution:{observedWorktrees:.dataQuality.worktreeCount,observedAgents:.dataQuality.agentCount,unattributed:.dataQuality.unattributedTraceCount},
+  latestRecordedVerification:(.summary.latestVerification | if . == null then null else {profile,status,startedAt,endedAt,failedGateCount,candidateRevisions,branches,validatesCurrentHead:(.candidateRevisions | index($head) != null)} end),
+  quality:{mutation:{score:.quality.mutation.score,status:.quality.mutation.policy.status},crapViolations:.quality.crap.violationCount},
+  reportRef:".agent/reports/telemetry-summary.json"
+}'
 
 echo
 echo '## CAPABILITIES'

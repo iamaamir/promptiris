@@ -106,13 +106,13 @@ case "$mode" in
     claimed_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
     claimed_at_ms="$(node -e 'process.stdout.write(String(Date.now()))')"
     expires_at_ms=$((claimed_at_ms + lease_ms))
-    candidate_revision="$(git -C "$worktree_root" rev-parse HEAD)"
+    claimed_revision="$(git -C "$worktree_root" rev-parse HEAD)"
     temporary_claim="$(mktemp "${TMPDIR:-/tmp}/promptiris-claim.XXXXXX")"
     jq -n --arg taskId "$packet" --arg agentId "$agent_id" --arg stage generator \
       --arg branch "$branch" --arg worktree "$worktree_root" \
-      --arg candidateRevision "$candidate_revision" --arg claimedAt "$claimed_at" \
+      --arg claimedRevision "$claimed_revision" --arg lastStageRevision "$claimed_revision" --arg claimedAt "$claimed_at" \
       --argjson claimedAtEpochMs "$claimed_at_ms" --argjson expiresAtEpochMs "$expires_at_ms" \
-      '{schemaVersion:2,taskId:$taskId,agentId:$agentId,stage:$stage,branch:$branch,worktree:$worktree,candidateRevision:$candidateRevision,claimedAt:$claimedAt,claimedAtEpochMs:$claimedAtEpochMs,expiresAtEpochMs:$expiresAtEpochMs}' \
+      '{schemaVersion:3,taskId:$taskId,agentId:$agentId,stage:$stage,branch:$branch,worktree:$worktree,claimedRevision:$claimedRevision,lastStageRevision:$lastStageRevision,claimedAt:$claimedAt,claimedAtEpochMs:$claimedAtEpochMs,expiresAtEpochMs:$expiresAtEpochMs}' \
       >"$temporary_claim"
     mv "$temporary_claim" "$claim_file"
     set_status "$worktree_root/$packet" in-progress
@@ -129,7 +129,7 @@ case "$mode" in
     expires_at_ms=$((now_ms + lease_ms))
     jq --arg stage "$stage" --arg revision "$(git -C "$worktree_root" rev-parse HEAD)" \
       --argjson expiresAtEpochMs "$expires_at_ms" \
-      '.schemaVersion=2 | .stage=$stage | .candidateRevision=$revision | .expiresAtEpochMs=$expiresAtEpochMs' "$claim_file" >"$replacement"
+      '.schemaVersion=3 | .stage=$stage | .lastStageRevision=$revision | .expiresAtEpochMs=$expiresAtEpochMs' "$claim_file" >"$replacement"
     mv "$replacement" "$claim_file"
     echo "stage: $stage"
     ;;

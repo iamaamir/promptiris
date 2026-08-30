@@ -475,6 +475,22 @@ export const analyzeTelemetry = async (options = {}) => {
   const verificationRuns = verificationRunRecords.map((run) => ({
     ...run,
     telemetry: summarizeTraces(traces.filter((trace) => trace.runId === run.runId)),
+    candidateRevisions: [
+      ...new Set(
+        traces
+          .filter((trace) => trace.runId === run.runId)
+          .map((trace) => trace.context?.candidateRevision)
+          .filter(Boolean),
+      ),
+    ].sort(),
+    branches: [
+      ...new Set(
+        traces
+          .filter((trace) => trace.runId === run.runId)
+          .map((trace) => trace.context?.branch)
+          .filter(Boolean),
+      ),
+    ].sort(),
   }));
   const report = {
     schemaVersion: 1,

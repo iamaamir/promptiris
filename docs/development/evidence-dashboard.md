@@ -16,7 +16,7 @@ Generate the underlying aggregate without starting a server:
 pnpm telemetry:analyze
 ```
 
-The report is written to the shared repository `.agent/reports/telemetry-summary.json`. `scripts/agent-context` reads a compact subset when the report exists, regardless of which linked worktree invokes it.
+The report is written to the shared repository `.agent/reports/telemetry-summary.json`. `scripts/agent-context` recomputes a compact, read-only telemetry summary when it runs, so its orientation packet never presents a stale persisted report as live state.
 
 ## Measurement boundary
 
