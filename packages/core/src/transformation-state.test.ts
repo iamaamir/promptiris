@@ -45,7 +45,129 @@ function textState(text = 'A👩‍💻B'): TransformationState {
   });
 }
 
+interface TransformationModel {
+  revision: number;
+  text: string;
+  extension?: string;
+}
+
+interface TransformationReal {
+  state: TransformationState;
+}
+
+class ReplaceTextCommand implements fc.Command<TransformationModel, TransformationReal> {
+  constructor(
+    private readonly replacement: string,
+    private readonly stale: boolean,
+  ) {}
+
+  check(model: Readonly<TransformationModel>): boolean {
+    return !this.stale || model.revision > 0;
+  }
+
+  run(model: TransformationModel, real: TransformationReal): void {
+    const before = real.state;
+    const revision = this.stale ? model.revision - 1 : model.revision;
+    const result = applyPatch(
+      before,
+      patch(revision, [
+        {
+          type: 'replace-text',
+          selector: selector('input', revision, 0, Array.from(model.text).length, model.text),
+          text: this.replacement,
+        },
+      ]),
+      'example/plugin',
+    );
+    if (this.stale) {
+      expect(result.ok).toBe(false);
+      expect(real.state).toBe(before);
+      return;
+    }
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    model.revision += 1;
+    model.text = this.replacement;
+    real.state = result.state;
+    expect(real.state.revision).toBe(model.revision);
+    expect(real.state.document.content[0]?.text).toBe(model.text);
+    expect(Object.isFrozen(real.state)).toBe(true);
+  }
+
+  toString(): string {
+    return `replace-text(${JSON.stringify(this.replacement)}, stale=${String(this.stale)})`;
+  }
+}
+
+class SetExtensionCommand implements fc.Command<TransformationModel, TransformationReal> {
+  constructor(
+    private readonly value: string,
+    private readonly stale: boolean,
+  ) {}
+
+  check(model: Readonly<TransformationModel>): boolean {
+    return !this.stale || model.revision > 0;
+  }
+
+  run(model: TransformationModel, real: TransformationReal): void {
+    const before = real.state;
+    const revision = this.stale ? model.revision - 1 : model.revision;
+    const result = applyPatch(
+      before,
+      patch(revision, [
+        { type: 'set-namespaced-extension', key: 'example/plugin/model', value: this.value },
+      ]),
+      'example/plugin',
+    );
+    if (this.stale) {
+      expect(result.ok).toBe(false);
+      expect(real.state).toBe(before);
+      return;
+    }
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    model.revision += 1;
+    model.extension = this.value;
+    real.state = result.state;
+    expect(real.state.revision).toBe(model.revision);
+    expect(real.state.document.extensions?.['example/plugin/model']).toBe(model.extension);
+    expect(Object.isFrozen(real.state)).toBe(true);
+  }
+
+  toString(): string {
+    return `set-extension(${JSON.stringify(this.value)}, stale=${String(this.stale)})`;
+  }
+}
+
 describe('transformation state', () => {
+  it('matches a reference model across generated valid and stale operation sequences', () => {
+    const values = fc.string({ maxLength: 12 });
+    const commands = fc.commands(
+      [
+        fc
+          .tuple(values, fc.boolean())
+          .map(([value, stale]) => new ReplaceTextCommand(value, stale)),
+        fc
+          .tuple(values, fc.boolean())
+          .map(([value, stale]) => new SetExtensionCommand(value, stale)),
+      ],
+      { maxCommands: 40 },
+    );
+
+    fc.assert(
+      fc.property(commands, (generated) => {
+        fc.modelRun(
+          () => ({
+            model: { revision: 0, text: 'initial' },
+            real: { state: textState('initial') },
+          }),
+          generated,
+        );
+      }),
+      { seed: 20260830, numRuns: 200 },
+    );
+  });
+
   it('agrees with the shared TypeScript/Go selector fixture', () => {
     const fixtureUrl = new URL('../../../spec/fixtures/transformation-state.json', import.meta.url);
     const fixture = JSON.parse(readFileSync(fixtureUrl, 'utf8')) as TransformationFixture;

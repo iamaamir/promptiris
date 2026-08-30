@@ -23,6 +23,11 @@ const renderSummary = (report) => {
   const items = [
     ['Latest verification', report.summary.latestVerification?.status ?? 'No run'],
     ['Tool traces', formatNumber(report.summary.traceCount)],
+    ['Observed worktrees', formatNumber(report.dataQuality.worktreeCount)],
+    ['Attributed agents', formatNumber(report.dataQuality.agentCount)],
+    ['Unattributed traces', formatNumber(report.dataQuality.unattributedTraceCount)],
+    ['Redactions applied', formatNumber(report.dataQuality.recordedRedactionCount)],
+    ['Pre-redaction traces', formatNumber(report.dataQuality.preRedactionTraceCount)],
     ['Verifier time', formatDuration(report.summary.durationMs)],
     ['Raw output', formatBytes(report.summary.rawBytes)],
     ['Context avoided', formatBytes(report.summary.reducedBytes)],
@@ -113,6 +118,7 @@ const renderQuality = (quality) => {
   const goCoverage = quality.goCoverage;
   const crap = quality.crap;
   const benchmark = quality.agentContextBenchmark;
+  const roles = quality.roles;
   replaceChildren('quality-grid', [
     qualityItem(
       'Mutation',
@@ -147,6 +153,13 @@ const renderQuality = (quality) => {
         ? `Range ${benchmark.minMs}–${benchmark.maxMs} ms`
         : 'Run the context benchmark',
     ),
+    qualityItem(
+      'Role evidence',
+      `${roles.passedCount}/${roles.reportCount} passed`,
+      roles.reportCount === 0
+        ? 'Reviewer, Hardener, and source-blind QA reports are missing'
+        : `${roles.failedCount} non-passing reports remain`,
+    ),
   ]);
   renderMutationTargets(mutation);
 };
@@ -160,6 +173,7 @@ const renderTools = (usage) => {
             tool.name,
             tool.group,
             tool.capabilities.join(', '),
+            tool.executionRoles.join(', ') || 'unclassified',
             state(tool.state),
             formatNumber(tool.calls),
             formatNumber(tool.failures),
@@ -167,7 +181,19 @@ const renderTools = (usage) => {
             tool.requiredIn.join(', ') || 'optional',
           ]),
         )
-      : [row(['No registered providers', '—', '—', state('unobserved'), '0', '0', 'Never', '—'])],
+      : [
+          row([
+            'No registered providers',
+            '—',
+            '—',
+            '—',
+            state('unobserved'),
+            '0',
+            '0',
+            'Never',
+            '—',
+          ]),
+        ],
   );
   replaceChildren(
     'capability-rows',
@@ -175,9 +201,24 @@ const renderTools = (usage) => {
       row([
         capability.id,
         capability.providers.join(', '),
+        capability.executionRole,
         formatNumber(capability.calls),
         state(capability.utilization),
         capability.costClass,
+      ]),
+    ),
+  );
+  replaceChildren(
+    'agent-rows',
+    usage.agents.map((agent) =>
+      row([
+        agent.id,
+        agent.branches.join(', ') || 'historical',
+        formatNumber(agent.calls),
+        formatNumber(agent.failures),
+        formatNumber(agent.dirtyCalls),
+        formatDuration(agent.durationMs),
+        formatObservedAt(agent.lastObservedAtEpochMs),
       ]),
     ),
   );
@@ -203,6 +244,9 @@ const renderProvenance = (report) => {
   const quality = report.dataQuality;
   const entries = [
     ['Current Tool Traces', formatNumber(quality.exactTraceCount)],
+    ['Observed worktrees', formatNumber(quality.worktreeCount)],
+    ['Attributed agents', formatNumber(quality.agentCount)],
+    ['Unattributed traces', formatNumber(quality.unattributedTraceCount)],
     ['Token values', quality.tokenValuesAreEstimates ? 'Estimated' : 'Measured'],
     ['Estimate method', quality.tokenEstimateMethod],
     ['Observation scope', quality.observationScope],

@@ -55,6 +55,24 @@ Cancellation, disposal, progressive delivery, and execution context form one lif
 - Temporary files use unique system directories and an ownership collection with deterministic cleanup. Cleanup clears ownership before awaiting deletion so a failed delete cannot leak into a later test's registry.
 - Property/fuzz failures preserve seed and minimized counterexample. A new counterexample becomes a regression test or shared fixture when it represents a portable contract.
 
+The versioned strategy registry at `tooling/quality/test-strategies.json` compiles test-design
+knowledge into applicability, Evidence, cost, and activation rules. Property tests are not a synonym
+for model-based tests: state-model commands invent operation sequences, while the fast-check
+scheduler controls Promise interleavings and records replay coordinates. Differential tests compare
+two implementations or revisions; metamorphic tests assert a relation between transformed inputs
+when neither exact output is conveniently known.
+
+These are affected-surface gates, not a quota imposed on every patch. Jazzer.js, Pact, Schemathesis,
+Toxiproxy, Testcontainers, `tsd`, and TLA+/TLC activate only after the Work Item touches the matching
+parser, service, network, infrastructure, type-declaration, or distributed-state capability. Installing
+an irrelevant tool creates cost without evidence. Discovery and measurement tools may guide work;
+only capabilities classified as gates can satisfy acceptance.
+
+Existing snapshots and golden artifacts are immutable by default. A model may not run an update
+command to make unexpected drift pass. The base Work Item must authorize the behavior change, and
+the diff remains subject to external review. The same trusted diff firewall rejects deleted tests,
+out-of-scope paths, new suppressions, focused or skipped tests, and mutation/coverage weakening.
+
 ## Reviewer contract
 
 The Reviewer receives the Work Item, exact base/candidate revisions, changed paths, smallest affected dependency neighborhood, public API/schema diff, and fresh deterministic Evidence. It does not receive private reasoning and does not repeat formatting, search, or test execution.

@@ -1,15 +1,21 @@
 #!/usr/bin/env node
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, rename, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
-import { analyzeTelemetry } from '../tooling/telemetry/analyze.mjs';
+import { analyzeTelemetry, repositoryLayout } from '../tooling/telemetry/analyze.mjs';
 
 const outputArgument = process.argv.indexOf('--output');
+const root = process.cwd();
+const { sharedRoot } = repositoryLayout(root);
 const output = resolve(
-  outputArgument >= 0 ? process.argv[outputArgument + 1] : '.agent/reports/telemetry-summary.json',
+  outputArgument >= 0
+    ? process.argv[outputArgument + 1]
+    : `${sharedRoot}/.agent/reports/telemetry-summary.json`,
 );
-const report = await analyzeTelemetry({ root: process.cwd() });
+const report = await analyzeTelemetry({ root });
 await mkdir(dirname(output), { recursive: true });
-await writeFile(output, `${JSON.stringify(report, null, 2)}\n`);
+const temporaryOutput = `${output}.${process.pid}.tmp`;
+await writeFile(temporaryOutput, `${JSON.stringify(report, null, 2)}\n`);
+await rename(temporaryOutput, output);
 
 if (process.argv.includes('--stdout')) {
   process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);

@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "role": "hardener",
+  "taskId": ".scratch/harness-integrity/issues/01-harness-integrity.md",
+  "baseRevision": "0e64da182604655a6d09a127781593423ac2197f",
+  "candidateRevision": "sha256:6c00dcd348ad38921211150b68c768e2437cb4c7e2f1e3e3b0b997f93c89ba6c",
+  "producerId": "codex-root-hardener",
+  "status": "passed",
+  "scenarios": [
+    "diff-firewall weakening, deletion, golden, suppression, and mutation-target attacks",
+    "generated transformation-state operation sequences against a reference model",
+    "strict types, lint, schemas, AST laws, tooling tests, core tests, and dashboard tests"
+  ],
+  "evidence": [
+    {
+      "checkId": "hardener.integrity-policy",
+      "status": "passed",
+      "evidenceRef": "tooling/quality/integrity-policy.test.mjs",
+      "evidenceSha256": "d202db3266d1750de5c12f57ef065a60d11e04193dcde31844dcac9289e17a3c"
+    },
+    {
+      "checkId": "hardener.state-model",
+      "status": "passed",
+      "evidenceRef": "packages/core/src/transformation-state.test.ts",
+      "evidenceSha256": "c9bb61cb65d91a75638028c2a030c8555daf2c54ca9565e9cda387a4f9b7ecdd"
+    }
+  ]
+}

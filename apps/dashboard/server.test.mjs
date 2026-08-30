@@ -38,6 +38,8 @@ test('serves generated telemetry without caching', async () => {
   }
   assert.ok(report.usage.inventory.some((provider) => provider.id === 'codeql'));
   assert.ok(report.usage.inventory.some((provider) => provider.id === 'scripts/lsp-query.mjs'));
+  assert.ok(Array.isArray(report.usage.agents));
+  assert.ok(Array.isArray(report.quality.roles.rows));
 });
 
 test('rejects unknown paths and mutating methods', async () => {

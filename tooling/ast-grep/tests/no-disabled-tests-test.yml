@@ -1,0 +1,10 @@
+id: no-disabled-tests
+valid:
+  - test('runs', () => {})
+  - it.each(cases)('runs %s', (value) => expect(value).toBeDefined())
+  - suite.skip('domain-specific method, not a Vitest global')
+invalid:
+  - test.skip('hidden failure', () => {})
+  - it.only('focused test', () => {})
+  - describe.todo('missing suite')
+  - describe.skip('hidden suite', () => {})

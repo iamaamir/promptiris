@@ -19,6 +19,10 @@ const fixture = async () => {
         textual_search: { providers: ['rg'], costClass: 'very_low', contextClass: 'low' },
         output_reduction: { providers: ['rtk'], costClass: 'very_low', contextClass: 'low' },
       },
+      executionRoles: {
+        discovery: ['textual_search'],
+        gate: ['output_reduction'],
+      },
       providers: {
         rg: { name: 'Ripgrep', group: 'Retrieval', capabilities: ['textual_search'] },
         rtk: { name: 'RTK', group: 'Reduction', capabilities: ['output_reduction'] },
@@ -88,12 +92,17 @@ test('excludes unsupported historical traces from current aggregates', async () 
   assert.equal(report.summary.traceCount, 1);
   assert.equal(report.summary.reducedBytes, 360);
   assert.equal(report.dataQuality.exactTraceCount, 1);
+  assert.equal(report.dataQuality.preRedactionTraceCount, 1);
+  assert.equal(report.dataQuality.recordedRedactionCount, 0);
   assert.equal(report.usage.tools[0].id, 'rg');
   assert.equal(
     report.usage.capabilities.find((item) => item.id === 'output_reduction').utilization,
     'unobserved',
   );
   assert.equal(report.usage.inventory.find((item) => item.id === 'rg').state, 'active');
+  assert.deepEqual(report.usage.inventory.find((item) => item.id === 'rg').executionRoles, [
+    'discovery',
+  ]);
   assert.equal(report.usage.inventory.find((item) => item.id === 'codeql').state, 'ci-only');
   assert.equal(
     report.usage.inventory.find((item) => item.id === 'unregistered-tool').state,
@@ -103,6 +112,17 @@ test('excludes unsupported historical traces from current aggregates', async () 
 
 test('summarizes verification runs and mutation evidence', async () => {
   const root = await fixture();
+  await mkdir(join(root, '.scratch/example/evidence'), { recursive: true });
+  await writeFile(
+    join(root, '.scratch/example/evidence/qa.json'),
+    JSON.stringify({
+      taskId: '.scratch/example/issues/01.md',
+      role: 'qa',
+      producerId: 'qa-a',
+      candidateRevision: `sha256:${'a'.repeat(64)}`,
+      status: 'passed',
+    }),
+  );
   await writeFile(
     join(root, '.agent/reports/verification-runs.jsonl'),
     `${JSON.stringify({ runId: 'r1', profile: 'full', status: 'passed', startedAt: '2026-08-27T00:00:00Z' })}\n`,
@@ -131,6 +151,7 @@ test('summarizes verification runs and mutation evidence', async () => {
   assert.equal(report.quality.mutation.targets[0].survived, 1);
   assert.equal(report.quality.goCoverage.percent, 75);
   assert.equal(report.quality.goCoverage.meetsTarget, false);
+  assert.equal(report.quality.roles.passedCount, 1);
 });
 
 test('ignores stale coverage outside canonical workspaces', async () => {
@@ -151,4 +172,68 @@ test('ignores stale coverage outside canonical workspaces', async () => {
   const report = await analyzeTelemetry({ root });
   assert.equal(report.quality.coverage.reportCount, 1);
   assert.equal(report.quality.coverage.statements.percent, 100);
+});
+
+test('aggregates and attributes traces across worktrees without duplication', async () => {
+  const root = await fixture();
+  const otherAgentRoot = join(root, 'other-worktree', '.agent');
+  await mkdir(join(otherAgentRoot, 'traces'), { recursive: true });
+  const trace = (traceId, worktreeId, agentId) => ({
+    schemaVersion: 3,
+    traceId,
+    runId: 'parallel-run',
+    taskId: 'verify.unit',
+    providerId: 'test-runner',
+    tools: ['vitest'],
+    executor: 'pnpm',
+    startedAtEpochMs: 2,
+    durationMs: 5,
+    exitCode: 0,
+    context: {
+      repositoryId: '0123456789abcdef',
+      worktreeId,
+      branch: `branch-${worktreeId}`,
+      candidateRevision: 'a'.repeat(40),
+      workspaceDigest: `sha256:${'b'.repeat(64)}`,
+      dirty: false,
+      agentId,
+    },
+    output: {
+      rawBytes: 40,
+      modelVisibleBytes: 20,
+      reducedBytes: 20,
+      estimatedRawTokens: 10,
+      estimatedModelVisibleTokens: 5,
+      estimatedTokensAvoided: 5,
+    },
+    evidence: { ref: `.agent/logs/${traceId}.log` },
+  });
+  await writeFile(
+    join(root, '.agent/traces/shared.json'),
+    JSON.stringify(trace('shared', '1111111111111111', 'agent-a')),
+  );
+  await writeFile(
+    join(otherAgentRoot, 'traces/other.json'),
+    JSON.stringify(trace('other', '2222222222222222', 'agent-b')),
+  );
+  await writeFile(
+    join(otherAgentRoot, 'traces/duplicate.json'),
+    JSON.stringify(trace('shared', '1111111111111111', 'agent-a')),
+  );
+
+  const report = await analyzeTelemetry({
+    root,
+    agentRoots: [join(root, '.agent'), otherAgentRoot],
+  });
+  assert.equal(report.summary.traceCount, 2);
+  assert.equal(report.dataQuality.worktreeCount, 2);
+  assert.equal(report.dataQuality.agentCount, 2);
+  assert.equal(report.dataQuality.unattributedTraceCount, 0);
+  assert.deepEqual(
+    report.usage.agents.map(({ id, calls }) => ({ id, calls })),
+    [
+      { id: 'agent-a', calls: 1 },
+      { id: 'agent-b', calls: 1 },
+    ],
+  );
 });

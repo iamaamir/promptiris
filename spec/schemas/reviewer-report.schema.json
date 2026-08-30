@@ -8,6 +8,8 @@
     "taskId",
     "baseRevision",
     "candidateRevision",
+    "producerId",
+    "independent",
     "verdict",
     "findings",
     "commentDecisions",
@@ -31,8 +33,10 @@
   "properties": {
     "schemaVersion": { "const": 1 },
     "taskId": { "type": "string", "minLength": 1 },
-    "baseRevision": { "type": "string", "minLength": 1 },
-    "candidateRevision": { "type": "string", "minLength": 1 },
+    "baseRevision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "candidateRevision": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "producerId": { "type": "string", "minLength": 1 },
+    "independent": { "const": true },
     "verdict": { "enum": ["pass", "changes-required"] },
     "findings": {
       "type": "array",
@@ -69,11 +73,12 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["checkId", "status", "evidenceRef"],
+        "required": ["checkId", "status", "evidenceRef", "evidenceSha256"],
         "properties": {
           "checkId": { "type": "string", "minLength": 1 },
           "status": { "enum": ["passed", "failed", "deferred"] },
-          "evidenceRef": { "type": "string", "minLength": 1 }
+          "evidenceRef": { "type": "string", "minLength": 1 },
+          "evidenceSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
         }
       }
     },

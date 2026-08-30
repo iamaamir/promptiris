@@ -29,6 +29,7 @@ run_check format formatters prettier,gofmt pnpm format:check
 run_check build builder tsc,pnpm pnpm build
 run_check lint linters eslint,markdownlint pnpm lint
 run_check shell shell-linter shellcheck pnpm lint:shell
+run_check integrity policy-verifier git,node pnpm quality:integrity
 run_check schema schema-validator ajv pnpm quality:schema
 run_check generated generated-diff cmp ./scripts/check-generated
 run_check types type-checker tsc pnpm typecheck
@@ -62,6 +63,8 @@ if [[ "$profile" == "--full" ]]; then
   run_check public-api api-extractor api-extractor pnpm quality:api
   run_check mutation mutation-runner stryker pnpm test:mutation
 fi
+
+run_check roles evidence-verifier ajv,git pnpm quality:roles
 
 mkdir -p .agent/reports
 ended_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"

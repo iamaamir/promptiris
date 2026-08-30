@@ -1,0 +1,59 @@
+name: policy-integrity
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+  pull_request_review:
+    types: [submitted, dismissed]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  trusted-policy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out trusted verifier from the base revision
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: trusted
+          persist-credentials: false
+      - name: Check out candidate without credentials
+        uses: actions/checkout@v5
+        with:
+          ref: refs/pull/${{ github.event.pull_request.number }}/head
+          fetch-depth: 0
+          path: candidate
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.24.0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24.14.0
+          cache: pnpm
+          cache-dependency-path: trusted/pnpm-lock.yaml
+      - name: Install the trusted verifier dependencies without lifecycle scripts
+        working-directory: trusted
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Evaluate candidate with trusted base policy
+        working-directory: candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PROMPTIRIS_BASE_REVISION: ${{ github.event.pull_request.base.sha }}
+          PROMPTIRIS_BRANCH: ${{ github.event.pull_request.head.ref }}
+          PROMPTIRIS_PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PROMPTIRIS_PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          approvals="$(gh api --paginate \
+            "repos/${GITHUB_REPOSITORY}/pulls/${PROMPTIRIS_PR_NUMBER}/reviews?per_page=100" | \
+            jq -s --arg author "$PROMPTIRIS_PR_AUTHOR" \
+              'add | sort_by(.submitted_at) | group_by(.user.login) | map(last) | map(select(.state == "APPROVED" and .user.login != $author)) | length')"
+          PROMPTIRIS_EXTERNAL_REVIEW_COUNT="$approvals" \
+            node ../trusted/scripts/quality-integrity.mjs --trusted --base "$PROMPTIRIS_BASE_REVISION"
+          PROMPTIRIS_EXTERNAL_REVIEW_COUNT="$approvals" \
+          PROMPTIRIS_REQUIRE_EXTERNAL_REVIEW=true \
+          PROMPTIRIS_TRUSTED_MODE=true \
+            node ../trusted/scripts/verify-role-evidence.mjs

@@ -209,6 +209,8 @@ Candidate verification runs every applicable changed/affected check. Integration
 
 Agents work concurrently on isolated Candidate Changes, never a shared mutable working directory. Each Work Item owns one short branch and exact base revision. A worktree is added only when concurrent local writers require filesystem isolation; a single agent working sequentially uses the ordinary checkout. An atomic `(work item, stage, candidate)` lease prevents duplicate assignment; replacement agents resume from artifacts.
 
+`scripts/agent-work` is the local lease authority. Claiming verifies the packet/branch relationship, uses an atomic shared lock, records agent/worktree/revision identity, and advances the authoritative packet to `in-progress`; GitHub projection is convergent and may lag during an outage. The integration checkout remains on `main` while concurrent feature workers use linked worktrees.
+
 Durable Work Item packets live under `.scratch/` and project to GitHub Issues. The local packet owns specification, dependencies, branch, and status; GitHub provides assignment, discussion, notifications, and PR linkage. Deterministic synchronization detects body drift, and accepted remote decisions return to repository state. This makes remote coordination useful without making project recovery depend on GitHub.
 
 Parallelize only ready Work Items with no unresolved dependency or overlapping Conflict Domain. Establish and integrate a protocol/schema/public contract first, then fan out dependent implementations. Git textual conflict detection is insufficient; integration conformance detects semantic conflict.
@@ -217,12 +219,19 @@ Every Candidate gets its own gauntlet. A merge queue or equivalent tests it agai
 
 The issue-owning agent runs the complete internal gauntlet and repairs the Candidate until its PR is green. Agent-driven does not mean agent-governed: agents may select ready work, implement, review through an independent responsibility, clean, harden, execute QA, and respond to deterministic failures, but they may not weaken gates, approve their own exceptions, or merge around failures. External maintainers retain the merge decision.
 
+Reviewer, Hardener, and source-blind QA reports live beside the Work Item in its evidence directory, conform to portable schemas, and bind to a SHA-256 digest of the Candidate diff excluding that evidence directory itself. This avoids self-referential commit hashes while invalidating reports whenever implementation or policy changes. Critical verifier files are CODEOWNED; branch protection must require code-owner review for that ownership declaration to become an enforceable remote merge gate.
+
+The `policy-integrity` workflow uses `pull_request_target` only as a read-only trust boundary: it checks out the base verifier separately, checks out the Candidate without credentials, and runs the trusted base policy against Candidate files. It never imports or executes Candidate JavaScript, package scripts, actions, or binaries. Making `trusted-policy` a required status check prevents a Candidate from weakening the workflow or verifier that judges the same PR.
+
 ## Deterministic analysis passes
 
 Analysis providers have a stable ID/version, declared inputs, output schema, cost class, cache key, invalidation rules, and sensitivity classification. The standalone development verifier must not depend on the Prompt Iris runtime it verifies.
 
 - The Tool Router reuses fresh Evidence and routes semantic capabilities to registered Automation Tasks or the cheapest trusted applicable Tool Adapter; agents do not reconstruct commands from a large utility prompt.
-- Tool Traces retain raw execution Evidence, compact model-visible results, costs, output sizes, redaction, failure fingerprints, and references without collecting private reasoning.
+- Tool Traces retain sanitized execution Evidence, compact model-visible results, costs, output sizes,
+  redaction counts, failure fingerprints, and references without collecting private reasoning. Command
+  output is captured only in a temporary file and passes through deterministic redaction before durable
+  storage.
 - Git and package/compiler graphs provide exact state, deltas, dependency closure, and affected checks.
 - `rg`, structured parsers, JSON/YAML tools, formatters, compilers, linters, and test runners own mechanical operations.
 - ast-grep owns syntax-aware policy and tested structural rewrites, such as forbidden internal imports, dispatcher bypass, unsafe suppression, or direct Provider calls outside their plane.
