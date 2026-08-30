@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "taskId": ".scratch/harness-integrity/issues/01-harness-integrity.md",
   "baseRevision": "0e64da182604655a6d09a127781593423ac2197f",
-  "candidateRevision": "sha256:cf1529c0f5d2e6f6833699901389bb93db07fd9ea44418ccacbcb404270738c2",
+  "candidateRevision": "sha256:38941f967fbf84666ede040de35e0bc8fabd22d154fc97ed0433d48acc3b6758",
   "producerId": "final-integrity-review",
   "independent": true,
   "verdict": "pass",
