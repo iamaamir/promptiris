@@ -1,6 +1,6 @@
 # Finalize candidate-bound role evidence
 
-Status: ready-for-agent
+Status: in-progress
 GitHub issue: <https://github.com/iamaamir/promptiris/issues/36>
 Branch: `evidence-finalize`
 Parent: .scratch/harness-integrity/PRD.md
