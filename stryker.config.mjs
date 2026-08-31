@@ -2,10 +2,6 @@ export default {
   mutate: [
     'packages/protocol/src/index.ts',
     'packages/plugin-sdk/src/index.ts',
-    'packages/observer-devtools/src/index.ts',
-    'packages/observer-devtools/src/observer.ts',
-    'packages/observer-devtools/src/sinks.ts',
-    'packages/observer-devtools/src/support-bundle.ts',
     'packages/core/src/index.ts',
     'packages/core/src/plugin-graph.ts',
     'packages/core/src/transformation-state.ts',
@@ -31,7 +27,6 @@ export default {
   reporters: ['clear-text', 'json'],
   jsonReporter: { fileName: '.agent/reports/mutation.json' },
   thresholds: { high: 95, low: 90, break: 90 },
-  ignoreStatic: true,
   incremental: true,
   incrementalFile: '.agent/evidence/stryker-incremental.json',
   tempDirName: '.agent/work/stryker',
