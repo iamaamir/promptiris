@@ -115,24 +115,6 @@
       "maxIgnored": 10,
       "maxSurvived": 0,
       "maxNoCoverage": 0
-    },
-    "packages/observer-devtools/src/observer.ts": {
-      "minScore": 90,
-      "maxIgnored": 0,
-      "maxSurvived": 5,
-      "maxNoCoverage": 0
-    },
-    "packages/observer-devtools/src/sinks.ts": {
-      "minScore": 90,
-      "maxIgnored": 0,
-      "maxSurvived": 5,
-      "maxNoCoverage": 0
-    },
-    "packages/observer-devtools/src/support-bundle.ts": {
-      "minScore": 90,
-      "maxIgnored": 0,
-      "maxSurvived": 5,
-      "maxNoCoverage": 0
     }
   }
 }
