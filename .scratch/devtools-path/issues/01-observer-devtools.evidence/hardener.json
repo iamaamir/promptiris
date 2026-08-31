@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "role": "hardener",
   "taskId": ".scratch/devtools-path/issues/01-observer-devtools.md",
-  "baseRevision": "1b22fe22aebfc66e45418e9fa28c5acb9b99882c",
+  "baseRevision": "9d592825c551454398ab6ba8b495c7092ff612a4",
   "candidateRevision": "sha256:3f0f618e8e3c200c02d9a803ab66613449679a65a5bbf275d77e486de307fd65",
   "producerId": "hardener-1",
   "status": "passed",
