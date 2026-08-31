@@ -13,6 +13,7 @@ Allowed paths:
 
 - `.scratch/harness-integrity/**`
 - `docs/development/**`
+- `knip.json`
 - `scripts/register-mutation-target.mjs`
 - `scripts/quality-integrity.mjs`
 - `stryker.config.mjs`
