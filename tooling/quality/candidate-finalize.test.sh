@@ -26,14 +26,22 @@ printf 'first\n' >"$repo/source.txt"
 git -C "$repo" add .
 git -C "$repo" commit -qm 'test fixture'
 head="$(git -C "$repo" rev-parse HEAD)"
+active_claim_expiry="$(( $(node -e 'process.stdout.write(String(Date.now()))') + 600000 ))"
 cat >"$repo/.agent/claims/isolated-task.json" <<EOF
-{"taskId":".scratch/test/issues/01-test.md","branch":"isolated-task"}
+{"taskId":".scratch/test/issues/01-test.md","branch":"isolated-task","expiresAtEpochMs":0}
 EOF
 cat >"$repo/.scratch/test/issues/01-test.evidence/reviewer.json" <<'EOF'
 {"schemaVersion":1,"producerId":"reviewer","independent":true,"verdict":"pass","findings":[],"commentDecisions":[],"evidence":[],"residualRisks":[]}
 EOF
 
 cd "$repo"
+if PROMPTIRIS_AGENT_ROOT="$repo/.agent" PROMPTIRIS_BASE_REVISION="$head" node scripts/finalize-candidate.mjs finalize .scratch/test/issues/01-test.md >/dev/null 2>&1; then
+  echo 'expired claim unexpectedly finalized a candidate' >&2
+  exit 1
+fi
+jq --argjson expiresAtEpochMs "$active_claim_expiry" '.expiresAtEpochMs = $expiresAtEpochMs' \
+  .agent/claims/isolated-task.json >claim.json
+mv claim.json .agent/claims/isolated-task.json
 PROMPTIRIS_AGENT_ROOT="$repo/.agent" PROMPTIRIS_BASE_REVISION="$head" node scripts/finalize-candidate.mjs finalize .scratch/test/issues/01-test.md >/dev/null
 manifest="$repo/.agent/reports/candidates/isolated-task.json"
 jq -e '.taskId == ".scratch/test/issues/01-test.md" and (.candidateRevision | test("^sha256:[0-9a-f]{64}$"))' "$manifest" >/dev/null
@@ -44,6 +52,16 @@ if PROMPTIRIS_AGENT_ROOT="$repo/.agent" PROMPTIRIS_BASE_REVISION="$head" node sc
   exit 1
 fi
 printf 'first\n' >source.txt
+
+jq '.expiresAtEpochMs = 0' .agent/claims/isolated-task.json >claim.json
+mv claim.json .agent/claims/isolated-task.json
+if PROMPTIRIS_AGENT_ROOT="$repo/.agent" PROMPTIRIS_BASE_REVISION="$head" node scripts/bind-role-evidence.mjs reviewer >/dev/null 2>&1; then
+  echo 'expired claim unexpectedly bound evidence' >&2
+  exit 1
+fi
+jq --argjson expiresAtEpochMs "$active_claim_expiry" '.expiresAtEpochMs = $expiresAtEpochMs' \
+  .agent/claims/isolated-task.json >claim.json
+mv claim.json .agent/claims/isolated-task.json
 
 PROMPTIRIS_AGENT_ROOT="$repo/.agent" PROMPTIRIS_BASE_REVISION="$head" node scripts/bind-role-evidence.mjs reviewer >/dev/null
 jq -e '.taskId == ".scratch/test/issues/01-test.md" and (.candidateRevision | test("^sha256:[0-9a-f]{64}$"))' .scratch/test/issues/01-test.evidence/reviewer.json >/dev/null

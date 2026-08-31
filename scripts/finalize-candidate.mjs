@@ -47,6 +47,8 @@ const branch = git(['branch', '--show-current']);
 const claimPath = join(agentRoot, 'claims', `${branch}.json`);
 const claim = JSON.parse(await readFile(claimPath, 'utf8'));
 if (claim.taskId !== packet) throw new Error(`claim does not own packet: ${packet}`);
+if (!Number.isSafeInteger(claim.expiresAtEpochMs) || claim.expiresAtEpochMs <= Date.now())
+  throw new Error(`claim is not active for branch: ${branch}`);
 
 const packetSource = await readFile(packet, 'utf8');
 if (!packetSource.split('\n').includes(`Branch: \`${branch}\``))
