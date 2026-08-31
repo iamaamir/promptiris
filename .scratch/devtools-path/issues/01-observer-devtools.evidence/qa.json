@@ -3,7 +3,7 @@
   "role": "qa",
   "taskId": ".scratch/devtools-path/issues/01-observer-devtools.md",
   "baseRevision": "9d592825c551454398ab6ba8b495c7092ff612a4",
-  "candidateRevision": "sha256:513b36acc28b493b1a0fecf70e639fb51ea72dd1e473e8e43c138fd9811a7d20",
+  "candidateRevision": "sha256:397c52d76c46271e6a57fdecd9e118ec9d0dea7160acc88b6f2e84a337f9ddff",
   "producerId": "qa-1",
   "status": "passed",
   "sourceBlind": true,
