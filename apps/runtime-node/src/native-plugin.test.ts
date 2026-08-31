@@ -35,7 +35,7 @@ interface FakeChildHandle {
 
 interface FakeNativeScript {
   initialize: () => Record<string, unknown> | Promise<Record<string, unknown>>;
-  invoke: (params: unknown) => unknown | Promise<unknown>;
+  invoke: (params: unknown) => Promise<unknown>;
   shutdown: (handle: FakeChildHandle) => void | Promise<void>;
 }
 
@@ -53,7 +53,8 @@ interface FakeNativeTransport {
 
 function frame(message: unknown): string {
   const body = JSON.stringify(message);
-  return `Content-Length: ${Buffer.byteLength(body, 'utf8')}\r\n\r\n${body}`;
+  const length = Buffer.byteLength(body, 'utf8').toString();
+  return `Content-Length: ${length}\r\n\r\n${body}`;
 }
 
 function createFakeChild(): FakeChildHandle {
@@ -88,9 +89,7 @@ function createFakeChild(): FakeChildHandle {
         stdin.on('error', listener);
         stderr.on('error', listener);
       } else if (event === 'exit') {
-        exitListeners.push(
-          listener as (code: number | null, signal: NodeJS.Signals | null) => void,
-        );
+        exitListeners.push(listener);
       } else {
         stdout.on(event, listener);
       }
@@ -103,16 +102,10 @@ function createFakeChild(): FakeChildHandle {
         stdin.once('error', listener);
         stderr.once('error', listener);
       } else if (event === 'exit') {
-        const wrapped = (
-          code: number | null,
-          signal: NodeJS.Signals | null,
-        ): void => {
+        const wrapped = (code: number | null, signal: NodeJS.Signals | null): void => {
           const index = exitListeners.indexOf(wrapped);
           if (index >= 0) exitListeners.splice(index, 1);
-          (listener as (code: number | null, signal: NodeJS.Signals | null) => void)(
-            code,
-            signal,
-          );
+          listener(code, signal);
         };
         exitListeners.push(wrapped);
       } else {
@@ -127,9 +120,7 @@ function createFakeChild(): FakeChildHandle {
         stdin.off('error', listener);
         stderr.off('error', listener);
       } else if (event === 'exit') {
-        const index = exitListeners.indexOf(
-          listener as (code: number | null, signal: NodeJS.Signals | null) => void,
-        );
+        const index = exitListeners.indexOf(listener);
         if (index >= 0) exitListeners.splice(index, 1);
       } else {
         stdout.off(event, listener);
@@ -172,9 +163,7 @@ function driveFakeChild(handle: FakeChildHandle, script: FakeNativeScript): { st
           } else if (message.method === 'plugin/shutdown') {
             // Send the shutdown response before signalling the fake child,
             // because killing destroys the streams.
-            handle.stdout.write(
-              frame({ jsonrpc: '2.0', id: message.id, result: {} }),
-            );
+            handle.stdout.write(frame({ jsonrpc: '2.0', id: message.id, result: {} }));
             await script.shutdown(handle);
             return;
           } else if (message.method === 'plugin/cancel') {
@@ -204,7 +193,9 @@ function driveFakeChild(handle: FakeChildHandle, script: FakeNativeScript): { st
   };
 }
 
-function createFakeNativeTransport(options: { script?: FakeNativeScript } = {}): FakeNativeTransport {
+function createFakeNativeTransport(
+  options: { script?: FakeNativeScript } = {},
+): FakeNativeTransport {
   const script = options.script;
   return {
     spawn() {
@@ -691,7 +682,7 @@ describe('defineNativePlugin', () => {
     await implementation[Symbol.asyncDispose]?.();
   });
 
-it('denies a duplicate invoke while a prior invoke is still in flight (scheduler)', async () => {
+  it('denies a duplicate invoke while a prior invoke is still in flight (scheduler)', async () => {
     await fc.assert(
       fc.asyncProperty(fc.integer({ min: 1, max: 25 }), async (seed) => {
         // Auto-respond to initialize, but never respond to plugin/invoke so
@@ -717,9 +708,7 @@ it('denies a duplicate invoke while a prior invoke is still in flight (scheduler
         const implementation = await plugin.activate();
         const controller = new AbortController();
         const first = implementation.invoke(invocation(controller.signal));
-        await expect(implementation.invoke(invocation())).rejects.toThrow(
-          /concurrent invocation/i,
-        );
+        await expect(implementation.invoke(invocation())).rejects.toThrow(/concurrent invocation/i);
         controller.abort();
         await expect(first).rejects.toThrow(/cancelled/i);
         await implementation[Symbol.asyncDispose]?.();

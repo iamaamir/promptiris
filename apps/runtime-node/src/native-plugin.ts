@@ -40,11 +40,15 @@ export interface NativeChildHandle {
  * @internal
  */
 export interface NativeTransport {
-  spawn(command: string, args: readonly string[], options: {
-    readonly cwd: string;
-    readonly env: Readonly<Record<string, string>>;
-    readonly stdio: 'pipe';
-  }): NativeChildHandle;
+  spawn(
+    command: string,
+    args: readonly string[],
+    options: {
+      readonly cwd: string;
+      readonly env: Readonly<Record<string, string>>;
+      readonly stdio: 'pipe';
+    },
+  ): NativeChildHandle;
 }
 
 const defaultTransport: NativeTransport = {
@@ -54,7 +58,7 @@ const defaultTransport: NativeTransport = {
       env: { ...options.env },
       shell: false,
       stdio: options.stdio,
-    }) as unknown as NativeChildHandle;
+    });
   },
 };
 
