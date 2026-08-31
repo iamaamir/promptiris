@@ -12,10 +12,12 @@ Test deletion: denied
 Allowed paths:
 
 - `.scratch/harness-integrity/**`
+- `.gitignore`
 - `docs/agents/**`
 - `docs/development/**`
 - `package.json`
 - `scripts/agent-work`
+- `scripts/candidate-identity.mjs`
 - `scripts/finalize-candidate.mjs`
 - `scripts/bind-role-evidence.mjs`
 - `scripts/verify-candidate`
