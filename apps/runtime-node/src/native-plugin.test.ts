@@ -2,6 +2,8 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { PassThrough } from 'node:stream';
+import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import { compilePluginGraph, createRunContext, executePluginPlan } from '@promptiris/core';
 import { makeTextDocument } from '@promptiris/protocol';
@@ -15,6 +17,203 @@ const manifest: PluginManifest = {
   type: 'pipeline',
   contributions: [{ id: 'native-transform', phase: 'transform' }],
 };
+
+// In-memory fake transport for deterministic scheduling tests. Mirrors the
+// `NativeTransport`/`NativeChildHandle` interface in `native-plugin.ts` so we
+// can replay Promise interleavings without spawning real processes.
+interface FakeChildHandle {
+  readonly stdin: PassThrough;
+  readonly stdout: PassThrough;
+  readonly stderr: PassThrough;
+  exitCode: number | null;
+  signalCode: NodeJS.Signals | null;
+  kill(signal: NodeJS.Signals): boolean;
+  on(event: string, listener: (...args: unknown[]) => void): unknown;
+  once(event: string, listener: (...args: unknown[]) => void): unknown;
+  off(event: string, listener: (...args: unknown[]) => void): unknown;
+}
+
+interface FakeNativeScript {
+  initialize: () => Record<string, unknown> | Promise<Record<string, unknown>>;
+  invoke: (params: unknown) => unknown | Promise<unknown>;
+  shutdown: (handle: FakeChildHandle) => void | Promise<void>;
+}
+
+interface FakeNativeTransport {
+  spawn(
+    command: string,
+    args: readonly string[],
+    options: {
+      readonly cwd: string;
+      readonly env: Readonly<Record<string, string>>;
+      readonly stdio: 'pipe';
+    },
+  ): FakeChildHandle;
+}
+
+function frame(message: unknown): string {
+  const body = JSON.stringify(message);
+  return `Content-Length: ${Buffer.byteLength(body, 'utf8')}\r\n\r\n${body}`;
+}
+
+function createFakeChild(): FakeChildHandle {
+  const stdin = new PassThrough();
+  const stdout = new PassThrough();
+  const stderr = new PassThrough();
+  const exitListeners: ((code: number | null, signal: NodeJS.Signals | null) => void)[] = [];
+  const emitExit = (): void => {
+    const listeners = exitListeners.splice(0);
+    for (const listener of listeners) listener(handle.exitCode, handle.signalCode);
+  };
+  const handle: FakeChildHandle = {
+    stdin,
+    stdout,
+    stderr,
+    exitCode: null,
+    signalCode: null,
+    kill(signal: NodeJS.Signals): boolean {
+      if (handle.exitCode !== null || handle.signalCode !== null) return false;
+      handle.signalCode = signal;
+      handle.exitCode = null;
+      stdin.destroy();
+      stdout.destroy();
+      stderr.destroy();
+      emitExit();
+      return true;
+    },
+    on(event: string, listener: (...args: unknown[]) => void): unknown {
+      if (event === 'data') stdout.on('data', listener);
+      else if (event === 'error') {
+        stdout.on('error', listener);
+        stdin.on('error', listener);
+        stderr.on('error', listener);
+      } else if (event === 'exit') {
+        exitListeners.push(
+          listener as (code: number | null, signal: NodeJS.Signals | null) => void,
+        );
+      } else {
+        stdout.on(event, listener);
+      }
+      return handle;
+    },
+    once(event: string, listener: (...args: unknown[]) => void): unknown {
+      if (event === 'data') stdout.once('data', listener);
+      else if (event === 'error') {
+        stdout.once('error', listener);
+        stdin.once('error', listener);
+        stderr.once('error', listener);
+      } else if (event === 'exit') {
+        const wrapped = (
+          code: number | null,
+          signal: NodeJS.Signals | null,
+        ): void => {
+          const index = exitListeners.indexOf(wrapped);
+          if (index >= 0) exitListeners.splice(index, 1);
+          (listener as (code: number | null, signal: NodeJS.Signals | null) => void)(
+            code,
+            signal,
+          );
+        };
+        exitListeners.push(wrapped);
+      } else {
+        stdout.once(event, listener);
+      }
+      return handle;
+    },
+    off(event: string, listener: (...args: unknown[]) => void): unknown {
+      if (event === 'data') stdout.off('data', listener);
+      else if (event === 'error') {
+        stdout.off('error', listener);
+        stdin.off('error', listener);
+        stderr.off('error', listener);
+      } else if (event === 'exit') {
+        const index = exitListeners.indexOf(
+          listener as (code: number | null, signal: NodeJS.Signals | null) => void,
+        );
+        if (index >= 0) exitListeners.splice(index, 1);
+      } else {
+        stdout.off(event, listener);
+      }
+      return handle;
+    },
+  };
+  return handle;
+}
+
+function driveFakeChild(handle: FakeChildHandle, script: FakeNativeScript): { stop(): void } {
+  let buffer = Buffer.alloc(0);
+  const onData = (chunk: Buffer): void => {
+    buffer = Buffer.concat([buffer, chunk]);
+    while (true) {
+      const headerEnd = buffer.indexOf('\r\n\r\n');
+      if (headerEnd < 0) return;
+      const header = buffer.subarray(0, headerEnd).toString('utf8');
+      const lengthMatch = /Content-Length:\s*(\d+)/i.exec(header);
+      if (!lengthMatch) return;
+      const length = Number(lengthMatch[1]);
+      const bodyStart = headerEnd + 4;
+      if (buffer.length < bodyStart + length) return;
+      const body = buffer.subarray(bodyStart, bodyStart + length).toString('utf8');
+      buffer = buffer.subarray(bodyStart + length);
+      const message = JSON.parse(body) as {
+        jsonrpc: '2.0';
+        id?: number;
+        method: string;
+        params?: unknown;
+      };
+      void (async () => {
+        let result: unknown;
+        let error: { code: number; message: string } | undefined;
+        try {
+          if (message.method === 'initialize') {
+            result = await script.initialize();
+          } else if (message.method === 'plugin/invoke') {
+            result = await script.invoke(message.params);
+          } else if (message.method === 'plugin/shutdown') {
+            // Send the shutdown response before signalling the fake child,
+            // because killing destroys the streams.
+            handle.stdout.write(
+              frame({ jsonrpc: '2.0', id: message.id, result: {} }),
+            );
+            await script.shutdown(handle);
+            return;
+          } else if (message.method === 'plugin/cancel') {
+            return;
+          } else {
+            error = { code: -32601, message: 'Method not found' };
+          }
+        } catch (err) {
+          error = {
+            code: -32000,
+            message: err instanceof Error ? err.message : 'fake native failure',
+          };
+        }
+        if (message.id === undefined) return;
+        const response = error
+          ? { jsonrpc: '2.0', id: message.id, error }
+          : { jsonrpc: '2.0', id: message.id, result };
+        handle.stdout.write(frame(response));
+      })();
+    }
+  };
+  handle.stdin.on('data', onData);
+  return {
+    stop(): void {
+      handle.stdin.off('data', onData);
+    },
+  };
+}
+
+function createFakeNativeTransport(options: { script?: FakeNativeScript } = {}): FakeNativeTransport {
+  const script = options.script;
+  return {
+    spawn() {
+      const handle = createFakeChild();
+      if (script !== undefined) driveFakeChild(handle, script);
+      return handle;
+    },
+  };
+}
 
 function native(mode: string, options: Record<string, unknown> = {}) {
   return defineNativePlugin({
@@ -468,5 +667,98 @@ describe('defineNativePlugin', () => {
       primaryOrigin: 'original',
       diagnostics: [{ code: 'promptiris.plugin.invocation-failed' }],
     });
+  });
+
+  it('accepts a fake in-memory transport without spawning a real process', async () => {
+    const transport = createFakeNativeTransport({
+      script: {
+        initialize: () => ({
+          protocolVersion: '1',
+          capabilities: { methods: ['plugin/invoke'], events: [] },
+          limits: { maxFrameBytes: 8 * 1024 * 1024, maxDepth: 64 },
+        }),
+        invoke: () => ({ patches: [{ operations: [{ block: { text: 'fake' } }] }] }),
+        shutdown: (handle) => {
+          handle.kill('SIGTERM');
+        },
+      },
+    });
+    const registration = native('happy', { transport });
+    const implementation = await registration.activate();
+    await expect(implementation.invoke(invocation())).resolves.toMatchObject({
+      patches: [{ operations: [{ block: { text: 'fake' } }] }],
+    });
+    await implementation[Symbol.asyncDispose]?.();
+  });
+
+it('denies a duplicate invoke while a prior invoke is still in flight (scheduler)', async () => {
+    await fc.assert(
+      fc.asyncProperty(fc.integer({ min: 1, max: 25 }), async (seed) => {
+        // Auto-respond to initialize, but never respond to plugin/invoke so
+        // the first invocation stays in flight while the duplicate is attempted.
+        const transport = createFakeNativeTransport({
+          script: {
+            initialize: () => ({
+              protocolVersion: '1',
+              capabilities: { methods: ['plugin/invoke'], events: [] },
+              limits: { maxFrameBytes: 8 * 1024 * 1024, maxDepth: 64 },
+            }),
+            invoke: () => new Promise(() => undefined),
+            shutdown: (handle) => {
+              handle.kill('SIGTERM');
+            },
+          },
+        });
+        const plugin = native('happy', {
+          transport,
+          invocationTimeoutMs: 5_000,
+          cancellationGraceMs: 50,
+        });
+        const implementation = await plugin.activate();
+        const controller = new AbortController();
+        const first = implementation.invoke(invocation(controller.signal));
+        await expect(implementation.invoke(invocation())).rejects.toThrow(
+          /concurrent invocation/i,
+        );
+        controller.abort();
+        await expect(first).rejects.toThrow(/cancelled/i);
+        await implementation[Symbol.asyncDispose]?.();
+        return seed > 0;
+      }),
+      { seed: 20260901, numRuns: 10 },
+    );
+  });
+
+  it('ignores a late successful response delivered after cancellation begins', async () => {
+    let resolveInvoke: ((value: unknown) => void) | undefined;
+    const transport = createFakeNativeTransport({
+      script: {
+        initialize: () => ({
+          protocolVersion: '1',
+          capabilities: { methods: ['plugin/invoke'], events: [] },
+          limits: { maxFrameBytes: 8 * 1024 * 1024, maxDepth: 64 },
+        }),
+        invoke: () =>
+          new Promise<unknown>((resolve) => {
+            resolveInvoke = resolve;
+          }),
+        shutdown: (handle) => {
+          handle.kill('SIGTERM');
+        },
+      },
+    });
+    const registration = native('happy', {
+      transport,
+      cancellationGraceMs: 50,
+    });
+    const implementation = await registration.activate();
+    const controller = new AbortController();
+    const pending = implementation.invoke(invocation(controller.signal));
+    // Let the supervisor's cancellation settle before delivering a response.
+    await new Promise((r) => setTimeout(r, 10));
+    controller.abort();
+    resolveInvoke?.({ patches: [{ operations: [{ block: { text: 'too-late' } }] }] });
+    await expect(pending).rejects.toThrow(/cancelled/i);
+    await implementation[Symbol.asyncDispose]?.();
   });
 });

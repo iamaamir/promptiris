@@ -1,4 +1,4 @@
-import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import {
   ContentLengthDecoder,
   MAX_FRAME_BYTES,
@@ -14,6 +14,50 @@ import {
   type PluginRegistration,
 } from '@promptiris/plugin-sdk';
 
+/**
+ * Indirection over `child_process.spawn` so deterministic tests can replay
+ * Promise interleavings without spawning real processes.
+ *
+ * The default transport returns a real `ChildProcessWithoutNullStreams` whose
+ * public surface is identical to the duck-typed `NativeChildHandle` consumed
+ * by this module.
+ *
+ * @internal
+ */
+export interface NativeChildHandle {
+  readonly stdin: NodeJS.WritableStream;
+  readonly stdout: NodeJS.ReadableStream;
+  readonly stderr: NodeJS.ReadableStream;
+  readonly exitCode: number | null;
+  readonly signalCode: NodeJS.Signals | null;
+  kill(signal: NodeJS.Signals): boolean;
+  on(event: string, listener: (...args: unknown[]) => void): unknown;
+  once(event: string, listener: (...args: unknown[]) => void): unknown;
+  off(event: string, listener: (...args: unknown[]) => void): unknown;
+}
+
+/**
+ * @internal
+ */
+export interface NativeTransport {
+  spawn(command: string, args: readonly string[], options: {
+    readonly cwd: string;
+    readonly env: Readonly<Record<string, string>>;
+    readonly stdio: 'pipe';
+  }): NativeChildHandle;
+}
+
+const defaultTransport: NativeTransport = {
+  spawn(command, args, options) {
+    return spawn(command, [...args], {
+      cwd: options.cwd,
+      env: { ...options.env },
+      shell: false,
+      stdio: options.stdio,
+    }) as unknown as NativeChildHandle;
+  },
+};
+
 /** @public */
 export interface NativePluginOptions {
   readonly manifest: PluginManifest;
@@ -24,6 +68,14 @@ export interface NativePluginOptions {
   readonly initializeTimeoutMs?: number;
   readonly invocationTimeoutMs?: number;
   readonly cancellationGraceMs?: number;
+  /**
+   * Override the process-creation boundary. Used by deterministic scheduling
+   * tests to inject in-memory fake transports. Production code should omit
+   * this field.
+   *
+   * @internal
+   */
+  readonly transport?: NativeTransport;
 }
 
 interface NativePluginConfig {
@@ -34,10 +86,11 @@ interface NativePluginConfig {
   readonly initializeTimeoutMs: number;
   readonly invocationTimeoutMs: number;
   readonly cancellationGraceMs: number;
+  readonly transport: NativeTransport;
 }
 
 interface RequestOptions {
-  readonly child: ChildProcessWithoutNullStreams;
+  readonly child: NativeChildHandle;
   readonly id: number;
   readonly timeoutMs: number;
   readonly cancellationGraceMs: number;
@@ -64,10 +117,11 @@ function normalizeOptions(options: NativePluginOptions): NativePluginConfig {
     initializeTimeoutMs: positiveDuration(options.initializeTimeoutMs, 5_000),
     invocationTimeoutMs: positiveDuration(options.invocationTimeoutMs, 30_000),
     cancellationGraceMs: positiveDuration(options.cancellationGraceMs, 500),
+    transport: options.transport ?? defaultTransport,
   });
 }
 
-function signalChild(child: ChildProcessWithoutNullStreams, signal: NodeJS.Signals): void {
+function signalChild(child: NativeChildHandle, signal: NodeJS.Signals): void {
   // Stryker disable next-line ConditionalExpression,LogicalOperator: kill() on an already-exited
   // child is a harmless false-returning no-op; callers expose the same contained outcome.
   if (child.exitCode === null && child.signalCode === null) child.kill(signal);
@@ -263,7 +317,7 @@ class RpcRequest {
   }
 }
 
-function waitForExit(child: ChildProcessWithoutNullStreams, timeoutMs: number): Promise<boolean> {
+function waitForExit(child: NativeChildHandle, timeoutMs: number): Promise<boolean> {
   // Stryker disable next-line BooleanLiteral: an already-exited child makes the boolean result
   // irrelevant to containment; no further signal can affect it.
   if (child.exitCode !== null || child.signalCode !== null) return Promise.resolve(true);
@@ -284,7 +338,7 @@ function waitForExit(child: ChildProcessWithoutNullStreams, timeoutMs: number): 
   });
 }
 
-async function stopChild(child: ChildProcessWithoutNullStreams, graceMs: number): Promise<void> {
+async function stopChild(child: NativeChildHandle, graceMs: number): Promise<void> {
   // Stryker disable next-line ConditionalExpression,LogicalOperator: signalling an exited child is
   // a harmless no-op and cannot change the already-contained public result.
   if (child.exitCode !== null || child.signalCode !== null) return;
@@ -296,7 +350,7 @@ async function stopChild(child: ChildProcessWithoutNullStreams, graceMs: number)
 
 class NativePluginSupervisor {
   readonly #config: NativePluginConfig;
-  #child: ChildProcessWithoutNullStreams | undefined;
+  #child: NativeChildHandle | undefined;
   #nextId = 0;
   #inFlight = false;
 
@@ -318,7 +372,7 @@ class NativePluginSupervisor {
   async invoke(invocation: PluginInvocation): Promise<PluginOutput> {
     if (this.#inFlight) throw safeError('Native plugin concurrent invocation denied');
     this.#inFlight = true;
-    let child: ChildProcessWithoutNullStreams | undefined;
+    let child: NativeChildHandle | undefined;
     try {
       child = await this.#ensureChild();
       const result = await this.#request(
@@ -352,7 +406,7 @@ class NativePluginSupervisor {
     }
   }
 
-  async #ensureChild(): Promise<ChildProcessWithoutNullStreams> {
+  async #ensureChild(): Promise<NativeChildHandle> {
     if (
       this.#child !== undefined &&
       // Stryker disable next-line ConditionalExpression: normal shutdown/failure clears #child;
@@ -368,13 +422,12 @@ class NativePluginSupervisor {
     return this.#child;
   }
 
-  async #spawnInitialized(): Promise<ChildProcessWithoutNullStreams> {
-    let child: ChildProcessWithoutNullStreams;
+  async #spawnInitialized(): Promise<NativeChildHandle> {
+    let child: NativeChildHandle;
     try {
-      child = spawn(this.#config.command, [...this.#config.args], {
+      child = this.#config.transport.spawn(this.#config.command, this.#config.args, {
         cwd: this.#config.cwd,
-        env: { ...this.#config.environment },
-        shell: false,
+        env: this.#config.environment,
         stdio: 'pipe',
       });
     } catch {
@@ -406,7 +459,7 @@ class NativePluginSupervisor {
     }
   }
 
-  async #shutdown(child: ChildProcessWithoutNullStreams): Promise<void> {
+  async #shutdown(child: NativeChildHandle): Promise<void> {
     try {
       await this.#request(
         child,
@@ -436,7 +489,7 @@ class NativePluginSupervisor {
   }
 
   #request(
-    child: ChildProcessWithoutNullStreams,
+    child: NativeChildHandle,
     method: string,
     params: unknown,
     timeoutMs: number,
