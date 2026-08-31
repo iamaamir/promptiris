@@ -129,6 +129,10 @@ case "$mode" in
     stage="$1"
     case "$stage" in generator | reviewer | cleaner | hardener | qa | integration) ;; *) usage ;; esac
     [[ -f "$claim_file" ]] || { echo "no claim for branch: $branch" >&2; exit 66; }
+    if [[ "$stage" == reviewer || "$stage" == hardener || "$stage" == qa || "$stage" == integration ]]; then
+      task_id="$(jq -r .taskId "$claim_file")"
+      PROMPTIRIS_AGENT_ROOT="$agent_root" node "$worktree_root/scripts/finalize-candidate.mjs" check "$task_id" >/dev/null
+    fi
     replacement="$(mktemp "${TMPDIR:-/tmp}/promptiris-claim.XXXXXX")"
     now_ms="$(node -e 'process.stdout.write(String(Date.now()))')"
     expires_ms="$(jq -r '.expiresAtEpochMs // 0' "$claim_file")"

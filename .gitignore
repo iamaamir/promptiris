@@ -15,6 +15,7 @@ pnpm-debug.log*
 .agent/logs/
 .agent/evidence/
 .agent/indexes/
+.agent/candidates/
 .agent/reports/
 .agent/traces/
 .agent/work/*/

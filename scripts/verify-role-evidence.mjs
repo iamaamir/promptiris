@@ -2,9 +2,10 @@
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { readFile, readdir } from 'node:fs/promises';
-import { basename, dirname, isAbsolute, join, resolve } from 'node:path';
+import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { Ajv2020 } from 'ajv/dist/2020.js';
 import { readRegularEvidenceFile } from '../tooling/quality/evidence-file.mjs';
+import { candidateIdentity } from './candidate-identity.mjs';
 
 const git = (args, options = {}) => execFileSync('git', args, options);
 const branch =
@@ -59,11 +60,8 @@ if (trustedMode) {
   if (!candidatePacket.split('\n').includes(`Branch: \`${branch}\``))
     throw new Error(`candidate removed or rebound the authoritative Work Item: ${packet}`);
 }
-const candidatePathspec = [
-  '.',
-  ':(exclude).scratch/**/evidence/**',
-  ':(exclude,glob).scratch/**/*.evidence/**',
-];
+const evidenceDirectory = resolve(dirname(packet), `${basename(packet, '.md')}.evidence`);
+const candidatePathspec = ['.', `:(exclude)${relative(resolve('.'), evidenceDirectory)}/**`];
 const candidateWorktreeChanges = git(['diff', '--name-only', 'HEAD', '--', ...candidatePathspec], {
   encoding: 'utf8',
 }).trim();
@@ -71,26 +69,16 @@ if (candidateWorktreeChanges)
   throw new Error(
     `candidate has uncommitted source outside evidence: ${candidateWorktreeChanges.split('\n').join(', ')}`,
   );
-const candidate = git([
-  'diff',
-  '--raw',
-  '-z',
-  '--no-ext-diff',
-  '--no-textconv',
-  '--no-renames',
-  baseRevision,
-  'HEAD',
-  '--',
-  ...candidatePathspec,
-]);
-const candidateRevision = `sha256:${createHash('sha256').update(candidate).digest('hex')}`;
-const untrackedCandidateFiles = git(['ls-files', '--others', '--exclude-standard'], {
-  encoding: 'utf8',
-})
+const untrackedCandidateFiles = git(
+  ['ls-files', '--others', '--exclude-standard', '--', ...candidatePathspec],
+  {
+    encoding: 'utf8',
+  },
+)
   .trim()
   .split('\n')
-  .filter((path) => path && !path.includes('/evidence/') && !path.includes('.evidence/'));
-const evidenceDirectory = resolve(dirname(packet), `${basename(packet, '.md')}.evidence`);
+  .filter(Boolean);
+const { candidateRevision } = candidateIdentity({ root: '.', baseRevision, evidenceDirectory });
 const reports = {
   reviewer: join(evidenceDirectory, 'reviewer.json'),
   hardener: join(evidenceDirectory, 'hardener.json'),

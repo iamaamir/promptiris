@@ -6,7 +6,8 @@ workspace="$(mktemp -d "${TMPDIR:-/tmp}/promptiris-agent-work-test.XXXXXX")"
 trap 'rm -rf "$workspace"' EXIT
 
 mkdir -p "$workspace/repo/scripts" "$workspace/repo/.scratch/test/issues"
-cp "$repository_root/scripts/agent-work" "$workspace/repo/scripts/agent-work"
+cp "$repository_root/scripts/agent-work" "$repository_root/scripts/candidate-identity.mjs" \
+  "$repository_root/scripts/finalize-candidate.mjs" "$workspace/repo/scripts/"
 chmod +x "$workspace/repo/scripts/agent-work"
 git -C "$workspace/repo" init -q
 git -C "$workspace/repo" config user.email test@example.test
@@ -36,10 +37,19 @@ if ./scripts/agent-work claim .scratch/test/issues/01-test.md agent-b --local >/
   exit 1
 fi
 
-PROMPTIRIS_CLAIM_LEASE_MS=50 ./scripts/agent-work stage reviewer >/dev/null
+if PROMPTIRIS_CLAIM_LEASE_MS=50 ./scripts/agent-work stage reviewer >/dev/null 2>&1; then
+  echo 'unfinalized candidate unexpectedly entered review' >&2
+  exit 1
+fi
+git add .scratch/test/issues/01-test.md
+git commit -qm 'record claim'
+base_revision="$(git rev-parse HEAD)"
+PROMPTIRIS_AGENT_ROOT="$workspace/repo/.agent" PROMPTIRIS_BASE_REVISION="$base_revision" \
+  node scripts/finalize-candidate.mjs finalize .scratch/test/issues/01-test.md >/dev/null
+PROMPTIRIS_CLAIM_LEASE_MS=50 PROMPTIRIS_BASE_REVISION="$base_revision" ./scripts/agent-work stage reviewer >/dev/null
 jq -e '.schemaVersion == 3 and .stage == "reviewer" and (.lastStageRevision | test("^[0-9a-f]{40}$"))' "$claim" >/dev/null
 sleep 0.1
-PROMPTIRIS_CLAIM_LEASE_MS=50 ./scripts/agent-work stage hardener >/dev/null 2>&1 && {
+PROMPTIRIS_CLAIM_LEASE_MS=50 PROMPTIRIS_BASE_REVISION="$base_revision" ./scripts/agent-work stage hardener >/dev/null 2>&1 && {
   echo 'expired claim unexpectedly accepted a stage transition' >&2
   exit 1
 }
