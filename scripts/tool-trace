@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 set -u -o pipefail
 
-repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+worktree_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+common_git_dir="$(git -C "$worktree_root" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || true)"
+shared_root="${PROMPTIRIS_REPOSITORY_ROOT:-${common_git_dir%/.git}}"
+[[ -n "$shared_root" && -d "$shared_root" ]] || shared_root="$worktree_root"
+agent_root="${PROMPTIRIS_AGENT_ROOT:-$shared_root/.agent}"
 task_id="unscoped"
 provider_id="unknown"
 run_id="standalone"
@@ -23,24 +27,57 @@ done
   exit 64
 }
 
-mkdir -p "$repo_root/.agent/traces" "$repo_root/.agent/logs"
-trace_id="$(date -u +%Y%m%dT%H%M%S)-$$"
-raw="$repo_root/.agent/logs/tool-$trace_id.log"
-trace="$repo_root/.agent/traces/$trace_id.json"
-visible="$(mktemp "${TMPDIR:-/tmp}/meta-prompt-visible.XXXXXX")"
-trap 'rm -f "$visible"' EXIT
+mkdir -p "$agent_root/traces" "$agent_root/logs"
+trace_id="$(node -e 'process.stdout.write(crypto.randomUUID())')"
+captured="$(mktemp "${TMPDIR:-/tmp}/promptiris-captured.XXXXXX")"
+evidence="$agent_root/logs/tool-$trace_id.log"
+trace="$agent_root/traces/$trace_id.json"
+visible="$(mktemp "${TMPDIR:-/tmp}/promptiris-visible.XXXXXX")"
+trap 'rm -f "$visible" "$captured"' EXIT
 started_ms="$(node -e 'process.stdout.write(String(Date.now()))')"
 started_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+branch="${PROMPTIRIS_BRANCH:-${GITHUB_HEAD_REF:-}}"
+if [[ -z "$branch" ]]; then
+  branch="$(git -C "$worktree_root" branch --show-current 2>/dev/null || true)"
+fi
+[[ -n "$branch" ]] || branch="detached"
+candidate_revision="$(git -C "$worktree_root" rev-parse HEAD 2>/dev/null || echo unknown)"
+workspace_state="$(mktemp "${TMPDIR:-/tmp}/promptiris-workspace.XXXXXX")"
+git -C "$worktree_root" status --porcelain=v1 >"$workspace_state"
+git -C "$worktree_root" diff --binary HEAD >>"$workspace_state"
+while IFS= read -r -d '' untracked; do
+  printf '%s\t' "$untracked" >>"$workspace_state"
+  if [[ -L "$worktree_root/$untracked" ]]; then
+    readlink "$worktree_root/$untracked" | shasum -a 256 >>"$workspace_state"
+  elif [[ -f "$worktree_root/$untracked" ]]; then
+    shasum -a 256 "$worktree_root/$untracked" >>"$workspace_state"
+  else
+    echo directory >>"$workspace_state"
+  fi
+done < <(git -C "$worktree_root" ls-files --others --exclude-standard -z)
+workspace_digest="$(shasum -a 256 "$workspace_state" | awk '{print "sha256:" $1}')"
+dirty=false
+[[ ! -s "$workspace_state" ]] || dirty=true
+rm -f "$workspace_state"
+worktree_id="$(printf '%s' "$worktree_root" | shasum -a 256 | awk '{print substr($1,1,16)}')"
+repository_source="$(git -C "$worktree_root" config --get remote.origin.url 2>/dev/null || printf '%s' "$common_git_dir")"
+repository_id="$(printf '%s' "$repository_source" | shasum -a 256 | awk '{print substr($1,1,16)}')"
+agent_id="${PROMPTIRIS_AGENT_ID:-unattributed}"
+claim_file="$agent_root/claims/$branch.json"
+if [[ "$agent_id" == unattributed && -f "$claim_file" ]]; then
+  agent_id="$(jq -r '.agentId // "unattributed"' "$claim_file" 2>/dev/null || echo unattributed)"
+fi
 
 set +e
-"$@" >"$raw" 2>&1
+"$@" >"$captured" 2>&1
 status=$?
 set -e
 
 ended_ms="$(node -e 'process.stdout.write(String(Date.now()))')"
 duration_ms=$((ended_ms - started_ms))
-raw_bytes="$(wc -c <"$raw" | tr -d ' ')"
-digest="$(shasum -a 256 "$raw" | awk '{print $1}')"
+raw_bytes="$(wc -c <"$captured" | tr -d ' ')"
+redaction_count="$(node "$worktree_root/scripts/redact-tool-output.mjs" "$captured" "$evidence")"
+digest="$(shasum -a 256 "$evidence" | awk '{print $1}')"
 executor="$(basename "$1")"
 evidence_ref=".agent/logs/tool-$trace_id.log"
 trace_ref=".agent/traces/$trace_id.json"
@@ -49,7 +86,7 @@ printf 'trace=%s task=%s provider=%s exit=%s duration_ms=%s raw_bytes=%s evidenc
   "$trace_ref" "$task_id" "$provider_id" "$status" "$duration_ms" "$raw_bytes" "$evidence_ref" >"$visible"
 if (( status != 0 )); then
   printf '%s\n' '--- failure tail (last 80 lines) ---' >>"$visible"
-  tail -80 "$raw" >>"$visible"
+  tail -80 "$evidence" >>"$visible"
 fi
 
 visible_bytes="$(wc -c <"$visible" | tr -d ' ')"
@@ -62,13 +99,17 @@ jq -n \
   --arg traceId "$trace_id" --arg runId "$run_id" --arg taskId "$task_id" \
   --arg providerId "$provider_id" --arg toolsCsv "$tools_csv" --arg executor "$executor" \
   --arg startedAt "$started_at" --arg evidenceRef "$evidence_ref" --arg digest "$digest" \
+  --arg repositoryId "$repository_id" --arg worktreeId "$worktree_id" --arg branch "$branch" \
+  --arg candidateRevision "$candidate_revision" --arg agentId "$agent_id" \
+  --arg workspaceDigest "$workspace_digest" --argjson dirty "$dirty" \
+  --argjson redactionCount "$redaction_count" \
   --argjson startedAtEpochMs "$started_ms" --argjson durationMs "$duration_ms" \
   --argjson exitCode "$status" --argjson rawOutputBytes "$raw_bytes" \
   --argjson modelVisibleBytes "$visible_bytes" --argjson reducedOutputBytes "$reduced_bytes" \
   --argjson estimatedRawTokens "$raw_tokens" --argjson estimatedModelVisibleTokens "$visible_tokens" \
   --argjson estimatedTokensAvoided "$reduced_tokens" \
   '{
-    schemaVersion: 2,
+    schemaVersion: 3,
     traceId: $traceId,
     runId: $runId,
     taskId: $taskId,
@@ -79,6 +120,7 @@ jq -n \
     startedAtEpochMs: $startedAtEpochMs,
     durationMs: $durationMs,
     exitCode: $exitCode,
+    context: {repositoryId: $repositoryId, worktreeId: $worktreeId, branch: $branch, candidateRevision: $candidateRevision, workspaceDigest: $workspaceDigest, dirty: $dirty, agentId: $agentId},
     output: {
       rawBytes: $rawOutputBytes,
       modelVisibleBytes: $modelVisibleBytes,
@@ -88,12 +130,8 @@ jq -n \
       estimatedTokensAvoided: $estimatedTokensAvoided,
       tokenEstimate: {method: "utf8_bytes_divided_by_4", version: 1}
     },
-    evidence: {ref: $evidenceRef, sha256: $digest}
+    evidence: {ref: $evidenceRef, sha256: $digest, redaction: {mode: "default", count: $redactionCount}}
   }' >"$trace"
 
-if (( status == 0 )); then
-  cat "$visible"
-else
-  cat "$visible" >&2
-fi
+if (( status == 0 )); then cat "$visible"; else cat "$visible" >&2; fi
 exit "$status"

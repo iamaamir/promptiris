@@ -72,12 +72,27 @@ mv "$workspace/interrupted-packet" ROADMAP.md
 [[ "$(find "$GH_FAKE_DIR/issues" -name '*.json' | wc -l | tr -d ' ')" == 3 ]]
 ./scripts/issue-sync status --all | grep -Fq $'.scratch/children/issues/02-child.md\tready-for-human\tOPEN'
 
+sed 's/^Status: ready-for-human$/Status: in-progress/' \
+  .scratch/children/issues/02-child.md >"$workspace/active-packet"
+mv "$workspace/active-packet" .scratch/children/issues/02-child.md
+./scripts/issue-sync push .scratch/children/issues/02-child.md >/dev/null
+jq -e 'any(.labels[]; .name == "in-progress")' "$child_file" >/dev/null
+
 sed 's/^Status: ready-for-agent$/Status: complete/' \
   .scratch/children/issues/01-blocker.md >"$workspace/completed-packet"
 mv "$workspace/completed-packet" .scratch/children/issues/01-blocker.md
 ./scripts/issue-sync push .scratch/children/issues/01-blocker.md >/dev/null
 jq -e '.state == "CLOSED" and (.labels | length == 0)' \
   "$GH_FAKE_DIR/issues/$(basename "$blocker_url").json" >/dev/null
+
+cp .scratch/children/issues/02-child.md "$workspace/valid-child"
+printf '\nPatch policy: 1\nGolden changes: denied\nTest deletion: denied\nAllowed paths:\n' \
+  >>.scratch/children/issues/02-child.md
+if ./scripts/issue-sync check .scratch/children/issues/02-child.md >/dev/null 2>&1; then
+  echo 'issue-sync accepted an empty patch-policy scope' >&2
+  exit 1
+fi
+mv "$workspace/valid-child" .scratch/children/issues/02-child.md
 
 replacement="$workspace/manual-edit.json"
 jq '.body += "\nmanual remote edit"' "$child_file" >"$replacement"

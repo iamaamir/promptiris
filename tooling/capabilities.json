@@ -344,5 +344,38 @@
       "costClass": "very_low",
       "contextClass": "low"
     }
+  },
+  "executionRoles": {
+    "discovery": [
+      "textual_search",
+      "file_discovery",
+      "structural_search",
+      "symbol_definition",
+      "symbol_references",
+      "document_symbols",
+      "structured_query",
+      "benchmarking",
+      "event_observation",
+      "output_reduction"
+    ],
+    "gate": [
+      "formatting",
+      "static_lint",
+      "schema_validation",
+      "generated_drift",
+      "compilation",
+      "unit_testing",
+      "race_detection",
+      "static_analysis",
+      "coverage_measurement",
+      "api_compatibility",
+      "data_flow_analysis",
+      "secret_detection",
+      "property_testing",
+      "dead_code_analysis",
+      "mutation_testing",
+      "complexity_risk"
+    ],
+    "orchestration": ["task_execution"]
   }
 }

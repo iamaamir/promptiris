@@ -83,6 +83,10 @@ function handle(message) {
       id: message.id,
       result: initializeResult(requested),
     });
+    if (mode === 'closed-stdin') {
+      fs.closeSync(0);
+      setInterval(() => undefined, 1_000);
+    }
     return;
   }
   if (message.method === 'plugin/invoke') {

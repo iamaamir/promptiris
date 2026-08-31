@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "strategies": [
+    {
+      "id": "property",
+      "purpose": "Generate and shrink inputs for stable invariants.",
+      "provider": "fast-check",
+      "gateMode": "affected",
+      "costClass": "medium",
+      "applicability": ["parsers", "graphs", "configuration", "patches", "selectors"],
+      "evidence": "replayable seed and path plus a regression for each promoted counterexample"
+    },
+    {
+      "id": "state-model",
+      "purpose": "Generate operation sequences against a simpler state model.",
+      "provider": "fast-check model commands",
+      "gateMode": "affected",
+      "costClass": "medium",
+      "applicability": ["state machines", "lifecycle", "caches", "registries"],
+      "evidence": "model, real system, command preconditions, seed, path, and minimized sequence"
+    },
+    {
+      "id": "deterministic-scheduling",
+      "purpose": "Exercise controlled Promise interleavings and replay races.",
+      "provider": "fast-check scheduler",
+      "gateMode": "affected",
+      "costClass": "medium",
+      "applicability": ["concurrent async state", "cancellation", "supervision", "event delivery"],
+      "evidence": "seed, path, scheduled sequence, and a regression for each discovered race"
+    },
+    {
+      "id": "differential",
+      "purpose": "Compare old/new or cross-language implementations over generated cases.",
+      "provider": "project oracle",
+      "gateMode": "affected",
+      "costClass": "medium",
+      "applicability": [
+        "optimization",
+        "migration",
+        "portable protocol",
+        "multiple implementations"
+      ],
+      "evidence": "named oracle pair, corpus or generator, normalization rule, and disagreements"
+    },
+    {
+      "id": "metamorphic",
+      "purpose": "Check relations between transformed inputs when exact outputs are unknown.",
+      "provider": "project properties",
+      "gateMode": "affected",
+      "costClass": "medium",
+      "applicability": ["normalization", "serialization", "transformation", "ranking"],
+      "evidence": "named relation, generator, replay coordinates, and minimized counterexample"
+    },
+    {
+      "id": "golden-master",
+      "purpose": "Detect intentional and accidental observable-output drift.",
+      "provider": "Vitest snapshots or committed fixtures",
+      "gateMode": "affected",
+      "costClass": "low",
+      "applicability": ["rendering", "serialization", "diagnostics", "generated artifacts"],
+      "evidence": "reviewed immutable artifact; updates require Work Item authorization"
+    },
+    {
+      "id": "type-contract",
+      "purpose": "Compile positive and negative public TypeScript usage contracts.",
+      "provider": "tsc now; tsd when a public declaration surface requires it",
+      "gateMode": "affected",
+      "costClass": "low",
+      "applicability": ["public TypeScript API", "declaration generation", "generic inference"],
+      "evidence": "compile-time fixtures and API compatibility report"
+    },
+    {
+      "id": "coverage-guided-fuzzing",
+      "purpose": "Evolve inputs toward unexplored native or parser paths.",
+      "provider": "Jazzer.js",
+      "gateMode": "capability-triggered",
+      "costClass": "high",
+      "applicability": ["untrusted binary input", "parser", "decoder", "native boundary"],
+      "evidence": "versioned corpus, seed, crashing input, and minimized regression"
+    },
+    {
+      "id": "service-contract",
+      "purpose": "Verify consumer/provider network assumptions.",
+      "provider": "Pact",
+      "gateMode": "capability-triggered",
+      "costClass": "high",
+      "applicability": ["independently deployed HTTP service"],
+      "evidence": "versioned pact and provider verification report"
+    },
+    {
+      "id": "schema-api-fuzzing",
+      "purpose": "Generate adversarial requests from an HTTP API schema.",
+      "provider": "Schemathesis",
+      "gateMode": "capability-triggered",
+      "costClass": "high",
+      "applicability": ["OpenAPI service"],
+      "evidence": "schema digest, seed, minimized request, and response failure"
+    },
+    {
+      "id": "network-fault-injection",
+      "purpose": "Exercise latency, connection loss, and network partitions.",
+      "provider": "Toxiproxy",
+      "gateMode": "capability-triggered",
+      "costClass": "high",
+      "applicability": ["network dependency", "retry policy", "distributed supervision"],
+      "evidence": "fault schedule and externally observed recovery behavior"
+    },
+    {
+      "id": "real-dependency",
+      "purpose": "Verify contracts against disposable real infrastructure.",
+      "provider": "Testcontainers",
+      "gateMode": "capability-triggered",
+      "costClass": "high",
+      "applicability": ["database", "broker", "external infrastructure protocol"],
+      "evidence": "pinned image digest, lifecycle log, and integration result"
+    },
+    {
+      "id": "model-checking",
+      "purpose": "Explore bounded states of a concurrent or distributed protocol.",
+      "provider": "TLA+ and TLC",
+      "gateMode": "capability-triggered",
+      "costClass": "high",
+      "applicability": ["distributed state machine", "consensus", "cross-process concurrency"],
+      "evidence": "versioned specification, invariant set, bounds, and TLC report"
+    }
+  ]
+}

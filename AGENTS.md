@@ -32,6 +32,10 @@ Optimize for correctness and verified acceptance before efficiency. The target m
 13. Do not add `Co-Authored-By` or other AI/tool-attribution trailers to commit messages. Commit authorship comes from Git history alone.
 14. Every independently deliverable feature or fix owns one short branch of at most three hyphen-separated words. Do not use slashes or type prefixes. A worktree is required only for concurrent local writers.
 15. The issue-owning agent runs the complete Implementer, Reviewer, Cleaner, Hardener, QA, and deterministic verification loop until its PR is green. Only external maintainers decide whether to merge.
+16. Before editing, claim the local Work Item with `scripts/agent-work claim PACKET AGENT_ID`; concurrent writers use separate worktrees and the integration checkout stays on `main`.
+17. Route deterministic commands through registered capabilities or `scripts/tool-trace`. Direct host calls are not completion Evidence. Set `PROMPTIRIS_AGENT_ID` to a stable non-secret identifier; unattributed traces remain visible as an observability gap.
+18. A Candidate may not add suppressions, skip tests, lower coverage or mutation floors, raise debt ceilings, remove mutation targets, or leave changed production TypeScript outside mutation governance. Critical verifier changes require CODEOWNER review.
+19. Completion requires SHA-bound structured Reviewer, Hardener, and source-blind QA reports. A green mechanical job without those reports is incomplete.
 
 The full operating model is [docs/development/agent-operating-model.md](docs/development/agent-operating-model.md), with the execution substrate specified in [docs/development/tool-aware-execution.md](docs/development/tool-aware-execution.md) and code/review requirements in [docs/development/code-quality-and-review.md](docs/development/code-quality-and-review.md). During the documentation-only phase, inspect repository state with deterministic tools. Once implemented, `scripts/agent-context` is the standard local orientation entrypoint.
 

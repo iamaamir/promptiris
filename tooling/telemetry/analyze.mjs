@@ -1,4 +1,5 @@
 import { readFile, readdir } from 'node:fs/promises';
+import { execFileSync } from 'node:child_process';
 import { join, relative, resolve } from 'node:path';
 import { discoverWorkspaceCoverage } from '../quality/coverage-reports.mjs';
 import { mutationSummary } from '../quality/mutation-report.mjs';
@@ -25,10 +26,58 @@ const readJsonDirectory = async (directory) => {
   }
 };
 
+const readJsonTree = async (directory) => {
+  try {
+    const entries = await readdir(directory, { withFileTypes: true });
+    const values = await Promise.all(
+      entries
+        .sort((left, right) => left.name.localeCompare(right.name))
+        .map((entry) => {
+          const path = join(directory, entry.name);
+          if (entry.isDirectory()) return readJsonTree(path);
+          if (entry.isFile() && entry.name.endsWith('.json')) return safeJson(path);
+          return null;
+        }),
+    );
+    return values.flat(Infinity).filter(Boolean);
+  } catch {
+    return [];
+  }
+};
+
+const gitOutput = (root, args) => {
+  try {
+    return execFileSync('git', ['-C', root, ...args], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+  } catch {
+    return '';
+  }
+};
+
+export const repositoryLayout = (root) => {
+  const commonGitDirectory = gitOutput(root, [
+    'rev-parse',
+    '--path-format=absolute',
+    '--git-common-dir',
+  ]);
+  const sharedRoot = commonGitDirectory.endsWith('/.git') ? commonGitDirectory.slice(0, -5) : root;
+  const worktrees = gitOutput(root, ['worktree', 'list', '--porcelain'])
+    .split('\n')
+    .filter((line) => line.startsWith('worktree '))
+    .map((line) => line.slice('worktree '.length));
+  return { sharedRoot, worktrees: worktrees.length === 0 ? [root] : worktrees };
+};
+
+const uniqueBy = (items, identity) => [
+  ...new Map(items.map((item) => [identity(item), item])).values(),
+];
+
 const normalizeTrace = (trace) => {
-  if (trace?.schemaVersion !== 2) return null;
+  if (trace?.schemaVersion !== 2 && trace?.schemaVersion !== 3) return null;
   return {
-    schemaVersion: 2,
+    schemaVersion: trace.schemaVersion,
     traceId: trace.traceId,
     runId: trace.runId,
     taskId: trace.taskId,
@@ -45,6 +94,8 @@ const normalizeTrace = (trace) => {
     estimatedModelVisibleTokens: trace.output?.estimatedModelVisibleTokens ?? null,
     estimatedTokensAvoided: trace.output?.estimatedTokensAvoided ?? null,
     evidenceRef: trace.evidence?.ref ?? null,
+    redactionCount: trace.evidence?.redaction?.count ?? null,
+    context: trace.context ?? null,
   };
 };
 
@@ -191,9 +242,55 @@ const benchmarkSummary = (report) => {
   };
 };
 
+const artifactProvenance = (manifest, artifact, currentCandidateRevision, currentDirty) => {
+  const record = manifest?.artifacts?.[artifact];
+  if (!record) return { state: 'unbound' };
+  return {
+    state:
+      record.candidateRevision === currentCandidateRevision &&
+      record.dirty === false &&
+      !currentDirty
+        ? 'current'
+        : 'stale',
+    candidateRevision: record.candidateRevision,
+    dirty: record.dirty,
+    measuredAt: record.measuredAt,
+  };
+};
+
+const roleEvidenceSummary = (reports) => {
+  const rows = reports
+    .filter((report) => report?.taskId && (report.role || report.verdict))
+    .map((report) => ({
+      taskId: report.taskId,
+      role: report.role ?? 'reviewer',
+      producerId: report.producerId,
+      candidateRevision: report.candidateRevision,
+      status:
+        report.role === undefined
+          ? report.verdict === 'pass' && (report.findings?.length ?? 0) === 0
+            ? 'passed'
+            : 'failed'
+          : report.status,
+    }));
+  return {
+    reportCount: rows.length,
+    passedCount: rows.filter((row) => row.status === 'passed').length,
+    failedCount: rows.filter((row) => row.status !== 'passed').length,
+    rows,
+  };
+};
+
 const toolRows = (traces) => {
   const expanded = traces.flatMap((trace) => trace.tools.map((tool) => ({ ...trace, tool })));
   return aggregate(expanded, (trace) => trace.tool);
+};
+
+const executionRole = (registry, id) => {
+  const roles = Object.entries(registry?.executionRoles ?? {})
+    .filter(([, capabilities]) => capabilities.includes(id))
+    .map(([role]) => role);
+  return roles.length > 0 ? roles.join(', ') : 'unclassified';
 };
 
 const capabilityRows = (registry, observedTools) =>
@@ -219,6 +316,7 @@ const capabilityRows = (registry, observedTools) =>
       contextClass: capability.contextClass,
       group: capability.group ?? 'Other',
       scope: capability.scope ?? 'local-and-ci',
+      executionRole: executionRole(registry, id),
     };
   });
 
@@ -234,11 +332,19 @@ const providerInventory = (registry, observedRows, observedTools, traces) => {
       const calls = observedTools.get(id) ?? measurement?.calls ?? 0;
       const scope = provider?.scope ?? 'unknown';
       const isRegistered = provider !== undefined;
+      const executionRoles = [
+        ...new Set(
+          (provider?.capabilities ?? [])
+            .flatMap((capability) => executionRole(registry, capability).split(', '))
+            .filter((role) => role !== 'unclassified'),
+        ),
+      ];
       return {
         id,
         name: provider?.name ?? id,
         group: provider?.group ?? 'Unregistered observations',
         capabilities: provider?.capabilities ?? [],
+        executionRoles,
         scope,
         requiredIn: provider?.requiredIn ?? [],
         registered: isRegistered,
@@ -273,6 +379,27 @@ const automationCandidates = (traces) =>
       priority: row.calls >= 10 || row.durationMs >= 30_000 ? 'high' : 'review',
       recommendation: `Promote ${row.id} when its invocation and failure-reduction steps are stable.`,
     }));
+
+const contextRows = (traces, field, fallback) => {
+  const groups = new Map();
+  for (const trace of traces) {
+    const id = trace.context?.[field] ?? fallback;
+    const group = groups.get(id) ?? [];
+    group.push(trace);
+    groups.set(id, group);
+  }
+  return [...groups.entries()]
+    .map(([id, group]) => ({
+      id,
+      calls: group.length,
+      failures: group.filter((trace) => trace.exitCode !== 0).length,
+      durationMs: sum(group, 'durationMs'),
+      branches: [...new Set(group.map((trace) => trace.context?.branch).filter(Boolean))].sort(),
+      dirtyCalls: group.filter((trace) => trace.context?.dirty === true).length,
+      lastObservedAtEpochMs: Math.max(...group.map((trace) => trace.startedAtEpochMs ?? 0)),
+    }))
+    .sort((left, right) => right.calls - left.calls || left.id.localeCompare(right.id));
+};
 
 const deriveInsights = ({ summary, providers, tools, capabilities, quality }) => {
   const insights = [];
@@ -320,8 +447,25 @@ const deriveInsights = ({ summary, providers, tools, capabilities, quality }) =>
 
 export const analyzeTelemetry = async (options = {}) => {
   const root = resolve(options.root ?? '.');
-  const rawTraces = (await readJsonDirectory(join(root, '.agent/traces'))).filter(Boolean);
-  const traces = rawTraces.map(normalizeTrace).filter(Boolean);
+  const layout = repositoryLayout(root);
+  const currentCandidateRevision = gitOutput(root, ['rev-parse', 'HEAD']);
+  const currentBranch = gitOutput(root, ['branch', '--show-current']) || 'detached';
+  const currentDirty = gitOutput(root, ['status', '--porcelain']) !== '';
+  const agentRoots = uniqueBy(
+    options.agentRoots ??
+      [layout.sharedRoot, ...layout.worktrees].map((path) => join(path, '.agent')),
+    (path) => path,
+  );
+  const rawTraces = (
+    await Promise.all(
+      agentRoots.flatMap((agentRoot) => [
+        readJsonDirectory(join(agentRoot, 'traces')),
+        readJsonTree(join(agentRoot, 'imports')),
+      ]),
+    )
+  ).flat();
+  const traces = uniqueBy(rawTraces.map(normalizeTrace).filter(Boolean), (trace) => trace.traceId);
+  const sharedAgentRoot = join(layout.sharedRoot, '.agent');
   const capabilitiesRegistry = await safeJson(join(root, 'tooling/capabilities.json'), {
     capabilities: {},
   });
@@ -332,39 +476,110 @@ export const analyzeTelemetry = async (options = {}) => {
   observedTools.set('scripts/tool-trace', summary.exactReductionTraceCount);
   const capabilities = capabilityRows(capabilitiesRegistry, observedTools);
   const inventory = providerInventory(capabilitiesRegistry, tools, observedTools, traces);
-  const mutationReport = await safeJson(join(root, '.agent/reports/mutation.json'));
+  const localAgentRoot = join(root, '.agent');
+  const provenanceManifest = await safeJson(join(localAgentRoot, 'reports/quality-artifacts.json'));
+  const mutationReport = await safeJson(join(localAgentRoot, 'reports/mutation.json'));
   const mutationPolicy = await safeJson(join(root, 'tooling/quality/mutation-policy.json'));
   const quality = {
-    mutation: mutationSummary(mutationReport, mutationPolicy),
+    mutation: {
+      ...mutationSummary(mutationReport, mutationPolicy),
+      provenance: artifactProvenance(
+        provenanceManifest,
+        'mutation',
+        currentCandidateRevision,
+        currentDirty,
+      ),
+    },
     coverage: await coverageSummary(root),
-    goCoverage: await goCoverageSummary(join(root, '.agent/reports/go-coverage.out')),
-    crap: crapSummary(await safeJson(join(root, '.agent/reports/crap.json'))),
-    agentContextBenchmark: benchmarkSummary(
-      await safeJson(join(root, '.agent/reports/agent-context-benchmark.json')),
+    goCoverage: await goCoverageSummary(join(localAgentRoot, 'reports/go-coverage.out')),
+    crap: {
+      ...crapSummary(await safeJson(join(localAgentRoot, 'reports/crap.json'))),
+      provenance: artifactProvenance(
+        provenanceManifest,
+        'crap',
+        currentCandidateRevision,
+        currentDirty,
+      ),
+    },
+    agentContextBenchmark: {
+      ...benchmarkSummary(
+        await safeJson(join(localAgentRoot, 'reports/agent-context-benchmark.json')),
+      ),
+      provenance: artifactProvenance(
+        provenanceManifest,
+        'benchmark',
+        currentCandidateRevision,
+        currentDirty,
+      ),
+    },
+    coverageProvenance: artifactProvenance(
+      provenanceManifest,
+      'coverage',
+      currentCandidateRevision,
+      currentDirty,
     ),
+    roles: roleEvidenceSummary(await readJsonTree(join(root, '.scratch'))),
   };
   const verificationRunRecords = await parseVerificationRuns(
-    join(root, '.agent/reports/verification-runs.jsonl'),
+    join(sharedAgentRoot, 'reports/verification-runs.jsonl'),
   );
   const verificationRuns = verificationRunRecords.map((run) => ({
     ...run,
     telemetry: summarizeTraces(traces.filter((trace) => trace.runId === run.runId)),
+    candidateRevisions: [
+      ...new Set(
+        traces
+          .filter((trace) => trace.runId === run.runId)
+          .map((trace) => trace.context?.candidateRevision)
+          .filter(Boolean),
+      ),
+    ].sort(),
+    branches: [
+      ...new Set(
+        traces
+          .filter((trace) => trace.runId === run.runId)
+          .map((trace) => trace.context?.branch)
+          .filter(Boolean),
+      ),
+    ].sort(),
+    validatesCurrentHead: false,
   }));
+  for (const run of verificationRuns)
+    run.validatesCurrentHead =
+      currentCandidateRevision !== '' && run.candidateRevisions.includes(currentCandidateRevision);
   const report = {
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
+    repository: { currentCandidateRevision, currentBranch },
     summary: { ...summary, latestVerification: verificationRuns[0] ?? null },
     dataQuality: {
       exactTraceCount: traces.length,
+      worktreeCount: new Set(traces.map((trace) => trace.context?.worktreeId).filter(Boolean)).size,
+      agentCount: new Set(
+        traces
+          .map((trace) => trace.context?.agentId)
+          .filter((agentId) => agentId && agentId !== 'unattributed'),
+      ).size,
+      unattributedTraceCount: traces.filter(
+        (trace) => !trace.context || trace.context.agentId === 'unattributed',
+      ).length,
+      redactedTraceCount: traces.filter((trace) => (trace.redactionCount ?? 0) > 0).length,
+      recordedRedactionCount: sum(
+        traces.filter((trace) => trace.redactionCount !== null),
+        'redactionCount',
+      ),
+      preRedactionTraceCount: traces.filter((trace) => trace.redactionCount === null).length,
       tokenValuesAreEstimates: true,
       tokenEstimateMethod: 'ceil(UTF-8 output bytes / 4)',
       observationScope:
-        'Commands executed through scripts/tool-trace; interactive shell and model calls are not intercepted.',
+        'All repository worktrees and imported CI artifacts; only commands executed through scripts/tool-trace are intercepted.',
     },
     usage: {
       providers,
       tools,
       tasks: aggregate(traces, (trace) => trace.taskId),
+      agents: contextRows(traces, 'agentId', 'unattributed'),
+      worktrees: contextRows(traces, 'worktreeId', 'historical-unattributed'),
       capabilities,
       inventory,
     },
@@ -373,7 +588,9 @@ export const analyzeTelemetry = async (options = {}) => {
     automationCandidates: automationCandidates(traces).slice(0, 30),
     insights: [],
     sources: [
-      '.agent/traces/*.json',
+      '<shared-repository>/.agent/traces/*.json',
+      '<worktree>/.agent/traces/*.json',
+      '<shared-repository>/.agent/imports/**/*.json',
       '.agent/reports/verification-runs.jsonl',
       '.agent/reports/mutation.json',
       '.agent/reports/crap.json',

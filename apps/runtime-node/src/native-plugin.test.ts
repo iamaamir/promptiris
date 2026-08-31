@@ -200,6 +200,17 @@ describe('defineNativePlugin', () => {
     expect(Date.now() - started).toBeLessThan(2_000);
   });
 
+  it('contains a stdin transport error while the native process remains alive', async () => {
+    const implementation = await native('closed-stdin', {
+      invocationTimeoutMs: 1_000,
+      cancellationGraceMs: 25,
+    }).activate();
+
+    await expect(implementation.invoke(invocation())).rejects.toThrow(
+      'Native plugin process exited',
+    );
+  });
+
   it('does not interpret command arguments through a shell', async () => {
     const directory = await mkdtemp(join(tmpdir(), 'meta-prompt native shell '));
     try {

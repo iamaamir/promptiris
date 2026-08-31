@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-readonly MANAGED_LABELS='needs-triage needs-info ready-for-agent ready-for-human wontfix'
+readonly MANAGED_LABELS='needs-triage needs-info ready-for-agent in-progress ready-for-human wontfix'
 
 usage() {
   echo 'usage: scripts/issue-sync <check|push|status> <local-issue-file|--all>' >&2
@@ -76,7 +76,7 @@ packet_url() {
 
 canonical_label() {
   case "$1" in
-    needs-triage | needs-info | ready-for-agent | ready-for-human | wontfix) echo "$1" ;;
+    needs-triage | needs-info | ready-for-agent | in-progress | ready-for-human | wontfix) echo "$1" ;;
     complete | done) echo '' ;;
     *) return 1 ;;
   esac
@@ -130,6 +130,26 @@ validate_packet() {
     echo "invalid GitHub issue field: $packet" >&2
     return 1
   }
+  if grep -Fqx 'Patch policy: 1' "$packet"; then
+    awk '
+      /^Allowed paths:$/ { in_paths=1; next }
+      in_paths && /^$/ { next }
+      in_paths && /^- `[^`][^`]*`$/ { found=1; next }
+      in_paths { exit }
+      END { if (!found) exit 1 }
+    ' "$packet" || {
+      echo "patch policy has no Allowed paths: $packet" >&2
+      return 1
+    }
+    grep -Eq '^Golden changes: (allowed|denied)$' "$packet" || {
+      echo "patch policy has no Golden changes decision: $packet" >&2
+      return 1
+    }
+    grep -Eq '^Test deletion: (allowed|denied)$' "$packet" || {
+      echo "patch policy has no Test deletion decision: $packet" >&2
+      return 1
+    }
+  fi
 }
 
 replace_pending_url() {

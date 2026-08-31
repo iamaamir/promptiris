@@ -1,0 +1,18 @@
+# Critical verifier surfaces require a maintainer outside the Candidate producer.
+/.github/workflows/ @iamaamir
+/scripts/verify-candidate @iamaamir
+/scripts/quality-integrity.mjs @iamaamir
+/scripts/verify-role-evidence.mjs @iamaamir
+/scripts/tool-trace @iamaamir
+/scripts/redact-tool-output.mjs @iamaamir
+/scripts/agent-work @iamaamir
+/scripts/issue-sync @iamaamir
+/stryker.config.mjs @iamaamir
+/eslint.config.js @iamaamir
+/package.json @iamaamir
+/tsconfig.base.json @iamaamir
+/tooling/vitest-config.ts @iamaamir
+/tooling/capabilities.json @iamaamir
+/tooling/ast-grep/ @iamaamir
+/tooling/quality/ @iamaamir
+/spec/schemas/ @iamaamir

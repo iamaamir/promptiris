@@ -1,37 +1,130 @@
 #!/usr/bin/env bash
 set -euo pipefail
-repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
-cd "$repo_root"
+
+worktree_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+common_git_dir="$(git -C "$worktree_root" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || true)"
+shared_root="${PROMPTIRIS_REPOSITORY_ROOT:-${common_git_dir%/.git}}"
+[[ -n "$shared_root" && -d "$shared_root" ]] || shared_root="$worktree_root"
+agent_root="${PROMPTIRIS_AGENT_ROOT:-$shared_root/.agent}"
+branch="$(git -C "$worktree_root" branch --show-current 2>/dev/null || true)"
+head="$(git -C "$worktree_root" rev-parse --short HEAD 2>/dev/null || echo none)"
+head_revision="$(git -C "$worktree_root" rev-parse HEAD 2>/dev/null || echo none)"
+upstream="$(git -C "$worktree_root" rev-parse --abbrev-ref '@{upstream}' 2>/dev/null || echo none)"
+base_revision="$(git -C "$worktree_root" merge-base HEAD origin/main 2>/dev/null || git -C "$worktree_root" rev-parse HEAD 2>/dev/null || echo none)"
+
+packet=''
+if [[ -n "$branch" ]]; then
+  packet="$(rg -l --fixed-strings "Branch: \`$branch\`" "$worktree_root/.scratch" 2>/dev/null | LC_ALL=C sort | head -1 || true)"
+fi
+packet="${packet#"$worktree_root/"}"
+claim_file="$agent_root/claims/$branch.json"
+now_ms="$(node -e 'process.stdout.write(String(Date.now()))')"
+worktree_id="$(printf '%s' "$worktree_root" | shasum -a 256 | awk '{print substr($1,1,16)}')"
+
 echo '## REPOSITORY'
-printf 'root: %s\nhead: %s\n' "$repo_root" "$(git rev-parse --short HEAD 2>/dev/null || echo none)"
+printf 'shared-root: %s\nworktree: %s\nbranch: %s\nhead: %s\nbase: %s\nupstream: %s\n' \
+  "$shared_root" "$worktree_root" "${branch:-detached}" "$head" "${base_revision:0:12}" "$upstream"
+if [[ "$worktree_root" == "$shared_root" && "$branch" != main ]]; then
+  echo 'warning: a feature branch occupies the integration checkout'
+fi
+
 echo
-echo '## STATUS'
-git status --short | head -30 || true
+echo '## WORK ITEM'
+if [[ -n "$packet" ]]; then
+  printf 'packet: %s\n' "$packet"
+  sed -n -e 's/^Status: /status: /p' -e 's/^GitHub issue: /issue: /p' -e 's/^Blocked by: /blocked-by: /p' "$worktree_root/$packet"
+else
+  echo 'none matched to branch'
+fi
+if [[ -f "$claim_file" ]]; then
+  jq --argjson now "$now_ms" '{taskId,agentId,stage,branch,worktree,claimedRevision:(.claimedRevision // .candidateRevision // null),lastStageRevision:(.lastStageRevision // .candidateRevision // null),claimedAt,expiresAtEpochMs,leaseState:(if (.expiresAtEpochMs // 0) == 0 then "legacy" elif .expiresAtEpochMs <= $now then "expired" else "active" end)}' "$claim_file"
+else
+  echo 'lease: none'
+fi
+
 echo
-echo '## RECENT COMMITS'
-git log --oneline -5 2>/dev/null || true
+echo '## WORKTREES'
+git -C "$worktree_root" worktree list --porcelain 2>/dev/null | awk '
+  /^worktree / { path=substr($0,10) }
+  /^HEAD / { head=substr($0,6,12) }
+  /^branch / { branch=$0; sub("refs/heads/", "", branch); sub("^branch ", "", branch); printf "%s\t%s\t%s\n", branch, head, path }
+' | head -12
+
 echo
-echo '## CHANGE SUMMARY'
-git diff --stat | head -40 || true
-echo
-echo '## ACTIVE WORK'
-state_file="$(find .agent/work -mindepth 2 -maxdepth 2 -name state.json -print 2>/dev/null | sort | tail -1)"
-if [[ -n "$state_file" ]]; then jq '{task_id,goal,stage,iteration,last_verification,next_action,lease}' "$state_file"; else echo 'none'; fi
-echo
-echo '## LAST VERIFICATION'
-last_trace="$(find .agent/traces -maxdepth 1 -name '*.json' -print 2>/dev/null | sort | tail -1)"
-if [[ -n "$last_trace" ]]; then
-  jq '{taskId,provider:(.providerId // .command),exitCode,durationMs,evidenceRef:(.evidence.ref // .rawEvidenceRef)}' "$last_trace"
+echo '## CLAIMS'
+claim_files=("$agent_root"/claims/*.json)
+if [[ -e "${claim_files[0]}" ]]; then
+  jq -s -r --argjson now "$now_ms" '.[] | "\(.branch)\t\(.agentId)\t\(.stage)\t\(if (.expiresAtEpochMs // 0) == 0 then "legacy" elif .expiresAtEpochMs <= $now then "expired" else "active" end)\t\(.worktree)"' "${claim_files[@]}" | LC_ALL=C sort
+  conflicts="$(jq -s -r 'group_by(.worktree)[] | select(length > 1) | .[0].worktree' "${claim_files[@]}")"
+  if [[ -n "$conflicts" ]]; then
+    printf 'warning: multiple claims share a mutable worktree:\n%s\n' "$conflicts"
+  fi
 else
   echo 'none'
 fi
+
+echo
+echo '## STATUS'
+status_lines="$(git -C "$worktree_root" status --short | head -30 || true)"
+if [[ -n "$status_lines" ]]; then
+  printf '%s\n' "$status_lines"
+else
+  echo 'tree: clean'
+fi
+
+echo
+echo '## RECENT COMMITS'
+git -C "$worktree_root" log --oneline -5 2>/dev/null || true
+
+echo
+echo '## CHANGE SUMMARY'
+git -C "$worktree_root" diff --shortstat "$base_revision" HEAD 2>/dev/null || true
+printf 'compare: %s..%s\n' "${base_revision:0:12}" "$head"
+
+echo
+echo '## ACTIVE WORK'
+if [[ -f "$claim_file" ]]; then
+  jq --arg head "$head_revision" --argjson now "$now_ms" '{taskId,agentId,stage,claimedRevision:(.claimedRevision // .candidateRevision // null),lastStageRevision:(.lastStageRevision // .candidateRevision // null),claimedAt,expiresAtEpochMs,leaseState:(if (.expiresAtEpochMs // 0) == 0 then "legacy" elif .expiresAtEpochMs <= $now then "expired" else "active" end),currentHead:$head}' "$claim_file"
+else
+  echo 'none for this branch'
+fi
+
+echo
+echo '## LAST OBSERVED CURRENT-WORKTREE TRACE'
+last_trace="$(node -e '
+  const fs = require("node:fs");
+  const path = require("node:path");
+  const [directory, branch, worktreeId] = process.argv.slice(1);
+  try {
+    const traces = fs.readdirSync(directory)
+      .filter((file) => file.endsWith(".json"))
+      .map((file) => path.join(directory, file))
+      .map((file) => ({ file, trace: JSON.parse(fs.readFileSync(file, "utf8")) }))
+      .filter(({ trace }) => trace.context?.branch === branch && trace.context?.worktreeId === worktreeId)
+      .sort((left, right) => (right.trace.startedAtEpochMs ?? 0) - (left.trace.startedAtEpochMs ?? 0));
+    process.stdout.write(traces[0]?.file ?? "");
+  } catch {}
+' "$agent_root/traces" "$branch" "$worktree_id")"
+if [[ -n "$last_trace" ]]; then
+  jq '{taskId,provider:(.providerId // .command),exitCode,durationMs,startedAt,branch:(.context.branch // "unattributed"),candidateRevision:(.context.candidateRevision // "unattributed"),evidenceRef:(.evidence.ref // .rawEvidenceRef)}' "$last_trace"
+else
+  echo 'none for current branch and worktree'
+fi
+
 echo
 echo '## TELEMETRY'
-if [[ -f .agent/reports/telemetry-summary.json ]]; then
-  jq '{generatedAt,summary:{traceCount:.summary.traceCount,failedTraceCount:.summary.failedTraceCount,durationMs:.summary.durationMs,reducedBytes:.summary.reducedBytes,estimatedTokensAvoided:.summary.estimatedTokensAvoided,latestVerification:.summary.latestVerification},quality:{mutation:{score:.quality.mutation.score,status:.quality.mutation.policy.status,unresolved:.quality.mutation.debt.unresolved,ignored:.quality.mutation.debt.ignored,weakestTarget:(.quality.mutation.targets|max_by(.debt)|{file,score,debt})},typescriptCoverage:.quality.coverage.statements.percent,goCoverage:.quality.goCoverage.percent,crapViolations:.quality.crap.violationCount}}' .agent/reports/telemetry-summary.json
-else
-  echo 'none; run pnpm telemetry:analyze'
-fi
+(
+  cd "$worktree_root"
+  node scripts/telemetry-analyze.mjs --stdout --no-write
+) | jq --arg head "$head_revision" '{
+  observedAt:.generatedAt,
+  traces:{count:.summary.traceCount,failed:.summary.failedTraceCount,durationMs:.summary.durationMs,tokensAvoidedEstimate:.summary.estimatedTokensAvoided},
+  attribution:{observedWorktrees:.dataQuality.worktreeCount,observedAgents:.dataQuality.agentCount,unattributed:.dataQuality.unattributedTraceCount},
+  latestRecordedVerification:(.summary.latestVerification | if . == null then null else {profile,status,startedAt,endedAt,failedGateCount,candidateRevisions,branches,validatesCurrentHead:(.candidateRevisions | index($head) != null)} end),
+  quality:{mutation:{score:.quality.mutation.score,status:.quality.mutation.policy.status},crapViolations:.quality.crap.violationCount},
+  reportRef:".agent/reports/telemetry-summary.json"
+}'
+
 echo
 echo '## CAPABILITIES'
-jq -r '.capabilities | to_entries[] | "\(.key): \(.value.providers | join(", "))"' tooling/capabilities.json
+jq -r '.capabilities | to_entries[] | "\(.key): \(.value.providers | join(", "))"' "$worktree_root/tooling/capabilities.json"

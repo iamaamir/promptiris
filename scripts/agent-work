@@ -1,0 +1,165 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  echo 'usage: scripts/agent-work claim PACKET AGENT [--local] | stage STAGE | release PACKET [STATUS] [--local]' >&2
+  exit 64
+}
+
+mode="${1:-}"
+shift || true
+worktree_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+common_git_dir="$(git -C "$worktree_root" rev-parse --path-format=absolute --git-common-dir)"
+shared_root="${PROMPTIRIS_REPOSITORY_ROOT:-${common_git_dir%/.git}}"
+agent_root="${PROMPTIRIS_AGENT_ROOT:-$shared_root/.agent}"
+branch="$(git -C "$worktree_root" branch --show-current)"
+claims_root="$agent_root/claims"
+claim_file="$claims_root/$branch.json"
+lease_ms="${PROMPTIRIS_CLAIM_LEASE_MS:-14400000}"
+mkdir -p "$claims_root/.locks"
+
+packet_field() {
+  local packet="$1"
+  local field="$2"
+  awk -v prefix="$field: " 'index($0, prefix) == 1 { print substr($0, length(prefix) + 1); exit }' "$packet"
+}
+
+set_status() {
+  local packet="$1"
+  local status="$2"
+  local replacement
+  replacement="$(mktemp "${TMPDIR:-/tmp}/promptiris-packet.XXXXXX")"
+  awk -v status="$status" '
+    /^Status: / && !updated { print "Status: " status; updated=1; next }
+    { print }
+    END { if (!updated) exit 1 }
+  ' "$packet" >"$replacement"
+  mv "$replacement" "$packet"
+}
+
+sync_packet() {
+  local packet="$1"
+  local local_only="$2"
+  if [[ "$local_only" == true ]]; then return; fi
+  if ! "$worktree_root/scripts/issue-sync" push "$packet"; then
+    echo 'warning: local state is authoritative; GitHub projection remains pending' >&2
+  fi
+}
+
+case "$mode" in
+  claim)
+    [[ $# -ge 2 && $# -le 3 ]] || usage
+    packet="${1#./}"
+    agent_id="$2"
+    local_only=false
+    [[ "${3:-}" != --local ]] || local_only=true
+    [[ -f "$worktree_root/$packet" ]] || { echo "issue packet not found: $packet" >&2; exit 66; }
+    expected_branch="$(packet_field "$worktree_root/$packet" Branch | tr -d '`')"
+    [[ -n "$expected_branch" ]] || { echo "packet has no Branch field: $packet" >&2; exit 65; }
+    [[ "$branch" == "$expected_branch" ]] || {
+      echo "branch mismatch: packet owns $expected_branch, current branch is $branch" >&2
+      exit 65
+    }
+    [[ "$agent_id" =~ ^[A-Za-z0-9._-]+$ ]] || { echo 'agent id must be a stable identifier' >&2; exit 65; }
+    lock="$claims_root/.locks/$branch"
+    if ! mkdir "$lock" 2>/dev/null; then
+      if [[ -d "$lock" ]] && find "$lock" -maxdepth 0 -mmin +5 -print | grep -q .; then
+        rmdir "$lock" 2>/dev/null || true
+      fi
+      if ! mkdir "$lock" 2>/dev/null; then
+        echo "work item is already being claimed: $branch" >&2
+        [[ ! -f "$claim_file" ]] || jq . "$claim_file" >&2
+        exit 73
+      fi
+    fi
+    trap 'rmdir "$lock" 2>/dev/null || true' EXIT
+    now_ms="$(node -e 'process.stdout.write(String(Date.now()))')"
+    for existing_claim in "$claims_root"/*.json; do
+      [[ -e "$existing_claim" ]] || continue
+      expires_ms="$(jq -r '.expiresAtEpochMs // 0' "$existing_claim")"
+      if (( expires_ms > 0 && expires_ms <= now_ms )); then
+        if [[ "$existing_claim" == "$claim_file" ]]; then
+          rm -f "$existing_claim"
+          echo "warning: reclaimed expired claim: $existing_claim" >&2
+        else
+          echo "warning: ignoring expired claim: $existing_claim" >&2
+        fi
+        continue
+      fi
+      existing_worktree="$(jq -r .worktree "$existing_claim")"
+      existing_branch="$(jq -r .branch "$existing_claim")"
+      if [[ "$existing_worktree" == "$worktree_root" && "$existing_branch" != "$branch" ]]; then
+        echo "mutable worktree is already owned by claim: $existing_branch" >&2
+        exit 73
+      fi
+    done
+    if [[ -f "$claim_file" ]]; then
+      current_agent="$(jq -r .agentId "$claim_file")"
+      current_task="$(jq -r .taskId "$claim_file")"
+      if [[ "$current_agent" == "$agent_id" && "$current_task" == "$packet" ]]; then
+        echo "already claimed: $packet by $agent_id on $branch"
+        exit 0
+      fi
+      echo "work item is already claimed by $current_agent: $current_task" >&2
+      exit 73
+    fi
+    status="$(packet_field "$worktree_root/$packet" Status)"
+    [[ "$status" == ready-for-agent || "$status" == in-progress ]] || {
+      echo "packet is not claimable from status: $status" >&2
+      exit 65
+    }
+    claimed_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    claimed_at_ms="$(node -e 'process.stdout.write(String(Date.now()))')"
+    expires_at_ms=$((claimed_at_ms + lease_ms))
+    claimed_revision="$(git -C "$worktree_root" rev-parse HEAD)"
+    temporary_claim="$(mktemp "${TMPDIR:-/tmp}/promptiris-claim.XXXXXX")"
+    jq -n --arg taskId "$packet" --arg agentId "$agent_id" --arg stage generator \
+      --arg branch "$branch" --arg worktree "$worktree_root" \
+      --arg claimedRevision "$claimed_revision" --arg lastStageRevision "$claimed_revision" --arg claimedAt "$claimed_at" \
+      --argjson claimedAtEpochMs "$claimed_at_ms" --argjson expiresAtEpochMs "$expires_at_ms" \
+      '{schemaVersion:3,taskId:$taskId,agentId:$agentId,stage:$stage,branch:$branch,worktree:$worktree,claimedRevision:$claimedRevision,lastStageRevision:$lastStageRevision,claimedAt:$claimedAt,claimedAtEpochMs:$claimedAtEpochMs,expiresAtEpochMs:$expiresAtEpochMs}' \
+      >"$temporary_claim"
+    mv "$temporary_claim" "$claim_file"
+    set_status "$worktree_root/$packet" in-progress
+    sync_packet "$packet" "$local_only"
+    echo "claimed: $packet by $agent_id on $branch"
+    ;;
+  stage)
+    [[ $# -eq 1 ]] || usage
+    stage="$1"
+    case "$stage" in generator | reviewer | cleaner | hardener | qa | integration) ;; *) usage ;; esac
+    [[ -f "$claim_file" ]] || { echo "no claim for branch: $branch" >&2; exit 66; }
+    replacement="$(mktemp "${TMPDIR:-/tmp}/promptiris-claim.XXXXXX")"
+    now_ms="$(node -e 'process.stdout.write(String(Date.now()))')"
+    expires_ms="$(jq -r '.expiresAtEpochMs // 0' "$claim_file")"
+    if (( expires_ms > 0 && expires_ms <= now_ms )); then
+      echo "claim expired; reclaim the Work Item before changing stage: $branch" >&2
+      exit 73
+    fi
+    expires_at_ms=$((now_ms + lease_ms))
+    jq --arg stage "$stage" --arg revision "$(git -C "$worktree_root" rev-parse HEAD)" \
+      --argjson expiresAtEpochMs "$expires_at_ms" \
+      '.schemaVersion=3 | .stage=$stage | .lastStageRevision=$revision | .expiresAtEpochMs=$expiresAtEpochMs' "$claim_file" >"$replacement"
+    mv "$replacement" "$claim_file"
+    echo "stage: $stage"
+    ;;
+  release)
+    [[ $# -ge 1 && $# -le 3 ]] || usage
+    packet="${1#./}"
+    status="${2:-ready-for-human}"
+    local_only=false
+    [[ "${2:-}" != --local && "${3:-}" != --local ]] || local_only=true
+    [[ "$status" != --local ]] || status=ready-for-human
+    case "$status" in ready-for-agent | ready-for-human | complete | wontfix) ;; *) usage ;; esac
+    [[ -f "$claim_file" ]] || { echo "no claim for branch: $branch" >&2; exit 66; }
+    [[ "$(jq -r .taskId "$claim_file")" == "$packet" ]] || {
+      echo 'claim belongs to a different packet' >&2
+      exit 65
+    }
+    set_status "$worktree_root/$packet" "$status"
+    rm -f "$claim_file"
+    sync_packet "$packet" "$local_only"
+    echo "released: $packet -> $status"
+    ;;
+  *) usage ;;
+esac

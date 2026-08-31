@@ -1,0 +1,15 @@
+id: no-disabled-tests
+language: TypeScript
+severity: error
+message: Tests cannot be disabled or focused in committed code.
+rule:
+  any:
+    - pattern: test.skip($$$ARGS)
+    - pattern: test.only($$$ARGS)
+    - pattern: test.todo($$$ARGS)
+    - pattern: it.skip($$$ARGS)
+    - pattern: it.only($$$ARGS)
+    - pattern: it.todo($$$ARGS)
+    - pattern: describe.skip($$$ARGS)
+    - pattern: describe.only($$$ARGS)
+    - pattern: describe.todo($$$ARGS)

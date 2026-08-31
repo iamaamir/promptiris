@@ -76,6 +76,12 @@ providers:
 
 `deterministic: true` is not sufficiently precise. Entries distinguish execution semantics, measurement variance, event-delivery guarantees, side effects, replayability, cacheability, platform support, trust, permissions, and output sensitivity. For example, Hyperfine measurements are statistical, Watchexec filesystem delivery is advisory and may coalesce events, and RTK-style output reduction is reproducible but intentionally lossy.
 
+Every semantic capability also has an execution role. `discovery` capabilities reduce or locate
+context, `gate` capabilities can produce acceptance Evidence, and `orchestration` capabilities only
+run workflows. A discovery result can select a check but cannot impersonate a passing gate. The
+dashboard exposes this role alongside utilization so a human need not infer it from provider names
+or source code.
+
 The initial capability classes are intentionally small:
 
 | Capability class            | Candidate implementations                                  | Boundary                                                                                  |
@@ -83,7 +89,7 @@ The initial capability classes are intentionally small:
 | Text discovery              | `rg`, `fd`                                                 | Literal, regex, and path questions; not syntax relationships.                             |
 | Structural retrieval/change | ast-grep, pinned LSP                                       | Tested syntax/symbol operations; rewrites require explicit effects and verification.      |
 | Structured data             | `jq`, `yq`, schema tools                                   | Parse and transform data without model interpretation.                                    |
-| Context reduction           | structured reporters, RTK where measured useful            | Raw output remains Evidence; reduction is never the canonical record.                     |
+| Context reduction           | structured reporters, RTK where measured useful            | Sanitized output remains Evidence; reduction is never the canonical record.               |
 | Deterministic validation    | compiler, tests, lint, Gitleaks, CodeQL and quality tools  | Exit status and structured findings drive policy.                                         |
 | Event observation           | Watchexec or platform filesystem APIs                      | Accelerates local feedback; repository snapshots remain authoritative.                    |
 | Workflow execution          | versioned repository scripts/tasks                         | One canonical task namespace; do not make multiple task runners competing authorities.    |
@@ -92,6 +98,8 @@ The initial capability classes are intentionally small:
 Tool count is not a target. A Tool Adapter is admitted when it adds capability coverage or demonstrably improves correctness, total verified-task cost, output size, or portability enough to justify installation and maintenance.
 
 Resolve a provider without executing it with `./scripts/tool-router CAPABILITY`. Execute a routed capability with `./scripts/tool-router CAPABILITY -- ARG...`; execution is captured as a Tool Trace and returns an Evidence reference instead of copying successful raw output into model context.
+
+Repository instructions require agents to use this routed path, while the verifier supplies the enforcement boundary: mandatory gates execute through `scripts/tool-trace`, completion evidence is rejected when its candidate binding is stale, and unattributed/direct work remains a visible evidence gap. A repository cannot intercept arbitrary host-native calls without controlling the host shell, so it never claims complete capture.
 
 ## Routing policy
 
@@ -126,6 +134,15 @@ Every routed execution records a schema-validated Tool Trace similar to:
   "providerId": "test-runner",
   "tools": ["vitest", "go-test", "node-test"],
   "executor": "pnpm",
+  "context": {
+    "repositoryId": "0123456789abcdef",
+    "worktreeId": "fedcba9876543210",
+    "branch": "provider-contract",
+    "candidateRevision": "83d21af...",
+    "workspaceDigest": "sha256:...",
+    "dirty": false,
+    "agentId": "worker-15"
+  },
   "durationMs": 1832,
   "exitCode": 0,
   "output": {

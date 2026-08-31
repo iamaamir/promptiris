@@ -9,8 +9,10 @@ const validate = new Ajv2020({ strict: true }).compile(schema);
 const report = {
   schemaVersion: 1,
   taskId: 'T004',
-  baseRevision: 'base',
-  candidateRevision: 'candidate',
+  baseRevision: 'a'.repeat(40),
+  candidateRevision: `sha256:${'b'.repeat(64)}`,
+  producerId: 'reviewer-a',
+  independent: true,
   verdict: 'pass',
   findings: [],
   commentDecisions: [
@@ -21,7 +23,14 @@ const report = {
       evidenceRef: 'apps/runtime-node/src/configuration.test.ts',
     },
   ],
-  evidence: [{ checkId: 'verify.full', status: 'passed', evidenceRef: '.agent/reports/run' }],
+  evidence: [
+    {
+      checkId: 'verify.full',
+      status: 'passed',
+      evidenceRef: '.agent/reports/run',
+      evidenceSha256: 'c'.repeat(64),
+    },
+  ],
   residualRisks: [],
 };
 
@@ -31,6 +40,7 @@ test('reviewer reports bind verdicts, comments, findings, and evidence to a cand
 
 test('reviewer reports reject narrative-only or unlocated findings', () => {
   assert.equal(validate({ ...report, candidateRevision: undefined }), false);
+  assert.equal(validate({ ...report, independent: false }), false);
   assert.equal(
     validate({
       ...report,

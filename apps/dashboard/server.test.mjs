@@ -31,6 +31,7 @@ test('serves generated telemetry without caching', async () => {
   assert.equal(response.headers['Cache-Control'], 'no-store');
   const report = JSON.parse(response.body);
   assert.equal(report.schemaVersion, 1);
+  assert.equal(typeof report.repository.currentCandidateRevision, 'string');
   assert.ok(report.summary.traceCount >= 0);
   if (report.quality.mutation.available) {
     assert.equal(report.quality.mutation.policy.available, true);
@@ -38,6 +39,8 @@ test('serves generated telemetry without caching', async () => {
   }
   assert.ok(report.usage.inventory.some((provider) => provider.id === 'codeql'));
   assert.ok(report.usage.inventory.some((provider) => provider.id === 'scripts/lsp-query.mjs'));
+  assert.ok(Array.isArray(report.usage.agents));
+  assert.ok(Array.isArray(report.quality.roles.rows));
 });
 
 test('rejects unknown paths and mutating methods', async () => {

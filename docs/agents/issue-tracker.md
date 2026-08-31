@@ -23,6 +23,26 @@ Do not edit both bodies independently. Update the local packet, then run `./scri
 - `Blocked by:` is a comma-separated list of managed packet paths or `none` and is the source for native GitHub dependency relationships. `Blocks:` is a local informational index; `Parallel-safe:` makes scheduling constraints visible before assignment.
 - Comments and handoff notes append under `## Comments`.
 
+New implementation Work Items declare deterministic patch authority:
+
+```text
+Patch policy: 1
+Golden changes: denied
+Test deletion: denied
+Allowed paths:
+- `packages/example/src/**`
+- `packages/example/etc/**`
+- `.scratch/example/issues/01-example.md`
+- `.scratch/example/issues/01-example.evidence/**`
+```
+
+The trusted diff firewall reads these fields from the base revision, not from the Candidate.
+Changing the packet in the same Candidate cannot expand its authority. Existing golden artifacts
+and tests are immutable unless the base Work Item explicitly says `allowed`.
+
+Packets created before patch policy version 1 remain compatible but report that their path firewall
+is unconfigured. New packets must not claim version 1 without a non-empty `Allowed paths` list.
+
 `.scratch/` coordinates active local work. Durable domain language, architecture, public contracts, and accepted decisions belong in their canonical repository documents and Git history. Task packets reference those artifacts rather than copying them.
 
 ## Branch and workspace isolation
@@ -30,6 +50,8 @@ Do not edit both bodies independently. Update the local packet, then run `./scri
 Every independently deliverable feature or fix owns one branch. A normal single-agent task uses that branch in the current checkout; it does not create a worktree merely for ceremony. Concurrent agents on the same machine require separate worktrees because branches do not isolate filesystem writes. Worktrees are disposable execution directories, never durable task state.
 
 The issue-owning agent runs the internal Specifier, Implementer, Reviewer, Cleaner, Hardener, source-blind QA, and deterministic verification loop until the PR is green. The internal Reviewer remains independent for high-risk changes. External maintainers perform the final PR review and merge decision.
+
+Before editing, a worker runs `./scripts/agent-work claim <packet> <stable-agent-id>`. The command takes an atomic repository-wide lease, verifies the branch, records the worktree and revision, changes the authoritative local status to `in-progress`, and converges the GitHub projection when available. Stage transitions use `./scripts/agent-work stage <stage>`. After a green PR, `./scripts/agent-work release <packet>` moves the packet to `ready-for-human`. GitHub failure never invalidates the local lease; rerunning `issue-sync` repairs projection drift.
 
 Do not start a blocked issue. Do not run issues in parallel when they claim the same Conflict Domain or overlapping ownership. A dependency change must update the local packet and its GitHub projection before another agent takes the issue.
 
@@ -46,6 +68,6 @@ Do not start a blocked issue. Do not run issues in parallel when they claim the 
 
 Bulk relationship updates are convergent rather than transactional: interruption can leave a temporarily partial remote graph, and rerunning `push --all` completes it without duplicating Issues. Only repository-relative `ROADMAP.md` and `.scratch/` packet references—or explicit GitHub Issue URLs—may participate in relationships.
 
-The script owns only the five canonical triage labels, title, body, open/closed state, parent, and blocked-by relationships. It preserves all other GitHub state. A terminal local status of `complete` or `done` closes as completed; `wontfix` closes as not planned. New active packets use the canonical statuses in [triage labels](./triage-labels.md).
+The script owns only the six canonical workflow labels, title, body, open/closed state, parent, and blocked-by relationships. It preserves all other GitHub state. A terminal local status of `complete` or `done` closes as completed; `wontfix` closes as not planned. New active packets use the canonical statuses in [triage labels](./triage-labels.md).
 
 When a skill says to publish to the issue tracker, write the corresponding local packet first and then update its GitHub projection. When it says to fetch a ticket, orient from the local packet and use GitHub only for remote coordination deltas.

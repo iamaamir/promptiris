@@ -30,6 +30,20 @@
     "startedAtEpochMs": { "type": "number", "minimum": 0 },
     "durationMs": { "type": "number", "minimum": 0 },
     "exitCode": { "type": "number" },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repositoryId", "worktreeId", "branch", "candidateRevision", "agentId"],
+      "properties": {
+        "repositoryId": { "type": "string", "pattern": "^[0-9a-f]{16}$" },
+        "worktreeId": { "type": "string", "pattern": "^[0-9a-f]{16}$" },
+        "branch": { "type": "string", "minLength": 1 },
+        "candidateRevision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "workspaceDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "dirty": { "type": "boolean" },
+        "agentId": { "type": "string", "minLength": 1 }
+      }
+    },
     "output": {
       "type": "object",
       "additionalProperties": false,

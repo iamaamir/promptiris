@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "patterns": [
+    "eslint-disable",
+    "@ts-(?:ignore|expect-error)",
+    "stryker disable",
+    "istanbul ignore",
+    "c8 ignore",
+    "(?:describe|it|test)\\.(?:skip|only|todo)\\s*\\("
+  ]
+}
