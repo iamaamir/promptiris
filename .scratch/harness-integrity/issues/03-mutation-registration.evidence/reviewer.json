@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "producerId": "mutation_reviewer_retry",
+  "independent": true,
+  "verdict": "pass",
+  "findings": [],
+  "commentDecisions": [],
+  "evidence": [
+    {
+      "checkId": "review.diff-inspection",
+      "status": "passed",
+      "evidenceRef": "scripts/register-mutation-target.mjs",
+      "evidenceSha256": "9de230054d16b67917ebebb56599d07cbadc5050b46de7acad1534780f6d9129"
+    },
+    {
+      "checkId": "review.integrity-policy",
+      "status": "passed",
+      "evidenceRef": "tooling/quality/integrity-policy.mjs",
+      "evidenceSha256": "725d400076f6d83637d703a11afa4e81fb244fda29ccb584aec9473d7e02cc4b"
+    },
+    {
+      "checkId": "review.documentation-update",
+      "status": "passed",
+      "evidenceRef": "docs/development/code-quality-and-review.md",
+      "evidenceSha256": "778e80b74a25a6d1e6f99281253665fec4f507787dfa41f8caa6ba0c19ab3926"
+    }
+  ],
+  "residualRisks": [
+    "The focused test run could not complete offline because pnpm attempted to fetch packages from the registry and hit ENOTFOUND."
+  ],
+  "taskId": ".scratch/harness-integrity/issues/03-mutation-registration.md",
+  "baseRevision": "1b22fe22aebfc66e45418e9fa28c5acb9b99882c",
+  "candidateRevision": "sha256:24f8fefefd63991ddedfb1b288604be683e161a9948806f3cb208e5695c0cb3a"
+}

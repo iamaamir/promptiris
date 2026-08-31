@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "role": "qa",
+  "producerId": "source-blind-qa",
+  "status": "passed",
+  "sourceBlind": true,
+  "scenarios": [
+    "the CLI rejects an already-registered production target as a duplicate",
+    "the CLI registers one previously unregistered production TypeScript target",
+    "the CLI rejects a missing target path"
+  ],
+  "evidence": [
+    {
+      "checkId": "qa.duplicate-target",
+      "status": "passed",
+      "evidenceRef": "scripts/register-mutation-target.mjs",
+      "evidenceSha256": "9de230054d16b67917ebebb56599d07cbadc5050b46de7acad1534780f6d9129"
+    },
+    {
+      "checkId": "qa.registration-success",
+      "status": "passed",
+      "evidenceRef": "tooling/quality/register-mutation-target.test.mjs",
+      "evidenceSha256": "e165a72c77bf35670663beab58b9ed23c629759ee5a4026e7c2fc8ad80989a18"
+    },
+    {
+      "checkId": "qa.missing-target",
+      "status": "passed",
+      "evidenceRef": "tooling/quality/register-mutation-target.test.mjs",
+      "evidenceSha256": "e165a72c77bf35670663beab58b9ed23c629759ee5a4026e7c2fc8ad80989a18"
+    }
+  ],
+  "taskId": ".scratch/harness-integrity/issues/03-mutation-registration.md",
+  "baseRevision": "1b22fe22aebfc66e45418e9fa28c5acb9b99882c",
+  "candidateRevision": "sha256:24f8fefefd63991ddedfb1b288604be683e161a9948806f3cb208e5695c0cb3a"
+}
