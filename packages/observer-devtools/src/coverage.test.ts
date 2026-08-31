@@ -3,6 +3,7 @@ import { createObserverDevtools } from './observer.js';
 import { JsonLinesSink, createConsoleSink } from './sinks.js';
 import { createSupportBundle } from './support-bundle.js';
 import { MAX_BUNDLE_BYTES } from './support-bundle.js';
+void MAX_BUNDLE_BYTES;
 import type { DebugRecord } from '@promptiris/core';
 import type { Event } from '@promptiris/protocol';
 

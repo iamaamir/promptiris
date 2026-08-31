@@ -83,7 +83,8 @@ export const inspectMutationTargetRegistration = ({
   const added = [...afterTargets].filter((target) => !beforeTargets.has(target));
   const removed = [...beforeTargets].filter((target) => !afterTargets.has(target));
   const findings = [];
-  if (added.length < 1 || added.length > 4) findings.push('mutation registration must add between one and four targets');
+  if (added.length < 1 || added.length > 4)
+    findings.push('mutation registration must add between one and four targets');
   if (removed.length > 0) findings.push('mutation registration cannot remove targets');
   if (added.length === 0) return { safe: false, findings };
   for (const target of added) {
@@ -101,9 +102,12 @@ export const inspectMutationTargetRegistration = ({
   const beforePolicyTargets = beforePolicy.targets ?? {};
   const afterPolicyTargets = afterPolicy.targets ?? {};
   if (
-    Object.keys(afterPolicyTargets).length !== Object.keys(beforePolicyTargets).length + added.length ||
+    Object.keys(afterPolicyTargets).length !==
+      Object.keys(beforePolicyTargets).length + added.length ||
     !sameJson(
-      Object.fromEntries(Object.entries(afterPolicyTargets).filter(([path]) => !added.includes(path))),
+      Object.fromEntries(
+        Object.entries(afterPolicyTargets).filter(([path]) => !added.includes(path)),
+      ),
       beforePolicyTargets,
     )
   ) {

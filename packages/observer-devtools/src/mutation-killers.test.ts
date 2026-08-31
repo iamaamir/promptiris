@@ -44,7 +44,11 @@ describe('sinks killers', () => {
 
   it('pollution keys are filtered', () => {
     const sink = new JsonLinesSink({ capacity: 5 });
-    sink.write(ev({ '__proto__': 'x', 'constructor': 'y', 'prototype': 'z', phase: 'ok' }));
+    const pollution: Record<string, unknown> = { phase: 'ok' };
+    Object.defineProperty(pollution, '__proto__', { value: 'x', enumerable: true });
+    Object.defineProperty(pollution, 'constructor', { value: 'y', enumerable: true });
+    Object.defineProperty(pollution, 'prototype', { value: 'z', enumerable: true });
+    sink.write(ev(pollution));
     const line = sink.lines[0] ?? '';
     expect(line).not.toContain('__proto__');
     expect(line).not.toContain('constructor');
@@ -176,14 +180,24 @@ describe('sinks killers', () => {
 describe('support-bundle killers', () => {
   it('redacts sensitive events', () => {
     const e = ev({ phase: 'leak', prompt: 'leak' }, { classification: 'sensitive' });
-    const b = createSupportBundle({ observerId: 'o', events: [e], debugRecords: [], createdAt: '2026-01-01T00:00:00.000Z' });
+    const b = createSupportBundle({
+      observerId: 'o',
+      events: [e],
+      debugRecords: [],
+      createdAt: '2026-01-01T00:00:00.000Z',
+    });
     expect((b.events[0]?.data as Record<string, unknown>).redacted).toBe(true);
     expect(JSON.stringify(b.events[0])).not.toContain('leak');
   });
 
   it('projects non-sensitive events', () => {
     const e = ev({ phase: 'ok', prompt: 'leak', durationMs: 5 });
-    const b = createSupportBundle({ observerId: 'o', events: [e], debugRecords: [], createdAt: '2026-01-01T00:00:00.000Z' });
+    const b = createSupportBundle({
+      observerId: 'o',
+      events: [e],
+      debugRecords: [],
+      createdAt: '2026-01-01T00:00:00.000Z',
+    });
     expect((b.events[0]?.data as Record<string, unknown>).phase).toBe('ok');
     expect(JSON.stringify(b.events[0])).not.toContain('prompt');
   });
@@ -208,7 +222,12 @@ describe('support-bundle killers', () => {
       digest: 'm',
     };
     const e = ev(data);
-    const b = createSupportBundle({ observerId: 'o', events: [e], debugRecords: [], createdAt: '2026-01-01T00:00:00.000Z' });
+    const b = createSupportBundle({
+      observerId: 'o',
+      events: [e],
+      debugRecords: [],
+      createdAt: '2026-01-01T00:00:00.000Z',
+    });
     const d = b.events[0]?.data as Record<string, unknown>;
     expect(d.phase).toBe('a');
     expect(d.status).toBe('b');
@@ -231,8 +250,18 @@ describe('support-bundle killers', () => {
   it('stableStringify sorts keys deterministically', () => {
     const e1 = ev({ status: 'b', phase: 'a' });
     const e2 = ev({ phase: 'a', status: 'b' });
-    const b1 = createSupportBundle({ observerId: 'o', events: [e1], debugRecords: [], createdAt: '2026-01-01T00:00:00.000Z' });
-    const b2 = createSupportBundle({ observerId: 'o', events: [e2], debugRecords: [], createdAt: '2026-01-01T00:00:00.000Z' });
+    const b1 = createSupportBundle({
+      observerId: 'o',
+      events: [e1],
+      debugRecords: [],
+      createdAt: '2026-01-01T00:00:00.000Z',
+    });
+    const b2 = createSupportBundle({
+      observerId: 'o',
+      events: [e2],
+      debugRecords: [],
+      createdAt: '2026-01-01T00:00:00.000Z',
+    });
     const d1 = b1.events[0]?.data as Record<string, unknown>;
     const d2 = b2.events[0]?.data as Record<string, unknown>;
     expect(d1.phase).toBe('a');
@@ -243,10 +272,26 @@ describe('support-bundle killers', () => {
 
   it('enforceByteCap drops progress then all', () => {
     const big = 'x'.repeat(300);
-    const data = { phase: big, status: big, pluginId: big, digest: big, reason: big, fallback: big };
-    const progress = Array.from({ length: 30 }, (_, i) => ev(data, { id: `p-${String(i)}`, sequence: i, delivery: 'progress' }));
-    const critical = Array.from({ length: 30 }, (_, i) => ev(data, { id: `c-${String(i)}`, sequence: 100 + i, delivery: 'critical' }));
-    const bundle = createSupportBundle({ observerId: 'o', events: [...progress, ...critical], debugRecords: [], createdAt: '2026-01-01T00:00:00.000Z' });
+    const data = {
+      phase: big,
+      status: big,
+      pluginId: big,
+      digest: big,
+      reason: big,
+      fallback: big,
+    };
+    const progress = Array.from({ length: 30 }, (_, i) =>
+      ev(data, { id: `p-${String(i)}`, sequence: i, delivery: 'progress' }),
+    );
+    const critical = Array.from({ length: 30 }, (_, i) =>
+      ev(data, { id: `c-${String(i)}`, sequence: 100 + i, delivery: 'critical' }),
+    );
+    const bundle = createSupportBundle({
+      observerId: 'o',
+      events: [...progress, ...critical],
+      debugRecords: [],
+      createdAt: '2026-01-01T00:00:00.000Z',
+    });
     const bytes = new TextEncoder().encode(JSON.stringify(bundle)).length;
     expect(bytes).toBeLessThanOrEqual(MAX_BUNDLE_BYTES);
     // when over cap, progress should be dropped
@@ -264,8 +309,15 @@ describe('support-bundle killers', () => {
       pluginId: 'p',
       exception: { type: 'E', message: 'm'.repeat(5000) },
     }));
-    const hugeEvents = Array.from({ length: 50 }, (_, i) => ev({ phase: 'x'.repeat(5000) }, { id: `e-${String(i)}`, sequence: i }));
-    const b = createSupportBundle({ observerId: 'o', events: hugeEvents, debugRecords: hugeDebug, createdAt: '2026-01-01T00:00:00.000Z' });
+    const hugeEvents = Array.from({ length: 50 }, (_, i) =>
+      ev({ phase: 'x'.repeat(5000) }, { id: `e-${String(i)}`, sequence: i }),
+    );
+    const b = createSupportBundle({
+      observerId: 'o',
+      events: hugeEvents,
+      debugRecords: hugeDebug,
+      createdAt: '2026-01-01T00:00:00.000Z',
+    });
     const bytes = new TextEncoder().encode(JSON.stringify(b)).length;
     expect(bytes).toBeLessThanOrEqual(MAX_BUNDLE_BYTES);
     // when still over after dropping progress, it clears both
@@ -290,7 +342,12 @@ describe('support-bundle killers', () => {
   });
 
   it('buildInitialBundle without optional fields', () => {
-    const b = createSupportBundle({ observerId: 'o', events: [], debugRecords: [], createdAt: '2026-01-01T00:00:00.000Z' });
+    const b = createSupportBundle({
+      observerId: 'o',
+      events: [],
+      debugRecords: [],
+      createdAt: '2026-01-01T00:00:00.000Z',
+    });
     expect(b.manifestRefs).toEqual([]);
     expect(b.runId).toBeUndefined();
     expect(b.configTraceRef).toBeUndefined();
@@ -299,7 +356,12 @@ describe('support-bundle killers', () => {
   it('utf8 byte length handles multi-byte', () => {
     const emoji = '😀'.repeat(1000);
     const e = ev({ phase: emoji });
-    const b = createSupportBundle({ observerId: 'o', events: [e], debugRecords: [], createdAt: '2026-01-01T00:00:00.000Z' });
+    const b = createSupportBundle({
+      observerId: 'o',
+      events: [e],
+      debugRecords: [],
+      createdAt: '2026-01-01T00:00:00.000Z',
+    });
     const bytes = new TextEncoder().encode(JSON.stringify(b)).length;
     expect(bytes).toBeLessThanOrEqual(MAX_BUNDLE_BYTES);
   });
@@ -314,13 +376,20 @@ describe('support-bundle killers', () => {
       contributionId: 'c',
       exception: { type: 'E', message: 'secret', stack: 'stacktrace' },
     };
-    const b = createSupportBundle({ observerId: 'o', events: [], debugRecords: [rec], createdAt: '2026-01-01T00:00:00.000Z' });
+    const b = createSupportBundle({
+      observerId: 'o',
+      events: [],
+      debugRecords: [rec],
+      createdAt: '2026-01-01T00:00:00.000Z',
+    });
     expect(b.debugRecords[0]?.exception.message).toBe('[redacted]');
     expect((b.debugRecords[0] as unknown as Record<string, unknown>).stack).toBeUndefined();
   });
 
   it('slices events and debugRecords at max', () => {
-    const events = Array.from({ length: MAX_BUNDLE_EVENTS + 10 }, (_, i) => ev({}, { id: `e-${String(i)}`, sequence: i }));
+    const events = Array.from({ length: MAX_BUNDLE_EVENTS + 10 }, (_, i) =>
+      ev({}, { id: `e-${String(i)}`, sequence: i }),
+    );
     const recs: DebugRecord[] = Array.from({ length: MAX_BUNDLE_DEBUG_RECORDS + 10 }, (_, i) => ({
       id: String(i),
       runId: 'r',
@@ -328,7 +397,12 @@ describe('support-bundle killers', () => {
       operation: 'op',
       exception: { type: 'E', message: 'm' },
     }));
-    const b = createSupportBundle({ observerId: 'o', events, debugRecords: recs, createdAt: '2026-01-01T00:00:00.000Z' });
+    const b = createSupportBundle({
+      observerId: 'o',
+      events,
+      debugRecords: recs,
+      createdAt: '2026-01-01T00:00:00.000Z',
+    });
     expect(b.events.length).toBe(MAX_BUNDLE_EVENTS);
     expect(b.debugRecords.length).toBe(MAX_BUNDLE_DEBUG_RECORDS);
   });
@@ -363,7 +437,14 @@ describe('observer killers', () => {
   });
 
   it('onEvent respects maxEvents and forward isolation', () => {
-    const dev = createObserverDevtools({ maxEvents: 2, consoleSink: { write: () => { throw new Error('boom'); } } });
+    const dev = createObserverDevtools({
+      maxEvents: 2,
+      consoleSink: {
+        write: () => {
+          throw new Error('boom');
+        },
+      },
+    });
     const e1 = ev({ phase: 'a' }, { sequence: 0 });
     const e2 = ev({ phase: 'b' }, { sequence: 1 });
     const e3 = ev({ phase: 'c' }, { sequence: 2 });
@@ -392,7 +473,13 @@ describe('observer killers', () => {
   it('capture respects MAX_BUNDLE_DEBUG_RECORDS', () => {
     const dev = createObserverDevtools();
     for (let i = 0; i < 200; i++) {
-      dev.capture({ id: String(i), runId: 'r', traceId: 't', operation: 'op', exception: { type: 'E', message: 'm' } });
+      dev.capture({
+        id: String(i),
+        runId: 'r',
+        traceId: 't',
+        operation: 'op',
+        exception: { type: 'E', message: 'm' },
+      });
     }
     expect(dev.getDebugRecords().length).toBe(MAX_BUNDLE_DEBUG_RECORDS);
   });
@@ -408,7 +495,9 @@ describe('observer killers', () => {
     const dev = createObserverDevtools();
     const dispatcher = {
       subscribe: () => ({
-        [Symbol.asyncIterator]: async function* () { yield ev({ phase: 'x' }); },
+        [Symbol.asyncIterator]: async function* () {
+          yield ev({ phase: 'x' });
+        },
         return: async () => {
           throw new Error('detach boom');
         },
@@ -423,8 +512,8 @@ describe('observer killers', () => {
     const dispatcher = {
       subscribe: () => ({
         [Symbol.asyncIterator]: async function* (): AsyncGenerator<Event> {
-          throw new Error('backpressure');
           yield ev({ phase: 'x' });
+          throw new Error('backpressure');
         },
         return: async () => undefined,
       }),
