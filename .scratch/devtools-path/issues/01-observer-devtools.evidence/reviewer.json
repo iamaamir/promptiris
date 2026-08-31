@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "taskId": ".scratch/devtools-path/issues/01-observer-devtools.md",
   "baseRevision": "9d592825c551454398ab6ba8b495c7092ff612a4",
-  "candidateRevision": "sha256:3f0f618e8e3c200c02d9a803ab66613449679a65a5bbf275d77e486de307fd65",
+  "candidateRevision": "sha256:9f2bcfae4d92ea28d3c3e51e964c1a948e01e33cf213c8325514ead6e91e7dbf",
   "producerId": "reviewer-1",
   "independent": true,
   "verdict": "pass",
