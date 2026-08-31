@@ -4,7 +4,8 @@ import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { basename, dirname, join, resolve } from 'node:path';
 import { candidateIdentity } from './candidate-identity.mjs';
 
-const [mode, packet] = process.argv.slice(2);
+const argumentsAfterMode = process.argv.slice(2).filter((argument) => argument !== '--');
+const [mode, packet] = argumentsAfterMode;
 if (!['finalize', 'check'].includes(mode) || !packet)
   throw new Error('usage: scripts/finalize-candidate.mjs <finalize|check> PACKET');
 
