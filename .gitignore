@@ -22,3 +22,5 @@ pnpm-debug.log*
 .gitleaks-baseline.json
 .agent/claims/
 .pi/
+.commandcode/
+.pi/

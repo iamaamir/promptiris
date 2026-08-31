@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "taskId": ".scratch/provider-path/issues/01-provider-contract.md",
+  "baseRevision": "9d592825c551454398ab6ba8b495c7092ff612a4",
+  "candidateRevision": "sha256:1433f2f9b8c4d6faca06cba5bc9aefa1c92c1bfe8ce3630651134ef48460e65d",
+  "producerId": "fresh-reviewer",
+  "independent": true,
+  "verdict": "pass",
+  "findings": [],
+  "commentDecisions": [],
+  "evidence": [
+    {
+      "checkId": "review.provider-contract",
+      "status": "passed",
+      "evidenceRef": "packages/plugin-sdk/src/provider.ts",
+      "evidenceSha256": "29ec4ca7d20e7dd48fc01ecd7ada966bcd0ce375fda2be77e2c4344558688e34"
+    },
+    {
+      "checkId": "review.provider-tests",
+      "status": "passed",
+      "evidenceRef": "packages/plugin-sdk/src/provider.test.ts",
+      "evidenceSha256": "6e3b8d41adc3d2bfbcba81d366d99f12607fe9818b9c85ea043105e83a755bdf"
+    }
+  ],
+  "residualRisks": []
+}

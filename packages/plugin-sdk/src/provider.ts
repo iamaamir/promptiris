@@ -115,6 +115,7 @@ export interface Provider {
 // ---------------------------------------------------------------------------
 // FakeProvider test harness
 // ---------------------------------------------------------------------------
+// Stryker restore all
 
 /**
  * Scenario for the FakeProvider test harness.
@@ -143,8 +144,8 @@ export type FakeProviderResponse =
  * @public
  */
 export class ProviderFailureError extends Error {
-  readonly failureKind: ProviderErrorKind;
-  readonly retryable: boolean;
+  declare readonly failureKind: ProviderErrorKind;
+  declare readonly retryable: boolean;
 
   constructor(failureKind: ProviderErrorKind, message: string, retryable = false) {
     super(message);
@@ -196,7 +197,7 @@ export class FakeProvider implements Provider {
     return this.#scenarios.get(id);
   }
 
-  generate(params: GenerateParams): Promise<GenerateResult> {
+  async generate(params: GenerateParams): Promise<GenerateResult> {
     const scenario = this.#resolveScenario(params);
 
     this.#validateCapabilityEvidence(params);
@@ -214,31 +215,49 @@ export class FakeProvider implements Provider {
       throw new ProviderFailureError('cancelled', 'generation cancelled');
     }
 
+    // Yield a macrotask so that an AbortController.abort() call placed between
+    // generate() invocation and result delivery can fire, exercising the
+    // cancellation-during-work path.
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, 0);
+    });
+
     return this.#nextResponse(scenario, params.signal);
   }
 
   #validateCapabilityEvidence(params: GenerateParams): void {
-    if (params.evidence === undefined) return;
+    const supported = params.config.capabilities.supported;
+    if (supported.length === 0 || params.evidence === undefined || params.evidence.length === 0)
+      return;
     const fingerprint = params.config.binding.fingerprint;
-    const hasBoundEvidence = params.evidence.some(
-      (e) => e.bindingFingerprint === fingerprint && e.state === 'supported',
-    );
-    if (!hasBoundEvidence && params.config.capabilities.supported.length > 0) {
-      throw new ProviderFailureError(
-        'unsupported-capability',
-        `no supported evidence bound to fingerprint ${fingerprint}`,
+    for (const cap of supported) {
+      const hasEvidence = params.evidence.some(
+        (e) =>
+          (e.capability === cap || e.capability.endsWith(`/${cap}`)) &&
+          e.bindingFingerprint === fingerprint &&
+          e.state === 'supported',
       );
+      if (!hasEvidence) {
+        throw new ProviderFailureError(
+          'unsupported-capability',
+          `no supported evidence for capability ${cap} bound to fingerprint ${fingerprint}`,
+        );
+      }
     }
   }
 
   #resolveScenario(params: GenerateParams): FakeProviderScenario {
-    const key =
-      params.config.binding.fingerprint === 'fake-fp-001'
-        ? (this.#scenarios.keys().next().value ?? 'default')
-        : params.config.binding.fingerprint;
-    const scenario = this.#scenarios.get(key) ?? this.#scenarios.values().next().value;
-    if (!scenario) throw new Error('no scenarios configured');
-    return scenario;
+    if (params.config.binding.fingerprint === 'fake-fp-001') {
+      return this.#firstScenario();
+    }
+    const scenario = this.#scenarios.get(params.config.binding.fingerprint);
+    if (scenario) return scenario;
+    return this.#firstScenario();
+  }
+
+  #firstScenario(): FakeProviderScenario {
+    for (const scenario of this.#scenarios.values()) return scenario;
+    throw new Error();
   }
 
   #nextResponse(scenario: FakeProviderScenario, signal?: AbortSignal): Promise<GenerateResult> {

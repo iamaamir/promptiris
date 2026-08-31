@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "role": "qa",
+  "taskId": ".scratch/provider-path/issues/01-provider-contract.md",
+  "baseRevision": "9d592825c551454398ab6ba8b495c7092ff612a4",
+  "candidateRevision": "sha256:1433f2f9b8c4d6faca06cba5bc9aefa1c92c1bfe8ce3630651134ef48460e65d",
+  "producerId": "fresh-source-blind-qa",
+  "status": "passed",
+  "sourceBlind": true,
+  "scenarios": [
+    "public provider contract exports remain stable without source inspection",
+    "unit tests validate provider lifecycle, evidence matching, and error contract"
+  ],
+  "evidence": [
+    {
+      "checkId": "qa.provider-exports",
+      "status": "passed",
+      "evidenceRef": "packages/plugin-sdk/src/index.ts",
+      "evidenceSha256": "2a6018d283331f987f9d30960d3aa85a68e50668ef3a11dca27477d7bd907269"
+    },
+    {
+      "checkId": "qa.provider-tests",
+      "status": "passed",
+      "evidenceRef": "packages/plugin-sdk/src/provider.test.ts",
+      "evidenceSha256": "6e3b8d41adc3d2bfbcba81d366d99f12607fe9818b9c85ea043105e83a755bdf"
+    }
+  ]
+}

@@ -2,6 +2,8 @@ export default {
   mutate: [
     'packages/protocol/src/index.ts',
     'packages/plugin-sdk/src/index.ts',
+    'packages/plugin-sdk/src/provider.ts',
+    'packages/plugin-sdk/src/provider-types.ts',
     'packages/core/src/index.ts',
     'packages/core/src/plugin-graph.ts',
     'packages/core/src/transformation-state.ts',
