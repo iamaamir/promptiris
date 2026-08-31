@@ -59,11 +59,23 @@ describe('mutation killers', () => {
     sink.write(makeEvent(data));
     const line = sink.lines[0] ?? '';
     expect(line).toContain('"phase":"a"');
+    expect(line).toContain('"status":"b"');
+    expect(line).toContain('"pluginId":"c"');
+    expect(line).toContain('"contributionId":"d"');
+    expect(line).toContain('"observerId":"e"');
+    expect(line).toContain('"reason":"f"');
+    expect(line).toContain('"fallback":"g"');
+    expect(line).toContain('"from":"h"');
+    expect(line).toContain('"to":"i"');
+    expect(line).toContain('"durationMs":42');
+    expect(line).toContain('"timing":5');
+    expect(line).toContain('"kind":"j"');
+    expect(line).toContain('"artifactKind":"k"');
+    expect(line).toContain('"mediaType":"l"');
     expect(line).toContain('"digest":"m"');
     expect(line).not.toContain('"prompt"');
     expect(line).not.toContain('"unknown"');
   });
-
   it('truncates long strings', () => {
     const sink = new JsonLinesSink({ capacity: 10 });
     const long = 'x'.repeat(300);

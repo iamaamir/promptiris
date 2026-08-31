@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "baselineDate": "2026-08-30",
   "aggregate": {
-    "minScore": 85,
-    "maxIgnored": 200,
-    "maxSurvived": 250,
-    "maxNoCoverage": 20
+    "minScore": 94.13,
+    "maxIgnored": 106,
+    "maxSurvived": 91,
+    "maxNoCoverage": 10
   },
   "targets": {
     "apps/runtime-node/src/configuration.ts": {
@@ -117,22 +117,22 @@
       "maxNoCoverage": 0
     },
     "packages/observer-devtools/src/observer.ts": {
-      "minScore": 50,
-      "maxIgnored": 40,
-      "maxSurvived": 30,
-      "maxNoCoverage": 10
+      "minScore": 90,
+      "maxIgnored": 0,
+      "maxSurvived": 5,
+      "maxNoCoverage": 0
     },
     "packages/observer-devtools/src/sinks.ts": {
-      "minScore": 50,
-      "maxIgnored": 40,
-      "maxSurvived": 70,
-      "maxNoCoverage": 10
+      "minScore": 90,
+      "maxIgnored": 0,
+      "maxSurvived": 5,
+      "maxNoCoverage": 0
     },
     "packages/observer-devtools/src/support-bundle.ts": {
-      "minScore": 35,
-      "maxIgnored": 60,
-      "maxSurvived": 80,
-      "maxNoCoverage": 10
+      "minScore": 90,
+      "maxIgnored": 0,
+      "maxSurvived": 5,
+      "maxNoCoverage": 0
     }
   }
 }
