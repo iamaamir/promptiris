@@ -8,6 +8,7 @@ import {
   compareForbiddenAdditions,
   inspectChangedSources,
   inspectCoverageThresholds,
+  inspectMutationTargetRegistration,
   inspectPatchScope,
   parseMutationTargets,
 } from '../tooling/quality/integrity-policy.mjs';
@@ -65,6 +66,24 @@ for (const path of untrackedChanges.filter((value) => /\.(?:ts|mjs|js)$/.test(va
 
 const mutationConfig = await readFile('stryker.config.mjs', 'utf8');
 const previousMutationConfig = git(['show', `${mergeBase}:stryker.config.mjs`]);
+const mutationPolicyChanged = changedFiles.includes('tooling/quality/mutation-policy.json');
+const strykerConfigChanged = changedFiles.includes('stryker.config.mjs');
+const previousMutationPolicy = mutationPolicyChanged
+  ? JSON.parse(git(['show', `${mergeBase}:tooling/quality/mutation-policy.json`]))
+  : undefined;
+const mutationPolicy = mutationPolicyChanged
+  ? JSON.parse(await readFile('tooling/quality/mutation-policy.json', 'utf8'))
+  : undefined;
+const mutationRegistration =
+  mutationPolicyChanged || strykerConfigChanged
+    ? inspectMutationTargetRegistration({
+        beforeConfig: previousMutationConfig,
+        afterConfig: mutationConfig,
+        beforePolicy: previousMutationPolicy ?? {},
+        afterPolicy: mutationPolicy ?? {},
+        changedFiles,
+      })
+    : { safe: false, findings: [] };
 const findings = inspectChangedSources({
   changedFiles,
   mutationTargets: parseMutationTargets(mutationConfig),
@@ -76,6 +95,7 @@ findings.push(
     parseMutationTargets(mutationConfig),
   ),
 );
+findings.push(...mutationRegistration.findings);
 findings.push(...(await inspectCoverageThresholds(changedFiles.map((path) => resolve(path)))));
 
 const branch =
@@ -140,10 +160,8 @@ if (packetSource) {
   );
 }
 
-if (changedFiles.includes('tooling/quality/mutation-policy.json')) {
-  const before = JSON.parse(git(['show', `${mergeBase}:tooling/quality/mutation-policy.json`]));
-  const after = JSON.parse(await readFile('tooling/quality/mutation-policy.json', 'utf8'));
-  findings.push(...compareMutationPolicy(before, after));
+if (mutationPolicyChanged) {
+  findings.push(...compareMutationPolicy(previousMutationPolicy, mutationPolicy));
 }
 if (changedFiles.includes('tooling/quality/forbidden-additions.json')) {
   const previousSource = optionalGit([
@@ -158,9 +176,9 @@ if (changedFiles.includes('tooling/quality/forbidden-additions.json')) {
 const protectedFiles = changedFiles.filter(
   (path) =>
     path === 'eslint.config.js' ||
-    path === 'stryker.config.mjs' ||
+    (path === 'stryker.config.mjs' && !mutationRegistration.safe) ||
     path === 'tooling/vitest-config.ts' ||
-    path === 'tooling/quality/mutation-policy.json' ||
+    (path === 'tooling/quality/mutation-policy.json' && !mutationRegistration.safe) ||
     path === 'scripts/verify-candidate' ||
     path === 'scripts/quality-integrity.mjs' ||
     path === 'scripts/verify-role-evidence.mjs' ||

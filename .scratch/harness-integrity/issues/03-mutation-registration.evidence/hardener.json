@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "role": "hardener",
+  "producerId": "ci-hardener",
+  "status": "passed",
+  "scenarios": [
+    "registration remains additive and rejects unsafe mutation-policy changes",
+    "the quality-stage report contract accepts the required role evidence shape",
+    "Knip accepts the registered mutation command without unused-file findings"
+  ],
+  "evidence": [
+    {
+      "checkId": "hardener.register-mutation-target",
+      "status": "passed",
+      "evidenceRef": "scripts/register-mutation-target.mjs",
+      "evidenceSha256": "9de230054d16b67917ebebb56599d07cbadc5050b46de7acad1534780f6d9129"
+    },
+    {
+      "checkId": "hardener.integrity-policy",
+      "status": "passed",
+      "evidenceRef": "tooling/quality/integrity-policy.mjs",
+      "evidenceSha256": "725d400076f6d83637d703a11afa4e81fb244fda29ccb584aec9473d7e02cc4b"
+    },
+    {
+      "checkId": "hardener.quality-stage-contract",
+      "status": "passed",
+      "evidenceRef": "tooling/quality/quality-stage-contract.test.mjs",
+      "evidenceSha256": "de3c5c9c562c54430c790c4c873f7d07f6a972a8c722654b038e3c7a93de3c26"
+    },
+    {
+      "checkId": "hardener.knip",
+      "status": "passed",
+      "evidenceRef": "knip.json",
+      "evidenceSha256": "57db92f1925f5e046dc34ad40aec25cbf5164a93c5eb1486dfe8e1cac81da124"
+    }
+  ],
+  "taskId": ".scratch/harness-integrity/issues/03-mutation-registration.md",
+  "baseRevision": "1b22fe22aebfc66e45418e9fa28c5acb9b99882c",
+  "candidateRevision": "sha256:24f8fefefd63991ddedfb1b288604be683e161a9948806f3cb208e5695c0cb3a"
+}

@@ -73,6 +73,14 @@ command to make unexpected drift pass. The base Work Item must authorize the beh
 the diff remains subject to external review. The same trusted diff firewall rejects deleted tests,
 out-of-scope paths, new suppressions, focused or skipped tests, and mutation/coverage weakening.
 
+### Registering a new mutation target
+
+Do not hand-edit `stryker.config.mjs` or `tooling/quality/mutation-policy.json` to add a newly
+changed production TypeScript file. Use `node scripts/register-mutation-target.mjs <path>` instead.
+The command is intentionally narrow: it adds one target and a 90% minimum, zero-debt policy entry.
+The trusted verifier accepts only that exact additive shape; every removal, aggregate-policy change,
+suppression, or unrelated Stryker edit remains protected.
+
 ## Reviewer contract
 
 The Reviewer receives the Work Item, exact base/candidate revisions, changed paths, smallest affected dependency neighborhood, public API/schema diff, and fresh deterministic Evidence. It does not receive private reasoning and does not repeat formatting, search, or test execution.
