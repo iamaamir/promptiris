@@ -38,24 +38,26 @@ export interface BundleInput {
   readonly createdAt?: string;
 }
 
-const ALLOWLISTED_DATA_KEYS = new Set([
-  'phase',
-  'status',
-  'pluginId',
-  'contributionId',
-  'observerId',
-  'reason',
-  'fallback',
-  'from',
-  'to',
-  'durationMs',
-  'timing',
-  'timings',
-  'kind',
-  'artifactKind',
-  'mediaType',
-  'digest',
-]);
+function isAllowlistedKey(key: string): boolean {
+  return (
+    key === 'phase' ||
+    key === 'status' ||
+    key === 'pluginId' ||
+    key === 'contributionId' ||
+    key === 'observerId' ||
+    key === 'reason' ||
+    key === 'fallback' ||
+    key === 'from' ||
+    key === 'to' ||
+    key === 'durationMs' ||
+    key === 'timing' ||
+    key === 'timings' ||
+    key === 'kind' ||
+    key === 'artifactKind' ||
+    key === 'mediaType' ||
+    key === 'digest'
+  );
+}
 
 const MAX_STRING_LENGTH = 256;
 
@@ -73,7 +75,7 @@ function isPollutionKey(key: string): boolean {
 }
 
 function isAllowedEntry(key: string, value: unknown): boolean {
-  if (!ALLOWLISTED_DATA_KEYS.has(key)) return false;
+  if (!isAllowlistedKey(key)) return false;
   if (isPollutionKey(key)) return false;
   if (!isPlainValue(value)) return false;
   if (typeof value === 'number' && !Number.isFinite(value)) return false;
