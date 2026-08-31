@@ -6,7 +6,9 @@
   "candidateRevision": "sha256:659472aedc608d62abd3c79f55687b5751ef599247dd4c1349ec85286d419320",
   "producerId": "hardener-1",
   "status": "passed",
-  "scenarios": ["observer devtools hardener scenarios"],
+  "scenarios": [
+    "observer devtools hardener scenarios"
+  ],
   "evidence": [
     {
       "checkId": "hardener.observer-devtools",

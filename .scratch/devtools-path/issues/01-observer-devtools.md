@@ -8,6 +8,13 @@ Parent: ROADMAP.md
 Blocked by: none
 Blocks: .scratch/host-path/issues/02-pi-adapter.md
 Parallel-safe: yes; owns the devtools Observer, bounded debug projections, and support-bundle format
+Allowed paths:
+
+- `packages/observer-devtools/**`
+- `.scratch/devtools-path/**`
+- `spec/schemas/**`
+- `stryker.config.mjs`
+- `tooling/quality/mutation-policy.json`
 
 ## Outcome
 

@@ -7,7 +7,9 @@
   "producerId": "qa-1",
   "status": "passed",
   "sourceBlind": true,
-  "scenarios": ["observer devtools qa scenarios"],
+  "scenarios": [
+    "observer devtools qa scenarios"
+  ],
   "evidence": [
     {
       "checkId": "qa.observer-devtools",
