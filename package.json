@@ -46,6 +46,7 @@
     "agent:context": "./scripts/agent-context",
     "candidate:finalize": "node scripts/finalize-candidate.mjs finalize",
     "candidate:check": "node scripts/finalize-candidate.mjs check",
+    "candidate:bind-role": "node scripts/bind-role-evidence.mjs",
     "verify": "./scripts/verify-candidate",
     "verify:full": "./scripts/verify-candidate --full"
   },
