@@ -83,43 +83,34 @@ export const inspectMutationTargetRegistration = ({
   const added = [...afterTargets].filter((target) => !beforeTargets.has(target));
   const removed = [...beforeTargets].filter((target) => !afterTargets.has(target));
   const findings = [];
-  if (added.length < 1 || added.length > 4)
-    findings.push('mutation registration must add between one and four targets');
+  if (added.length !== 1) findings.push('mutation registration must add exactly one target');
   if (removed.length > 0) findings.push('mutation registration cannot remove targets');
-  if (added.length === 0) return { safe: false, findings };
-  for (const target of added) {
-    if (!productionSourcePattern.test(target))
-      findings.push(`mutation registration target is not production TypeScript: ${target}`);
-    if (!changedFiles.includes(target))
-      findings.push(`mutation registration target is not changed in this Work Item: ${target}`);
-  }
-  let strippedConfig = afterConfig;
-  for (const target of added) strippedConfig = strippedConfig.replace(targetLine(target), '');
-  if (strippedConfig !== beforeConfig)
-    findings.push('Stryker configuration has changes outside registered targets');
+  const target = added[0];
+  if (!target) return { safe: false, findings };
+  if (!productionSourcePattern.test(target))
+    findings.push(`mutation registration target is not production TypeScript: ${target}`);
+  if (!changedFiles.includes(target))
+    findings.push(`mutation registration target is not changed in this Work Item: ${target}`);
+  if (afterConfig.replace(targetLine(target), '') !== beforeConfig)
+    findings.push('Stryker configuration has changes outside one registered target');
   if (!sameJson(beforePolicy.aggregate, afterPolicy.aggregate))
     findings.push('mutation registration cannot change aggregate policy');
   const beforePolicyTargets = beforePolicy.targets ?? {};
   const afterPolicyTargets = afterPolicy.targets ?? {};
   if (
-    Object.keys(afterPolicyTargets).length !==
-      Object.keys(beforePolicyTargets).length + added.length ||
+    Object.keys(afterPolicyTargets).length !== Object.keys(beforePolicyTargets).length + 1 ||
     !sameJson(
-      Object.fromEntries(
-        Object.entries(afterPolicyTargets).filter(([path]) => !added.includes(path)),
-      ),
+      Object.fromEntries(Object.entries(afterPolicyTargets).filter(([path]) => path !== target)),
       beforePolicyTargets,
     )
   ) {
-    findings.push('mutation registration can only add target policies');
+    findings.push('mutation registration can add only one target policy');
   }
-  for (const target of added) {
-    const policy = afterPolicyTargets[target];
-    if (!policy || policy.minScore < 90)
-      findings.push(`mutation registration target must start at 90 percent: ${target}`);
-    if (policy?.maxIgnored !== 0 || policy?.maxSurvived !== 0 || policy?.maxNoCoverage !== 0)
-      findings.push(`mutation registration target must start without mutation debt: ${target}`);
-  }
+  const policy = afterPolicyTargets[target];
+  if (!policy || policy.minScore < 90)
+    findings.push(`mutation registration target must start at 90 percent: ${target}`);
+  if (policy?.maxIgnored !== 0 || policy?.maxSurvived !== 0 || policy?.maxNoCoverage !== 0)
+    findings.push(`mutation registration target must start without mutation debt: ${target}`);
   return { safe: findings.length === 0, findings };
 };
 
