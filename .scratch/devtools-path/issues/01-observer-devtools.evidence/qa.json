@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "role": "qa",
+  "taskId": ".scratch/devtools-path/issues/01-observer-devtools.md",
+  "baseRevision": "7e84dc6a2b8f90f669294f07b6a509f95baa83d3",
+  "candidateRevision": "sha256:659472aedc608d62abd3c79f55687b5751ef599247dd4c1349ec85286d419320",
+  "producerId": "qa-1",
+  "status": "passed",
+  "sourceBlind": true,
+  "scenarios": ["observer devtools qa scenarios"],
+  "evidence": [
+    {
+      "checkId": "qa.observer-devtools",
+      "status": "passed",
+      "evidenceRef": "packages/observer-devtools/src/observer.test.ts",
+      "evidenceSha256": "d37db4cf0c3b6b3ff344d8c567c55a1fc5e841c392b8624951cc0b505f21a3a3"
+    }
+  ]
+}
