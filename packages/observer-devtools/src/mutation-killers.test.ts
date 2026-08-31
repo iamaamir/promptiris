@@ -25,7 +25,7 @@ function ev(data: unknown, overrides: Partial<Event> = {}): Event {
     classification: overrides.classification ?? 'metadata',
     delivery: overrides.delivery ?? 'critical',
     ...overrides,
-  } as Event;
+  };
 }
 
 describe('sinks killers', () => {
@@ -44,7 +44,7 @@ describe('sinks killers', () => {
 
   it('pollution keys are filtered', () => {
     const sink = new JsonLinesSink({ capacity: 5 });
-    sink.write(ev({ '__proto__': 'x', 'constructor': 'y', 'prototype': 'z', phase: 'ok' } as unknown as Record<string, unknown>));
+    sink.write(ev({ '__proto__': 'x', 'constructor': 'y', 'prototype': 'z', phase: 'ok' }));
     const line = sink.lines[0] ?? '';
     expect(line).not.toContain('__proto__');
     expect(line).not.toContain('constructor');
@@ -112,7 +112,7 @@ describe('sinks killers', () => {
   });
 
   it('createConsoleSink defaults to console.log', () => {
-    const spy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const spy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
     const sink = createConsoleSink();
     sink.write(ev({ phase: 'a' }));
     expect(spy).toHaveBeenCalled();
@@ -147,7 +147,7 @@ describe('sinks killers', () => {
       digest: 'd',
     };
     const line = formatEvent(ev(data));
-    for (const v of Object.values(data)) expect(line).toContain(v as string);
+    for (const v of Object.values(data)) expect(line).toContain(v);
   });
 
   it('sensitive classification redacts in JsonLinesSink', () => {
@@ -244,8 +244,8 @@ describe('support-bundle killers', () => {
   it('enforceByteCap drops progress then all', () => {
     const big = 'x'.repeat(300);
     const data = { phase: big, status: big, pluginId: big, digest: big, reason: big, fallback: big };
-    const progress = Array.from({ length: 30 }, (_, i) => ev(data, { id: `p-${i}`, sequence: i, delivery: 'progress' }));
-    const critical = Array.from({ length: 30 }, (_, i) => ev(data, { id: `c-${i}`, sequence: 100 + i, delivery: 'critical' }));
+    const progress = Array.from({ length: 30 }, (_, i) => ev(data, { id: `p-${String(i)}`, sequence: i, delivery: 'progress' }));
+    const critical = Array.from({ length: 30 }, (_, i) => ev(data, { id: `c-${String(i)}`, sequence: 100 + i, delivery: 'critical' }));
     const bundle = createSupportBundle({ observerId: 'o', events: [...progress, ...critical], debugRecords: [], createdAt: '2026-01-01T00:00:00.000Z' });
     const bytes = new TextEncoder().encode(JSON.stringify(bundle)).length;
     expect(bytes).toBeLessThanOrEqual(MAX_BUNDLE_BYTES);
@@ -264,7 +264,7 @@ describe('support-bundle killers', () => {
       pluginId: 'p',
       exception: { type: 'E', message: 'm'.repeat(5000) },
     }));
-    const hugeEvents = Array.from({ length: 50 }, (_, i) => ev({ phase: 'x'.repeat(5000) }, { id: `e-${i}`, sequence: i }));
+    const hugeEvents = Array.from({ length: 50 }, (_, i) => ev({ phase: 'x'.repeat(5000) }, { id: `e-${String(i)}`, sequence: i }));
     const b = createSupportBundle({ observerId: 'o', events: hugeEvents, debugRecords: hugeDebug, createdAt: '2026-01-01T00:00:00.000Z' });
     const bytes = new TextEncoder().encode(JSON.stringify(b)).length;
     expect(bytes).toBeLessThanOrEqual(MAX_BUNDLE_BYTES);
@@ -320,7 +320,7 @@ describe('support-bundle killers', () => {
   });
 
   it('slices events and debugRecords at max', () => {
-    const events = Array.from({ length: MAX_BUNDLE_EVENTS + 10 }, (_, i) => ev({}, { id: `e-${i}`, sequence: i }));
+    const events = Array.from({ length: MAX_BUNDLE_EVENTS + 10 }, (_, i) => ev({}, { id: `e-${String(i)}`, sequence: i }));
     const recs: DebugRecord[] = Array.from({ length: MAX_BUNDLE_DEBUG_RECORDS + 10 }, (_, i) => ({
       id: String(i),
       runId: 'r',
@@ -352,7 +352,7 @@ describe('observer killers', () => {
   });
 
   it('createSinks respects false and custom', () => {
-    const consoleSink = createConsoleSink({ writer: () => {} });
+    const consoleSink = createConsoleSink({ writer: () => undefined });
     const dev1 = createObserverDevtools({ consoleSink: false });
     expect(dev1.observerId).toBe('promptiris/observer-devtools');
     const dev2 = createObserverDevtools({ consoleSink });
@@ -369,7 +369,6 @@ describe('observer killers', () => {
     const e3 = ev({ phase: 'c' }, { sequence: 2 });
     // need to trigger via internal state - use capture not, so use createBundle path via direct onEvent not exposed
     // instead test via attach handler: simulate dispatcher
-    const events: Event[] = [];
     const dispatcher = {
       subscribe: () => ({
         [Symbol.asyncIterator]: async function* () {
@@ -377,15 +376,15 @@ describe('observer killers', () => {
           yield e2;
           yield e3;
         },
-        return: async () => {},
+        return: async () => undefined,
       }),
     } as unknown as import('@promptiris/core').EventDispatcher;
-    const sub = dev.attach(dispatcher as never);
+    const sub = dev.attach(dispatcher);
     // give async loop time
     return new Promise<void>((resolve) => {
       setTimeout(() => {
         expect(dev.getEvents().length).toBe(2);
-        sub.detach().then(() => resolve());
+        void sub.detach().then(() => resolve());
       }, 50);
     });
   });
@@ -409,13 +408,13 @@ describe('observer killers', () => {
     const dev = createObserverDevtools();
     const dispatcher = {
       subscribe: () => ({
-        [Symbol.asyncIterator]: async function* () {},
+        [Symbol.asyncIterator]: async function* () { yield ev({ phase: 'x' }); },
         return: async () => {
           throw new Error('detach boom');
         },
       }),
     } as unknown as import('@promptiris/core').EventDispatcher;
-    const h = dev.attach(dispatcher as never);
+    const h = dev.attach(dispatcher);
     await expect(h.detach()).resolves.toBeUndefined();
   });
 
@@ -423,13 +422,14 @@ describe('observer killers', () => {
     const dev = createObserverDevtools();
     const dispatcher = {
       subscribe: () => ({
-        [Symbol.asyncIterator]: async function* () {
+        [Symbol.asyncIterator]: async function* (): AsyncGenerator<Event> {
           throw new Error('backpressure');
+          yield ev({ phase: 'x' });
         },
-        return: async () => {},
+        return: async () => undefined,
       }),
     } as unknown as import('@promptiris/core').EventDispatcher;
-    const h = dev.attach(dispatcher as never);
+    const h = dev.attach(dispatcher);
     await new Promise((r) => setTimeout(r, 20));
     await h.detach();
   });

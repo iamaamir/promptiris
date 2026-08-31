@@ -38,25 +38,27 @@ export interface BundleInput {
   readonly createdAt?: string;
 }
 
+const ALLOWLISTED_KEYS = [
+  'phase',
+  'status',
+  'pluginId',
+  'contributionId',
+  'observerId',
+  'reason',
+  'fallback',
+  'from',
+  'to',
+  'durationMs',
+  'timing',
+  'timings',
+  'kind',
+  'artifactKind',
+  'mediaType',
+  'digest',
+] as const;
+
 function isAllowlistedKey(key: string): boolean {
-  return (
-    key === 'phase' ||
-    key === 'status' ||
-    key === 'pluginId' ||
-    key === 'contributionId' ||
-    key === 'observerId' ||
-    key === 'reason' ||
-    key === 'fallback' ||
-    key === 'from' ||
-    key === 'to' ||
-    key === 'durationMs' ||
-    key === 'timing' ||
-    key === 'timings' ||
-    key === 'kind' ||
-    key === 'artifactKind' ||
-    key === 'mediaType' ||
-    key === 'digest'
-  );
+  return (ALLOWLISTED_KEYS as readonly string[]).includes(key);
 }
 
 const MAX_STRING_LENGTH = 256;
