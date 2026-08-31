@@ -9,6 +9,7 @@ import {
   compareForbiddenAdditions,
   inspectChangedSources,
   inspectCoverageThresholds,
+  inspectMutationTargetRegistration,
   inspectPatchScope,
   parseMutationTargets,
 } from './integrity-policy.mjs';
@@ -42,11 +43,58 @@ test('allows monotonic mutation policy improvements', () => {
       aggregate: { ...policy.aggregate, minScore: 95, maxIgnored: 1 },
       targets: {
         'a.ts': { ...policy.targets['a.ts'], minScore: 96, maxIgnored: 0 },
-        'b.ts': { minScore: 92, maxIgnored: 0, maxSurvived: 1, maxNoCoverage: 0 },
+        'b.ts': { minScore: 92, maxIgnored: 0, maxSurvived: 0, maxNoCoverage: 0 },
       },
     }),
     [],
   );
+});
+
+test('allows exactly one safe additive mutation-target registration', () => {
+  const beforeConfig = "export default { mutate: [\n    'packages/a/src/a.ts',\n  ],\n};\n";
+  const target = 'packages/b/src/b.ts';
+  const afterConfig = beforeConfig.replace('  ],', `    '${target}',\n  ],`);
+  const beforePolicy = {
+    aggregate: policy.aggregate,
+    targets: { 'packages/a/src/a.ts': policy.targets['a.ts'] },
+  };
+  const afterPolicy = {
+    aggregate: policy.aggregate,
+    targets: {
+      ...beforePolicy.targets,
+      [target]: { minScore: 90, maxIgnored: 0, maxSurvived: 0, maxNoCoverage: 0 },
+    },
+  };
+  assert.deepEqual(
+    inspectMutationTargetRegistration({
+      beforeConfig,
+      afterConfig,
+      beforePolicy,
+      afterPolicy,
+      changedFiles: [target],
+    }),
+    { safe: true, findings: [] },
+  );
+});
+
+test('rejects mutation registration that changes aggregate policy or starts with debt', () => {
+  const target = 'packages/b/src/b.ts';
+  const result = inspectMutationTargetRegistration({
+    beforeConfig: 'export default { mutate: [\n  ],\n};\n',
+    afterConfig: `export default { mutate: [\n    '${target}',\n  ],\n};\n`,
+    beforePolicy: { aggregate: policy.aggregate, targets: {} },
+    afterPolicy: {
+      aggregate: { ...policy.aggregate, maxSurvived: 2 },
+      targets: { [target]: { minScore: 89, maxIgnored: 1, maxSurvived: 1, maxNoCoverage: 1 } },
+    },
+    changedFiles: [target],
+  });
+  assert.equal(result.safe, false);
+  assert.deepEqual(result.findings, [
+    'mutation registration cannot change aggregate policy',
+    `mutation registration target must start at 90 percent: ${target}`,
+    `mutation registration target must start without mutation debt: ${target}`,
+  ]);
 });
 
 test('requires changed production sources to be mutation governed', () => {

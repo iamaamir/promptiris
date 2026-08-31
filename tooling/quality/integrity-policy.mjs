@@ -4,7 +4,7 @@ const forbiddenAdditions = JSON.parse(
   await readFile(new URL('./forbidden-additions.json', import.meta.url), 'utf8'),
 );
 const suppressionPattern = new RegExp(forbiddenAdditions.patterns.join('|'), 'i');
-const productionSourcePattern = /^(?:packages\/[^/]+|apps\/runtime-node)\/src\/.+\.ts$/;
+export const productionSourcePattern = /^(?:packages\/[^/]+|apps\/runtime-node)\/src\/.+\.ts$/;
 
 const compareCeiling = (findings, path, before, after) => {
   if (typeof before === 'number' && typeof after === 'number' && after > before) {
@@ -45,6 +45,10 @@ export const compareMutationPolicy = (before, after) => {
     if ((baseline.minScore ?? 0) < 90) findings.push(`new target below 90 percent: ${file}`);
     if ((baseline.maxIgnored ?? 0) > 0)
       findings.push(`new target starts with ignored mutants: ${file}`);
+    if ((baseline.maxSurvived ?? 0) > 0)
+      findings.push(`new target starts with survived mutants: ${file}`);
+    if ((baseline.maxNoCoverage ?? 0) > 0)
+      findings.push(`new target starts with uncovered mutants: ${file}`);
   }
   return findings;
 };
@@ -63,6 +67,52 @@ export const compareMutationTargets = (before, after) =>
   [...before]
     .filter((target) => !after.has(target))
     .map((target) => `mutation target removed from Stryker configuration: ${target}`);
+
+const sameJson = (left, right) => JSON.stringify(left) === JSON.stringify(right);
+const targetLine = (target) => `    '${target}',\n`;
+
+export const inspectMutationTargetRegistration = ({
+  beforeConfig,
+  afterConfig,
+  beforePolicy,
+  afterPolicy,
+  changedFiles,
+}) => {
+  const beforeTargets = parseMutationTargets(beforeConfig);
+  const afterTargets = parseMutationTargets(afterConfig);
+  const added = [...afterTargets].filter((target) => !beforeTargets.has(target));
+  const removed = [...beforeTargets].filter((target) => !afterTargets.has(target));
+  const findings = [];
+  if (added.length !== 1) findings.push('mutation registration must add exactly one target');
+  if (removed.length > 0) findings.push('mutation registration cannot remove targets');
+  const target = added[0];
+  if (!target) return { safe: false, findings };
+  if (!productionSourcePattern.test(target))
+    findings.push(`mutation registration target is not production TypeScript: ${target}`);
+  if (!changedFiles.includes(target))
+    findings.push(`mutation registration target is not changed in this Work Item: ${target}`);
+  if (afterConfig.replace(targetLine(target), '') !== beforeConfig)
+    findings.push('Stryker configuration has changes outside one registered target');
+  if (!sameJson(beforePolicy.aggregate, afterPolicy.aggregate))
+    findings.push('mutation registration cannot change aggregate policy');
+  const beforePolicyTargets = beforePolicy.targets ?? {};
+  const afterPolicyTargets = afterPolicy.targets ?? {};
+  if (
+    Object.keys(afterPolicyTargets).length !== Object.keys(beforePolicyTargets).length + 1 ||
+    !sameJson(
+      Object.fromEntries(Object.entries(afterPolicyTargets).filter(([path]) => path !== target)),
+      beforePolicyTargets,
+    )
+  ) {
+    findings.push('mutation registration can add only one target policy');
+  }
+  const policy = afterPolicyTargets[target];
+  if (!policy || policy.minScore < 90)
+    findings.push(`mutation registration target must start at 90 percent: ${target}`);
+  if (policy?.maxIgnored !== 0 || policy?.maxSurvived !== 0 || policy?.maxNoCoverage !== 0)
+    findings.push(`mutation registration target must start without mutation debt: ${target}`);
+  return { safe: findings.length === 0, findings };
+};
 
 const pathPattern = (pattern) => {
   const escaped = pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&');
