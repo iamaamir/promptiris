@@ -2,7 +2,6 @@
 import { readFile, rename, writeFile } from 'node:fs/promises';
 import { basename, dirname, resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { candidateIdentity } from './candidate-identity.mjs';
 
 const role = process.argv[2];
 if (!['reviewer', 'hardener', 'qa'].includes(role))
@@ -14,7 +13,9 @@ const branch = git(['branch', '--show-current']);
 const commonGitDirectory = git(['rev-parse', '--path-format=absolute', '--git-common-dir']);
 const sharedRoot = commonGitDirectory.endsWith('/.git') ? commonGitDirectory.slice(0, -5) : root;
 const agentRoot = process.env.PROMPTIRIS_AGENT_ROOT ?? `${sharedRoot}/.agent`;
-const manifest = JSON.parse(await readFile(`${agentRoot}/candidates/${branch}.json`, 'utf8'));
+const manifest = JSON.parse(
+  await readFile(`${agentRoot}/reports/candidates/${branch}.json`, 'utf8'),
+);
 const packet = manifest.taskId;
 execFileSync(process.execPath, ['scripts/finalize-candidate.mjs', 'check', packet], {
   cwd: root,
@@ -26,9 +27,6 @@ const evidencePath = resolve(
   `${basename(packet, '.md')}.evidence`,
   `${role}.json`,
 );
-const identity = candidateIdentity({ root, evidenceDirectory: dirname(evidencePath) });
-for (const key of ['branch', 'baseRevision', 'candidateRevision'])
-  if (manifest[key] !== identity[key]) throw new Error(`candidate finalization is stale: ${key}`);
 const report = JSON.parse(await readFile(evidencePath, 'utf8'));
 if ((role === 'reviewer' ? true : report.role === role) === false)
   throw new Error(`report role does not match: ${role}`);

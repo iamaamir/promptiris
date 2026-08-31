@@ -6,8 +6,8 @@ workspace="$(mktemp -d "${TMPDIR:-/tmp}/promptiris-agent-work-test.XXXXXX")"
 trap 'rm -rf "$workspace"' EXIT
 
 mkdir -p "$workspace/repo/scripts" "$workspace/repo/.scratch/test/issues"
-cp "$repository_root/scripts/agent-work" "$repository_root/scripts/candidate-identity.mjs" \
-  "$repository_root/scripts/finalize-candidate.mjs" "$workspace/repo/scripts/"
+cp "$repository_root/scripts/agent-work" "$repository_root/scripts/finalize-candidate.mjs" \
+  "$workspace/repo/scripts/"
 chmod +x "$workspace/repo/scripts/agent-work"
 git -C "$workspace/repo" init -q
 git -C "$workspace/repo" config user.email test@example.test

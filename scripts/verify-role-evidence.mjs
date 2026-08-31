@@ -5,7 +5,6 @@ import { readFile, readdir } from 'node:fs/promises';
 import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { Ajv2020 } from 'ajv/dist/2020.js';
 import { readRegularEvidenceFile } from '../tooling/quality/evidence-file.mjs';
-import { candidateIdentity } from './candidate-identity.mjs';
 
 const git = (args, options = {}) => execFileSync('git', args, options);
 const branch =
@@ -78,7 +77,19 @@ const untrackedCandidateFiles = git(
   .trim()
   .split('\n')
   .filter(Boolean);
-const { candidateRevision } = candidateIdentity({ root: '.', baseRevision, evidenceDirectory });
+const candidate = git([
+  'diff',
+  '--raw',
+  '-z',
+  '--no-ext-diff',
+  '--no-textconv',
+  '--no-renames',
+  baseRevision,
+  'HEAD',
+  '--',
+  ...candidatePathspec,
+]);
+const candidateRevision = `sha256:${createHash('sha256').update(candidate).digest('hex')}`;
 const reports = {
   reviewer: join(evidenceDirectory, 'reviewer.json'),
   hardener: join(evidenceDirectory, 'hardener.json'),

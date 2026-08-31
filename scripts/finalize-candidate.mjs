@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { basename, dirname, join, resolve } from 'node:path';
-import { candidateIdentity } from './candidate-identity.mjs';
 
 const argumentsAfterMode = process.argv.slice(2).filter((argument) => argument !== '--');
 const [mode, packet] = argumentsAfterMode;
@@ -11,6 +11,35 @@ if (!['finalize', 'check'].includes(mode) || !packet)
 
 const root = resolve('.');
 const git = (args) => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
+const candidateIdentity = (evidenceDirectory) => {
+  const baseName =
+    process.env.PROMPTIRIS_BASE_REVISION ??
+    (process.env.GITHUB_BASE_REF ? `origin/${process.env.GITHUB_BASE_REF}` : 'origin/main');
+  const baseRevision = git(['merge-base', 'HEAD', baseName]);
+  const candidate = execFileSync(
+    'git',
+    [
+      'diff',
+      '--raw',
+      '-z',
+      '--no-ext-diff',
+      '--no-textconv',
+      '--no-renames',
+      baseRevision,
+      'HEAD',
+      '--',
+      '.',
+      `:(exclude)${evidenceDirectory}/**`,
+    ],
+    { cwd: root },
+  );
+  return {
+    baseRevision,
+    candidateRevision: `sha256:${createHash('sha256').update(candidate).digest('hex')}`,
+    headRevision: git(['rev-parse', 'HEAD']),
+    branch: git(['branch', '--show-current']),
+  };
+};
 const commonGitDirectory = git(['rev-parse', '--path-format=absolute', '--git-common-dir']);
 const sharedRoot = commonGitDirectory.endsWith('/.git') ? commonGitDirectory.slice(0, -5) : root;
 const agentRoot = process.env.PROMPTIRIS_AGENT_ROOT ?? join(sharedRoot, '.agent');
@@ -50,8 +79,8 @@ const uncommitted = [...changedImplementation, ...untrackedImplementation];
 if (uncommitted.length > 0)
   throw new Error(`candidate has uncommitted implementation files: ${uncommitted.join(', ')}`);
 
-const identity = candidateIdentity({ root, evidenceDirectory });
-const manifestPath = join(agentRoot, 'candidates', `${branch}.json`);
+const identity = candidateIdentity(evidenceDirectory);
+const manifestPath = join(agentRoot, 'reports', 'candidates', `${branch}.json`);
 let manifest;
 try {
   manifest = JSON.parse(await readFile(manifestPath, 'utf8'));

@@ -6,8 +6,8 @@ workspace="$(mktemp -d "${TMPDIR:-/tmp}/promptiris-candidate-finalize-test.XXXXX
 trap 'rm -rf "$workspace"' EXIT
 repo="$workspace/repo"
 mkdir -p "$repo/scripts" "$repo/.scratch/test/issues/01-test.evidence" "$repo/.agent/claims"
-cp "$repository_root/scripts/candidate-identity.mjs" "$repository_root/scripts/finalize-candidate.mjs" \
-  "$repository_root/scripts/bind-role-evidence.mjs" "$repo/scripts/"
+cp "$repository_root/scripts/finalize-candidate.mjs" "$repository_root/scripts/bind-role-evidence.mjs" \
+  "$repo/scripts/"
 git -C "$repo" init -q
 git -C "$repo" config user.email test@example.test
 git -C "$repo" config user.name test
@@ -35,7 +35,7 @@ EOF
 
 cd "$repo"
 PROMPTIRIS_AGENT_ROOT="$repo/.agent" PROMPTIRIS_BASE_REVISION="$head" node scripts/finalize-candidate.mjs finalize .scratch/test/issues/01-test.md >/dev/null
-manifest="$repo/.agent/candidates/isolated-task.json"
+manifest="$repo/.agent/reports/candidates/isolated-task.json"
 jq -e '.taskId == ".scratch/test/issues/01-test.md" and (.candidateRevision | test("^sha256:[0-9a-f]{64}$"))' "$manifest" >/dev/null
 
 printf 'dirty\n' >source.txt
