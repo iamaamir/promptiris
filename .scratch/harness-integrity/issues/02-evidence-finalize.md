@@ -13,6 +13,7 @@ Allowed paths:
 
 - `.scratch/harness-integrity/**`
 - `.gitignore`
+- `.github/workflows/policy-integrity.yml`
 - `docs/agents/**`
 - `docs/development/**`
 - `package.json`
@@ -20,6 +21,7 @@ Allowed paths:
 - `scripts/candidate-identity.mjs`
 - `scripts/finalize-candidate.mjs`
 - `scripts/bind-role-evidence.mjs`
+- `scripts/quality-integrity.mjs`
 - `scripts/verify-candidate`
 - `scripts/verify-role-evidence.mjs`
 - `tooling/quality/**`
