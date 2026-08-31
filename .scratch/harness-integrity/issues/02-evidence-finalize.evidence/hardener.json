@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "role": "hardener",
+  "producerId": "candidate-hardener",
+  "status": "passed",
+  "scenarios": [
+    "expired claims reject finalization and role binding",
+    "dirty implementation rejects evidence binding",
+    "evidence-only commits preserve the frozen candidate",
+    "implementation commits invalidate the frozen candidate",
+    "the Work Item scope firewall accepts only the declared feature diff"
+  ],
+  "evidence": [
+    {
+      "checkId": "hardener.candidate-finalize",
+      "status": "passed",
+      "evidenceRef": "tooling/quality/candidate-finalize.test.sh",
+      "evidenceSha256": "f6cbd00bc1c9620a7be5f9649b2ba22eb047f8dff222ad1c2387cd6097c5322b"
+    },
+    {
+      "checkId": "hardener.integrity-policy",
+      "status": "passed",
+      "evidenceRef": "tooling/quality/integrity-policy.mjs",
+      "evidenceSha256": "d91cc7bee06c24cef139ff8860be1c06f8724ffc89657965af35cfec6c53a81d"
+    }
+  ],
+  "taskId": ".scratch/harness-integrity/issues/02-evidence-finalize.md",
+  "baseRevision": "7e84dc6a2b8f90f669294f07b6a509f95baa83d3",
+  "candidateRevision": "sha256:2865abba174fec3bf510e3fd900381b9a02d5de6d3f26ba9768f0eec81ee268a"
+}

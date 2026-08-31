@@ -51,7 +51,11 @@ Every independently deliverable feature or fix owns one branch. A normal single-
 
 The issue-owning agent runs the internal Specifier, Implementer, Reviewer, Cleaner, Hardener, source-blind QA, and deterministic verification loop until the PR is green. The internal Reviewer remains independent for high-risk changes. External maintainers perform the final PR review and merge decision.
 
-Before editing, a worker runs `./scripts/agent-work claim <packet> <stable-agent-id>`. The command takes an atomic repository-wide lease, verifies the branch, records the worktree and revision, changes the authoritative local status to `in-progress`, and converges the GitHub projection when available. Stage transitions use `./scripts/agent-work stage <stage>`. After a green PR, `./scripts/agent-work release <packet>` moves the packet to `ready-for-human`. GitHub failure never invalidates the local lease; rerunning `issue-sync` repairs projection drift.
+Before editing, a worker runs `./scripts/agent-work claim <packet> <stable-agent-id>`. The command takes an atomic repository-wide lease, verifies the branch, records the worktree and revision, changes the authoritative local status to `in-progress`, and converges the GitHub projection when available.
+
+Implementation may contain many commits. Before the Reviewer stage, commit the implementation and Work Item state, then run `pnpm candidate:finalize -- <packet>`. This writes an ignored local manifest with the frozen candidate digest. `agent-work stage reviewer`, `hardener`, `qa`, and `integration` refuse to proceed unless that manifest still matches. A role writes its factual report first, with identity fields absent, then uses `pnpm candidate:bind-role <role>` to bind it once. A previously bound report is never relabeled, even for the same candidate. Evidence commits do not invalidate the frozen candidate; implementation, policy, or planning changes require a new cycle.
+
+After a green PR, `./scripts/agent-work release <packet>` moves the packet to `ready-for-human`. GitHub failure never invalidates the local lease; rerunning `issue-sync` repairs projection drift.
 
 Do not start a blocked issue. Do not run issues in parallel when they claim the same Conflict Domain or overlapping ownership. A dependency change must update the local packet and its GitHub projection before another agent takes the issue.
 

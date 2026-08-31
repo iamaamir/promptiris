@@ -1,6 +1,6 @@
 # Finalize candidate-bound role evidence
 
-Status: ready-for-agent
+Status: in-progress
 GitHub issue: <https://github.com/iamaamir/promptiris/issues/36>
 Branch: `evidence-finalize`
 Parent: .scratch/harness-integrity/PRD.md
@@ -12,11 +12,13 @@ Test deletion: denied
 Allowed paths:
 
 - `.scratch/harness-integrity/**`
+- `.gitignore`
 - `.github/workflows/policy-integrity.yml`
 - `docs/agents/**`
 - `docs/development/**`
 - `package.json`
 - `scripts/agent-work`
+- `scripts/candidate-identity.mjs`
 - `scripts/finalize-candidate.mjs`
 - `scripts/bind-role-evidence.mjs`
 - `scripts/quality-integrity.mjs`

@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "producerId": "finalization-review",
+  "independent": true,
+  "verdict": "pass",
+  "findings": [],
+  "commentDecisions": [
+    {
+      "commentId": "lease-expiry",
+      "disposition": "accepted",
+      "reason": "Finalization now rejects missing or expired claims before validating or binding a candidate.",
+      "evidenceRef": "scripts/finalize-candidate.mjs"
+    }
+  ],
+  "evidence": [
+    {
+      "checkId": "review.candidate-finalization",
+      "status": "passed",
+      "evidenceRef": "scripts/finalize-candidate.mjs",
+      "evidenceSha256": "2f5db2233ce7f489d4a5457bffd58f51af182965cc7eeef852443f3a80331cfc"
+    },
+    {
+      "checkId": "review.integrity-policy",
+      "status": "passed",
+      "evidenceRef": "scripts/quality-integrity.mjs",
+      "evidenceSha256": "a1fd0eae6ca38e1a483c7a74cb0d4385310e3799a3378d892122b7cb41543fe3"
+    }
+  ],
+  "residualRisks": [
+    "The target Node 24 runtime was unavailable locally; the complete suite passed under Node 26 with an engine warning."
+  ],
+  "taskId": ".scratch/harness-integrity/issues/02-evidence-finalize.md",
+  "baseRevision": "7e84dc6a2b8f90f669294f07b6a509f95baa83d3",
+  "candidateRevision": "sha256:2865abba174fec3bf510e3fd900381b9a02d5de6d3f26ba9768f0eec81ee268a"
+}

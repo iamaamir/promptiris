@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "role": "qa",
+  "producerId": "source-blind-qa",
+  "status": "passed",
+  "sourceBlind": true,
+  "scenarios": [
+    "the documented candidate finalization command accepts its package-manager separator",
+    "a frozen candidate remains verifiable against its declared parent branch",
+    "the complete build and test suite remains behaviorally green"
+  ],
+  "evidence": [
+    {
+      "checkId": "qa.candidate-finalize",
+      "status": "passed",
+      "evidenceRef": "tooling/quality/candidate-finalize.test.sh",
+      "evidenceSha256": "f6cbd00bc1c9620a7be5f9649b2ba22eb047f8dff222ad1c2387cd6097c5322b"
+    },
+    {
+      "checkId": "qa.claim-lifecycle",
+      "status": "passed",
+      "evidenceRef": "tooling/quality/agent-work.test.sh",
+      "evidenceSha256": "f01c341b93f8a9cb23872ff2efa0aef8a9e0d7e842eabddc97b09475391c922f"
+    }
+  ],
+  "taskId": ".scratch/harness-integrity/issues/02-evidence-finalize.md",
+  "baseRevision": "7e84dc6a2b8f90f669294f07b6a509f95baa83d3",
+  "candidateRevision": "sha256:2865abba174fec3bf510e3fd900381b9a02d5de6d3f26ba9768f0eec81ee268a"
+}
