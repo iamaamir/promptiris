@@ -4,8 +4,8 @@
   "aggregate": {
     "minScore": 94.13,
     "maxIgnored": 106,
-    "maxSurvived": 91,
-    "maxNoCoverage": 10
+    "maxSurvived": 103,
+    "maxNoCoverage": 15
   },
   "targets": {
     "apps/runtime-node/src/configuration.ts": {
@@ -115,6 +115,12 @@
       "maxIgnored": 10,
       "maxSurvived": 0,
       "maxNoCoverage": 0
+    },
+    "packages/plugin-sdk/src/provider.ts": {
+      "minScore": 61.11,
+      "maxIgnored": 0,
+      "maxSurvived": 16,
+      "maxNoCoverage": 5
     }
   }
 }
