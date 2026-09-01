@@ -153,6 +153,13 @@ describe('observer devtools', () => {
     expect(devtools.getEvents().length).toBeGreaterThan(0);
   });
 
+  it('does not allow one instance to mix run lifecycles', () => {
+    const devtools = createObserverDevtools();
+    const first = createEventDispatcher('first');
+    devtools.attach(first);
+    expect(() => devtools.attach(createEventDispatcher('second'))).toThrow(/attach only once/);
+  });
+
   it('backpressure and disposal cannot fail', async () => {
     const dispatcher = createEventDispatcher('run-5');
     const devtools = createObserverDevtools({ observerId: 'test/obs5', capacity: 1 });

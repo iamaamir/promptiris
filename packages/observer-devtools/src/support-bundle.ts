@@ -182,7 +182,7 @@ function buildInitialBundle(
     events: Object.freeze(events),
     debugRecords: Object.freeze(debugRecords.map((r) => Object.freeze({ ...r }))),
     manifestRefs: Object.freeze(manifestRefs),
-    ...(input.configTraceId ? { configTraceRef: input.configTraceId } : {}),
+    ...(input.configTraceId ? { configTraceRef: boundedReference(input.configTraceId) } : {}),
   });
 }
 

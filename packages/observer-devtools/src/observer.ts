@@ -150,16 +150,27 @@ interface BuildInput {
   readonly options: ObserverDevtoolsOptions;
 }
 
+function readEvents(state: DevtoolsState): readonly Event[] {
+  return state.events;
+}
+
+function readDebugRecords(state: DevtoolsState): readonly DebugRecord[] {
+  return state.debugRecords;
+}
+
 function buildDevtools(input: BuildInput): ObserverDevtools {
   const { observerId, capacity, maxEvents, consoleSink, jsonSink, manifest, state, options } =
     input;
   const handleEvent = (event: Event): void =>
     onEvent(event, state, maxEvents, consoleSink, jsonSink);
+  let attached = false;
   return {
     observerId,
     manifest,
     jsonSink,
     attach(dispatcher: EventDispatcher) {
+      if (attached) throw new Error('Observer devtools instance can attach only once');
+      attached = true;
       return attachToDispatcher(dispatcher, observerId, capacity, handleEvent);
     },
     capture(record: DebugRecord): void {
@@ -169,12 +180,8 @@ function buildDevtools(input: BuildInput): ObserverDevtools {
         // capture isolated
       }
     },
-    getEvents(): readonly Event[] {
-      return state.events;
-    },
-    getDebugRecords(): readonly DebugRecord[] {
-      return state.debugRecords;
-    },
+    getEvents: () => readEvents(state),
+    getDebugRecords: () => readDebugRecords(state),
     createBundle(bundleOptions?: { createdAt?: string }): SupportBundle {
       return createSupportBundle({
         observerId,
