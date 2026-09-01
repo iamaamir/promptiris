@@ -35,7 +35,7 @@ interface FakeChildHandle {
 
 interface FakeNativeScript {
   initialize: () => Record<string, unknown> | Promise<Record<string, unknown>>;
-  invoke: (params: unknown) => Promise<unknown>;
+  invoke: (params: unknown) => Promise<Record<string, unknown>> | Record<string, unknown>;
   shutdown: (handle: FakeChildHandle) => void | Promise<void>;
 }
 
