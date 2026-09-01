@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "role": "hardener",
+  "producerId": "batch-hardener2",
+  "status": "passed",
+  "sourceBlind": false,
+  "scenarios": [
+    "Static hardening review of git diff 9d59282..HEAD for Work Item 04-batched-mutation-registration found the batch generalization preserves additive-only Stryker edits, unchanged aggregate policy, per-target changed-file checks, and per-target zero-debt defaults.",
+    "The requested focused test trace 3faa4366-f38f-4791-8099-00dacf86f3f7 and integrity trace b802d705-1d9e-4c40-a506-412ef02925e1 were not present in the inspected worktree or /private/tmp, so runtime verification could not be independently replayed from this environment.",
+    "This report is intentionally unbound and omits taskId, baseRevision, and candidateRevision so binding can add them later."
+  ],
+  "evidence": [
+    {
+      "checkId": "hardening.work-item",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/04-batched-mutation-registration.md",
+      "evidenceSha256": "1acbaabc71e5aa926fb579d237ef8b4cbe277260b0c0606744286cfe0eadac9a"
+    },
+    {
+      "checkId": "hardening.integrity-policy",
+      "status": "passed",
+      "evidenceRef": "tooling/quality/integrity-policy.mjs",
+      "evidenceSha256": "54a93df8894cd17448fb2cbdbcb30dba2ac53a70b006fed0af972c7d6a1c081d"
+    },
+    {
+      "checkId": "hardening.integrity-policy-tests",
+      "status": "passed",
+      "evidenceRef": "tooling/quality/integrity-policy.test.mjs",
+      "evidenceSha256": "57fcc381c0afe04cf3b7f98a6e25d8b985537d29f21e7edb4516ae1649f0b2f7"
+    },
+    {
+      "checkId": "hardening.documentation",
+      "status": "passed",
+      "evidenceRef": "docs/development/code-quality-and-review.md",
+      "evidenceSha256": "2c18c3a151f3088ee68e2a2f73dd03c18f1326c561d82e97706a76048db4cbf1"
+    }
+  ],
+  "taskId": ".scratch/harness-integrity/issues/04-batched-mutation-registration.md",
+  "baseRevision": "9d592825c551454398ab6ba8b495c7092ff612a4",
+  "candidateRevision": "sha256:a3046f9cdd132aed706037300e00fa468cd45086f2b085267fd7b878d2f6ffff"
+}

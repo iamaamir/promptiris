@@ -77,6 +77,64 @@ test('allows exactly one safe additive mutation-target registration', () => {
   );
 });
 
+test('allows a batch of independently strict mutation-target registrations', () => {
+  const beforeConfig = "export default { mutate: [\n    'packages/a/src/a.ts',\n  ],\n};\n";
+  const targets = ['packages/b/src/b.ts', 'packages/c/src/c.ts'];
+  const afterConfig = beforeConfig.replace(
+    '  ],',
+    `${targets.map((target) => `    '${target}',`).join('\n')}\n  ],`,
+  );
+  const beforePolicy = {
+    aggregate: policy.aggregate,
+    targets: { 'packages/a/src/a.ts': policy.targets['a.ts'] },
+  };
+  const afterPolicy = {
+    aggregate: policy.aggregate,
+    targets: {
+      ...beforePolicy.targets,
+      ...Object.fromEntries(
+        targets.map((target) => [
+          target,
+          { minScore: 90, maxIgnored: 0, maxSurvived: 0, maxNoCoverage: 0 },
+        ]),
+      ),
+    },
+  };
+  assert.deepEqual(
+    inspectMutationTargetRegistration({
+      beforeConfig,
+      afterConfig,
+      beforePolicy,
+      afterPolicy,
+      changedFiles: targets,
+    }),
+    { safe: true, findings: [] },
+  );
+});
+
+test('rejects a batch when a registered target has no matching policy', () => {
+  const first = 'packages/b/src/b.ts';
+  const second = 'packages/c/src/c.ts';
+  const result = inspectMutationTargetRegistration({
+    beforeConfig: 'export default { mutate: [\n  ],\n};\n',
+    afterConfig: `export default { mutate: [\n    '${first}',\n    '${second}',\n  ],\n};\n`,
+    beforePolicy: { aggregate: policy.aggregate, targets: {} },
+    afterPolicy: {
+      aggregate: policy.aggregate,
+      targets: {
+        [first]: { minScore: 90, maxIgnored: 0, maxSurvived: 0, maxNoCoverage: 0 },
+      },
+    },
+    changedFiles: [first, second],
+  });
+  assert.equal(result.safe, false);
+  assert.deepEqual(result.findings, [
+    'mutation registration can add only matching target policies',
+    `mutation registration target must start at 90 percent: ${second}`,
+    `mutation registration target must start without mutation debt: ${second}`,
+  ]);
+});
+
 test('rejects mutation registration that changes aggregate policy or starts with debt', () => {
   const target = 'packages/b/src/b.ts';
   const result = inspectMutationTargetRegistration({

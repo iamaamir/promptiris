@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "role": "qa",
+  "producerId": "source-blind-qa2",
+  "status": "passed",
+  "sourceBlind": true,
+  "scenarios": [
+    "the trusted integrity verifier accepts repeated registration commands only when every newly changed production TypeScript target adds a matching strict policy entry and no other Stryker edits",
+    "the batch flow rejects target removal, ungoverned changed production sources, arbitrary Stryker edits, policy weakening, target-policy mismatches, and mutation debt in any registered target",
+    "documentation states that repeated registration commands compose into a valid multi-target batch while manual edits remain prohibited"
+  ],
+  "evidence": [
+    {
+      "checkId": "qa.work-item-acceptance",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/04-batched-mutation-registration.md",
+      "evidenceSha256": "1acbaabc71e5aa926fb579d237ef8b4cbe277260b0c0606744286cfe0eadac9a"
+    },
+    {
+      "checkId": "qa.integrity-policy-tests",
+      "status": "passed",
+      "evidenceRef": "tooling/quality/integrity-policy.test.mjs",
+      "evidenceSha256": "57fcc381c0afe04cf3b7f98a6e25d8b985537d29f21e7edb4516ae1649f0b2f7"
+    }
+  ],
+  "taskId": ".scratch/harness-integrity/issues/04-batched-mutation-registration.md",
+  "baseRevision": "9d592825c551454398ab6ba8b495c7092ff612a4",
+  "candidateRevision": "sha256:a3046f9cdd132aed706037300e00fa468cd45086f2b085267fd7b878d2f6ffff"
+}
