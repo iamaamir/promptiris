@@ -13,5 +13,5 @@
   "residualRisks": ["Mutation score remains a separate candidate gate and must pass before merge."],
   "taskId": ".scratch/devtools-path/issues/01-observer-devtools.md",
   "baseRevision": "81379e5df594b7d872e0ddf5d4cd19e870d47672",
-  "candidateRevision": "c724fd2e9c3714187f0b8e44c532312e0e8b7bd0"
+  "candidateRevision": "4face4f"
 }
