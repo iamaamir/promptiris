@@ -19,19 +19,21 @@ Before evaluating each technique, here's the landscape that matters:
 
 ## 1. Concurrency Testing (fast-check scheduler)
 
-**Status: NOT IN USE**
+Status: **NOT IN USE**
 
 The `test-strategies.json` defines this strategy (`id: "deterministic-scheduling"`) with `gateMode: "affected"`, but zero files in the repo import or call `fc.scheduler`. The repo has complex concurrent components tested only with hand-written async scenarios.
 
 ### Strongest Candidates
 
 **EventDispatcher** (`packages/core/src/event-dispatcher.ts`) — The single best candidate. The existing `event-dispatcher.test.ts` has 13 hand-written tests covering reentrant publication, lagging observers, and terminal ordering. But the interleaving space between `subscribe`, `emit`, `complete`, `dispose`, and `next` across multiple observers with different capacities is enormous. `fc.scheduler` could systematically explore Promise interleavings that hand-written tests miss:
+
 - Reentrant emission from a sink callback while observers are mid-read
 - Concurrent `dispose()` and `emit()` on the same observer
 - Multiple observers reading at different rates while `complete()` fires
 - `next()` called concurrently on the same subscription (the existing test checks the error, but not every interleaving)
 
 **NativePluginSupervisor** (`apps/runtime-node/src/native-plugin.ts`) — The `RpcRequest` class races timeout, abort signal, process exit, protocol error, and data arrival. The existing tests cover specific scenarios, but `fc.scheduler` could exercise interleavings of:
+
 - Abort signal firing during in-flight request
 - Process exit arriving between `initialize` and `invoke`
 - Protocol error and timeout arriving nearly simultaneously
@@ -43,7 +45,7 @@ The `test-strategies.json` defines this strategy (`id: "deterministic-scheduling
 
 ## 2. Coverage-Guided Fuzzing (jazzer.js)
 
-**Status: NOT IN USE**
+Status: **NOT IN USE**
 
 `test-strategies.json` defines this (`id: "coverage-guided-fuzzing"`) with `gateMode: "capability-triggered"`. No Jazzer.js dependency or configuration exists.
 
@@ -61,7 +63,7 @@ The `test-strategies.json` defines this strategy (`id: "deterministic-scheduling
 
 ## 3. Differential Testing
 
-**Status: PARTIALLY IN USE**
+Status: **PARTIALLY IN USE**
 
 This is the most interesting finding. The repo already has a differential testing pattern, though it's not labeled as such:
 
@@ -84,7 +86,7 @@ The integration test (`scripts/test-integration-identity`) also acts as a differ
 
 ## 4. Metamorphic Testing
 
-**Status: PARTIALLY IN USE**
+Status: **PARTIALLY IN USE**
 
 The repo has metamorphic relations embedded in property tests, but no systematic framework:
 
@@ -96,15 +98,18 @@ The repo has metamorphic relations embedded in property tests, but no systematic
 ### Strongest Candidates
 
 **Configuration Resolution** (`packages/core/src/configuration-resolution.ts`) — Merges configuration layers with policies. Metamorphic relations:
+
 - Merging the same layer twice should produce the same result (idempotency)
 - Adding an empty layer should not change the result
 - Swapping two independent layers (different pointers) should not change the result
 
 **Plugin Graph Compilation** — Already partially covered, but could be extended:
+
 - Adding a plugin with no contributions should not change the graph
 - Selecting a subset of plugins should produce a subgraph of the full selection
 
 **JSON-RPC Framing** — Round-trip metamorphic relation:
+
 - Encoding a message and decoding it should produce the same message
 - Encoding a message that exceeds `MAX_FRAME_BYTES` should always throw
 
@@ -112,7 +117,7 @@ The repo has metamorphic relations embedded in property tests, but no systematic
 
 ## 5. Contract Testing (Pact)
 
-**Status: NOT IN USE**
+Status: **NOT IN USE**
 
 `test-strategies.json` defines this (`id: "service-contract"`) with `gateMode: "capability-triggered"`. No Pact dependency or configuration exists.
 
@@ -128,7 +133,7 @@ The closest equivalent is the **shared fixture approach** already in use: `spec/
 
 ## 6. Schema-Driven API Fuzzing (Schemathesis)
 
-**Status: NOT IN USE**
+Status: **NOT IN USE**
 
 `test-strategies.json` defines this (`id: "schema-api-fuzzing"`) with `gateMode: "capability-triggered"`. No Schemathesis dependency or configuration exists.
 
@@ -142,7 +147,7 @@ The closest equivalent is the **shared fixture approach** already in use: `spec/
 
 ## 7. Fault Injection (Toxiproxy)
 
-**Status: NOT IN USE**
+Status: **NOT IN USE**
 
 `test-strategies.json` defines this (`id: "network-fault-injection"`) with `gateMode: "capability-triggered"`. No Toxiproxy dependency or configuration exists.
 
@@ -156,7 +161,7 @@ The closest equivalent is the **shared fixture approach** already in use: `spec/
 
 ## 8. Real-Dependency Testing (Testcontainers)
 
-**Status: NOT IN USE**
+Status: **NOT IN USE**
 
 `test-strategies.json` defines this (`id: "real-dependency"`) with `gateMode: "capability-triggered"`. No Testcontainers dependency or configuration exists.
 
@@ -170,7 +175,7 @@ The closest equivalent is the **shared fixture approach** already in use: `spec/
 
 ## 9. Type-Level Testing (tsd)
 
-**Status: NOT IN USE**
+Status: **NOT IN USE**
 
 `test-strategies.json` defines this (`id: "type-contract"`) with `gateMode: "affected"`. The description notes: "tsc now; tsd when a public declaration surface requires it." No `tsd` dependency or `.test-d.ts` files exist.
 
@@ -179,11 +184,13 @@ The closest equivalent is the **shared fixture approach** already in use: `spec/
 **Partially needed.** The packages export public TypeScript APIs (`PluginManifest`, `Event`, `RunResult`, `Patch`, etc.) that downstream consumers depend on. The existing tests verify runtime behavior but not compile-time type contracts.
 
 However, the current API surface is relatively simple (mostly interfaces and type aliases, few generics), so `tsc` alone catches most type issues. `tsd` would become valuable if:
+
 - Generic inference contracts need testing (e.g., `Event<T>` parameterization)
 - Type narrowing behavior needs verification (e.g., discriminated union exhaustiveness)
 - Declaration file accuracy needs enforcement
 
 **Strongest candidates:**
+
 - `packages/protocol` — The `Event<T>`, `JsonRpcMessage` discriminated union, and `PatchOperation` union
 - `packages/plugin-sdk` — The `definePlugin` return type preservation and `PluginRegistration` activation types
 
@@ -191,7 +198,7 @@ However, the current API surface is relatively simple (mostly interfaces and typ
 
 ## 10. Accessibility Testing
 
-**Status: NOT IN USE**
+Status: **NOT IN USE**
 
 `PRODUCT.md` has an "Accessibility & Inclusion" section, but no automated a11y tests exist. The dashboard (`apps/dashboard`) serves HTML with a `Content-Security-Policy` but no `aria-*` attributes are tested.
 
@@ -205,19 +212,21 @@ However, the current API surface is relatively simple (mostly interfaces and typ
 
 ## 11. Model Checking (TLA+ / TLC)
 
-**Status: NOT IN USE**
+Status: **NOT IN USE**
 
 `test-strategies.json` defines this (`id: "model-checking"`) with `gateMode: "capability-triggered"`. No TLA+ specifications or TLC configuration exist.
 
 ### Strongest Candidates
 
 **EventDispatcher** — The most complex stateful component. A TLA+ specification could formalize:
+
 - The subscriber lifecycle (subscribe → read → dispose/detach)
 - The event delivery guarantees (monotonic sequences, terminal event ordering)
 - The reentrant publication invariant (sink callback emitting new events)
 - The lagging observer policy (progress dropping, critical event detachment)
 
 **NativePluginSupervisor** — The child process lifecycle has subtle state transitions:
+
 - Spawning → initialized → invoking → shutting down → exited
 - Timeout vs abort vs protocol error race conditions
 - Concurrent invocation denial
@@ -233,6 +242,7 @@ These are already in use or strongly applicable:
 ### Architecture Testing (ast-grep) — ✅ IN USE
 
 Custom rules in `tooling/ast-grep/rules/`:
+
 - `no-disabled-tests` — Prevents `test.skip`, `test.only`, `it.skip`, `describe.only`, etc.
 - `no-internal-workspace-imports` — Enforces public API boundaries (`@promptiris/protocol` not `@promptiris/protocol/src/internal.js`)
 

@@ -406,9 +406,7 @@ describe('Event dispatcher', () => {
     // Terminal event dispatched to sink via #deliver
 
     const sinkBefore = sink.length;
-    expect(() => dispatcher.emit(event('critical', 2))).toThrow(
-      'Event dispatcher is complete',
-    );
+    expect(() => dispatcher.emit(event('critical', 2))).toThrow('Event dispatcher is complete');
     // No new event should have been dispatched to the sink
     expect(sink.length).toBe(sinkBefore);
   });

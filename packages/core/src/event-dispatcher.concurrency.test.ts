@@ -137,7 +137,9 @@ describe('EventDispatcher concurrency', () => {
       fc.property(
         fc.commands(
           [
-            fc.tuple(fc.constantFrom(...ids), fc.constantFrom(...caps)).map(([id, cap]) => new SubscribeCommand(id, cap)),
+            fc
+              .tuple(fc.constantFrom(...ids), fc.constantFrom(...caps))
+              .map(([id, cap]) => new SubscribeCommand(id, cap)),
             fc.integer({ min: 0, max: 20 }).map((seq) => new EmitCommand(seq)),
             fc.constant(new CompleteCommand()),
             fc.tuple(fc.constantFrom(...ids)).map(([id]) => new DisposeCommand(id)),
