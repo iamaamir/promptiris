@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "role": "qa",
+  "taskId": ".scratch/concurrency-tests/issues/01-event-dispatcher-concurrency.md",
+  "baseRevision": "881eb412de65e4e6a0465a6ec9819b2fec87f12e",
+  "candidateRevision": "sha256:b0e0e79d929407ea4f570ea3e14e3666a1be9d28af829800d7dcc8ead5c96070",
+  "producerId": "buffy",
+  "sourceBlind": true,
+  "status": "passed",
+  "scenarios": [
+    "All 212 tests pass across 13 test files in packages/core",
+    "TypeScript typecheck clean",
+    "ESLint clean",
+    "No production code changes (test + docs only)"
+  ],
+  "evidence": [
+    {
+      "checkId": "full-suite-pass",
+      "status": "passed",
+      "evidenceRef": ".scratch/concurrency-tests/issues/01-event-dispatcher-concurrency.evidence/test-results.txt",
+      "evidenceSha256": "bcd79762982b03fb9b0ef7f33b289a56f0bc37494c90ac8691379f343c2756be"
+    }
+  ]
+}

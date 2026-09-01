@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "role": "hardener",
+  "taskId": ".scratch/concurrency-tests/issues/01-event-dispatcher-concurrency.md",
+  "baseRevision": "881eb412de65e4e6a0465a6ec9819b2fec87f12e",
+  "candidateRevision": "sha256:b0e0e79d929407ea4f570ea3e14e3666a1be9d28af829800d7dcc8ead5c96070",
+  "producerId": "buffy",
+  "sourceBlind": false,
+  "status": "passed",
+  "scenarios": [
+    "Mutation testing on event-dispatcher.ts: 230 mutants, 149 killed, 2 timeout, 9 survived, score 94.38%",
+    "Model-based command tests exercise subscribe/emit/complete/dispose interleaving",
+    "Scheduler-based tests verify Promise resolution interleaving across observers"
+  ],
+  "evidence": [
+    {
+      "checkId": "mutation-testing",
+      "status": "passed",
+      "evidenceRef": ".scratch/concurrency-tests/issues/01-event-dispatcher-concurrency.evidence/test-results.txt",
+      "evidenceSha256": "bcd79762982b03fb9b0ef7f33b289a56f0bc37494c90ac8691379f343c2756be"
+    }
+  ]
+}
