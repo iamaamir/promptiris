@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "producerId": "batch-reviewer2",
+  "independent": true,
+  "verdict": "pass",
+  "findings": [],
+  "commentDecisions": [],
+  "evidence": [
+    {
+      "checkId": "review.work-item",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/04-batched-mutation-registration.md",
+      "evidenceSha256": "1acbaabc71e5aa926fb579d237ef8b4cbe277260b0c0606744286cfe0eadac9a"
+    },
+    {
+      "checkId": "review.integrity-policy",
+      "status": "passed",
+      "evidenceRef": "tooling/quality/integrity-policy.mjs",
+      "evidenceSha256": "54a93df8894cd17448fb2cbdbcb30dba2ac53a70b006fed0af972c7d6a1c081d"
+    },
+    {
+      "checkId": "review.integrity-policy-tests",
+      "status": "passed",
+      "evidenceRef": "tooling/quality/integrity-policy.test.mjs",
+      "evidenceSha256": "57fcc381c0afe04cf3b7f98a6e25d8b985537d29f21e7edb4516ae1649f0b2f7"
+    },
+    {
+      "checkId": "review.documentation-update",
+      "status": "passed",
+      "evidenceRef": "docs/development/code-quality-and-review.md",
+      "evidenceSha256": "2c18c3a151f3088ee68e2a2f73dd03c18f1326c561d82e97706a76048db4cbf1"
+    }
+  ],
+  "residualRisks": [
+    "This unbound reviewer report omits taskId, baseRevision, and candidateRevision per request, so it does not satisfy the current reviewer-report schema as written.",
+    "Review was limited to static diff inspection; no runtime verification is included in this report."
+  ],
+  "taskId": ".scratch/harness-integrity/issues/04-batched-mutation-registration.md",
+  "baseRevision": "9d592825c551454398ab6ba8b495c7092ff612a4",
+  "candidateRevision": "sha256:a3046f9cdd132aed706037300e00fa468cd45086f2b085267fd7b878d2f6ffff"
+}
