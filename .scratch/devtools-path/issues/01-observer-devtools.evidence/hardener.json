@@ -1,17 +1,34 @@
 {
   "schemaVersion": 1,
   "producerId": "observer-devtools-independent-hardener",
-  "independent": true,
-  "verdict": "pass",
-  "findings": [],
-  "commentDecisions": [],
   "evidence": [
-    {"checkId":"hardener.raw-log-fields","status":"passed","evidenceRef":"packages/observer-devtools/src/sinks.ts"},
-    {"checkId":"hardener.redaction","status":"passed","evidenceRef":"packages/observer-devtools/src/support-bundle.ts","evidenceSha256":"e8bc7fa0c4ea30aa2d55d32a45e642a2aaeba323751483eadb7b13e6bc37a888"},
-    {"checkId":"hardener.cap-drops","status":"passed","evidenceRef":"packages/observer-devtools/src/observer.ts","evidenceSha256":"35650ebbd138414d32b272a1aee77d5628f94184b558d9d712cffb35f6229064"}
+    {
+      "checkId": "hardener.raw-log-fields",
+      "status": "passed",
+      "evidenceRef": "packages/observer-devtools/src/sinks.ts",
+      "evidenceSha256": "e989fa12ddc2d740ad50a64d550a01a013f5d5d74631f3852b3e88da60f57a0c"
+    },
+    {
+      "checkId": "hardener.redaction",
+      "status": "passed",
+      "evidenceRef": "packages/observer-devtools/src/support-bundle.ts",
+      "evidenceSha256": "e39e0450b035aed18fda93a6bf58cf9b83db301d9e63e911b44b162337049ac0"
+    },
+    {
+      "checkId": "hardener.cap-drops",
+      "status": "passed",
+      "evidenceRef": "packages/observer-devtools/src/observer.ts",
+      "evidenceSha256": "4e665f24b885d7669893ba2cc51ebe20dcb2d811de7fe0c3ba36e3f2e9180e1c"
+    }
   ],
-  "residualRisks": ["Mutation score remains a separate candidate gate and must pass before merge."],
   "taskId": ".scratch/devtools-path/issues/01-observer-devtools.md",
-  "baseRevision": "81379e5df594b7d872e0ddf5d4cd19e870d47672",
-  "candidateRevision": "4face4f"
+  "baseRevision": "881eb412de65e4e6a0465a6ec9819b2fec87f12e",
+  "candidateRevision": "sha256:56f3a0c6f5d11cd1f916048fdba755e82ba4b394b7041de7c9fce63783e823f2",
+  "role": "hardener",
+  "status": "passed",
+  "scenarios": [
+    "mutation-boundary hardening",
+    "redaction and bounded sinks"
+  ],
+  "sourceBlind": false
 }

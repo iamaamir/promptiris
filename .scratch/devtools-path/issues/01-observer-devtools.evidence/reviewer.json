@@ -6,12 +6,29 @@
   "findings": [],
   "commentDecisions": [],
   "evidence": [
-    {"checkId":"review.work-item","status":"passed","evidenceRef":".scratch/devtools-path/issues/01-observer-devtools.md","evidenceSha256":"d87b6bfd1e1fbd82806e41573bd459616f86d93dbaa2ebf9f7245486fac8e943"},
-    {"checkId":"review.lifecycle-and-privacy","status":"passed","evidenceRef":"packages/observer-devtools/src/observer.ts","evidenceSha256":"35650ebbd138414d32b272a1aee77d5628f94184b558d9d712cffb35f6229064"},
-    {"checkId":"review.bundle-bounds","status":"passed","evidenceRef":"packages/observer-devtools/src/support-bundle.ts","evidenceSha256":"e8bc7fa0c4ea30aa2d55d32a45e642a2aaeba323751483eadb7b13e6bc37a888"}
+    {
+      "checkId": "review.work-item",
+      "status": "passed",
+      "evidenceRef": ".scratch/devtools-path/issues/01-observer-devtools.md",
+      "evidenceSha256": "d87b6bfd1e1fbd82806e41573bd459616f86d93dbaa2ebf9f7245486fac8e943"
+    },
+    {
+      "checkId": "review.lifecycle-and-privacy",
+      "status": "passed",
+      "evidenceRef": "packages/observer-devtools/src/observer.ts",
+      "evidenceSha256": "4e665f24b885d7669893ba2cc51ebe20dcb2d811de7fe0c3ba36e3f2e9180e1c"
+    },
+    {
+      "checkId": "review.bundle-bounds",
+      "status": "passed",
+      "evidenceRef": "packages/observer-devtools/src/support-bundle.ts",
+      "evidenceSha256": "e39e0450b035aed18fda93a6bf58cf9b83db301d9e63e911b44b162337049ac0"
+    }
   ],
-  "residualRisks": ["Mutation score remains a separate candidate gate and must pass before merge."],
+  "residualRisks": [
+    "Mutation score remains a separate candidate gate and must pass before merge."
+  ],
   "taskId": ".scratch/devtools-path/issues/01-observer-devtools.md",
-  "baseRevision": "81379e5df594b7d872e0ddf5d4cd19e870d47672",
-  "candidateRevision": "4face4f"
+  "baseRevision": "881eb412de65e4e6a0465a6ec9819b2fec87f12e",
+  "candidateRevision": "sha256:56f3a0c6f5d11cd1f916048fdba755e82ba4b394b7041de7c9fce63783e823f2"
 }
