@@ -44,10 +44,10 @@ describe('sinks killers', () => {
 
   it('pollution keys are filtered', () => {
     const sink = new JsonLinesSink({ capacity: 5 });
-    const pollution: Record<string, unknown> = { phase: 'ok' };
-    Object.defineProperty(pollution, '__proto__', { value: 'x', enumerable: true });
-    Object.defineProperty(pollution, 'constructor', { value: 'y', enumerable: true });
-    Object.defineProperty(pollution, 'prototype', { value: 'z', enumerable: true });
+    const pollution = Object.create(null) as Record<string, unknown>;
+    pollution.phase = 'ok';
+    pollution.constructor = 'y';
+    pollution.prototype = 'z';
     sink.write(ev(pollution));
     const line = sink.lines[0] ?? '';
     expect(line).not.toContain('__proto__');
