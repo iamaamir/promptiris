@@ -92,7 +92,7 @@ function isAllowedEntry(key: string, value: unknown): boolean {
 function projectData(data: unknown): Record<string, unknown> | undefined {
   if (typeof data !== 'object' || data === null) return undefined;
   if (Array.isArray(data)) return undefined;
-  const out: Record<string, unknown> = {};
+  const out: Record<string, unknown> = Object.create(null) as Record<string, unknown>;
   for (const [k, v] of Object.entries(data as Record<string, unknown>)) {
     if (!isAllowedEntry(k, v)) continue;
     out[k] = typeof v === 'string' ? boundedString(v) : v;
@@ -101,15 +101,7 @@ function projectData(data: unknown): Record<string, unknown> | undefined {
 }
 
 function stableStringify(value: unknown): string {
-  return JSON.stringify(value, (_key: string, val: unknown) => {
-    if (val !== null && typeof val === 'object' && !Array.isArray(val)) {
-      const obj = val as Record<string, unknown>;
-      const sorted: Record<string, unknown> = {};
-      for (const k of Object.keys(obj).sort()) sorted[k] = obj[k];
-      return sorted;
-    }
-    return val;
-  });
+  return JSON.stringify(value);
 }
 
 function utf8ByteLength(value: string): number {

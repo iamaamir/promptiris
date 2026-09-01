@@ -46,6 +46,7 @@ describe('sinks killers', () => {
     const sink = new JsonLinesSink({ capacity: 5 });
     const pollution = Object.create(null) as Record<string, unknown>;
     pollution.phase = 'ok';
+    Reflect.set(pollution, '__proto__', 'x');
     Reflect.set(pollution, 'constructor', 'y');
     Reflect.set(pollution, 'prototype', 'z');
     sink.write(ev(pollution));
@@ -151,7 +152,23 @@ describe('sinks killers', () => {
       digest: 'd',
     };
     const line = formatEvent(ev(data));
+    expect(line).toContain('phase=p');
+    expect(line).toContain('plugin=pl');
+    expect(line).toContain('contrib=c');
+    expect(line).toContain('status=s');
+    expect(line).toContain('observer=o');
+    expect(line).toContain('reason=r');
+    expect(line).toContain('fallback=f');
+    expect(line).toContain('kind=k');
+    expect(line).toContain('artifactKind=ak');
+    expect(line).toContain('digest=d');
     for (const v of Object.values(data)) expect(line).toContain(v);
+    expect(line).toBe(
+      '[0] t source=s phase=p plugin=pl contrib=c status=s observer=o reason=r fallback=f kind=k artifactKind=ak digest=d delivery=critical',
+    );
+    const sink = new JsonLinesSink({ capacity: 2 });
+    sink.write(ev(data));
+    for (const v of Object.values(data)) expect(sink.lines[0]).toContain(v);
   });
 
   it('sensitive classification redacts in JsonLinesSink', () => {
@@ -245,6 +262,8 @@ describe('support-bundle killers', () => {
     expect(d.artifactKind).toBe('k');
     expect(d.mediaType).toBe('l');
     expect(d.digest).toBe('m');
+    expect(d.from).toBe('h');
+    expect(d.to).toBe('i');
   });
 
   it('stableStringify sorts keys deterministically', () => {
@@ -268,6 +287,32 @@ describe('support-bundle killers', () => {
     expect(d1.status).toBe('b');
     expect(d2.phase).toBe('a');
     expect(d2.status).toBe('b');
+  });
+
+  it('support projection rejects unsafe values and sorts nested metadata', () => {
+    const data = Object.create(null) as Record<string, unknown>;
+    data.phase = 'ok';
+    data.fallback = true;
+    data.durationMs = Infinity;
+    data.timing = NaN;
+    data.nested = { z: 'secret', a: 'secret' };
+    Reflect.set(data, '__proto__', 'blocked');
+    Reflect.set(data, 'constructor', 'blocked');
+    Reflect.set(data, 'prototype', 'blocked');
+    const bundle = createSupportBundle({
+      observerId: 'o',
+      events: [ev(data)],
+      debugRecords: [],
+      createdAt: '2026-01-01T00:00:00.000Z',
+    });
+    const projected = bundle.events[0]?.data as Record<string, unknown>;
+    expect(projected.phase).toBe('ok');
+    expect(projected.fallback).toBe(true);
+    expect(projected.durationMs).toBeUndefined();
+    expect(projected.timing).toBeUndefined();
+    expect(projected.nested).toBeUndefined();
+    expect(Object.hasOwn(projected, 'constructor')).toBe(false);
+    expect(Object.hasOwn(projected, 'prototype')).toBe(false);
   });
 
   it('enforceByteCap drops progress then all', () => {
@@ -337,6 +382,16 @@ describe('support-bundle killers', () => {
     });
     expect(b.manifestRefs).toEqual(['a', 'm', 'z']);
     expect(b.configTraceRef).toBe('cfg');
+    expect(
+      createSupportBundle({
+        observerId: 'o',
+        events: [],
+        debugRecords: [],
+        configTraceId: 'x'.repeat(600),
+        manifestIds: Array.from({ length: 100 }, (_, i) => String(i)),
+        createdAt: '2026-01-01T00:00:00.000Z',
+      }).configTraceRef?.length,
+    ).toBe(257);
     expect(b.runId).toBe('run');
     expect(b.traceId).toBe('trace');
   });
@@ -346,11 +401,11 @@ describe('support-bundle killers', () => {
       observerId: 'o',
       events: [],
       debugRecords: [],
-      createdAt: '2026-01-01T00:00:00.000Z',
     });
     expect(b.manifestRefs).toEqual([]);
     expect(b.runId).toBeUndefined();
     expect(b.configTraceRef).toBeUndefined();
+    expect(b.createdAt).toBe('1970-01-01T00:00:00.000Z');
   });
 
   it('utf8 byte length handles multi-byte', () => {
@@ -384,6 +439,7 @@ describe('support-bundle killers', () => {
     });
     expect(b.debugRecords[0]?.exception.message).toBe('[redacted]');
     expect((b.debugRecords[0] as unknown as Record<string, unknown>).stack).toBeUndefined();
+    expect(b.debugRecords[0]?.contributionId).toBe('c');
   });
 
   it('slices events and debugRecords at max', () => {
@@ -410,18 +466,25 @@ describe('support-bundle killers', () => {
 
 describe('observer killers', () => {
   it('resolveObserverId throws on empty', () => {
-    expect(() => createObserverDevtools({ observerId: '' })).toThrow();
+    expect(() => createObserverDevtools({ observerId: '' })).toThrow(
+      'observerId must be non-empty string',
+    );
     expect(() => createObserverDevtools({ observerId: 123 as unknown as string })).toThrow();
   });
 
   it('resolveCapacity throws on invalid', () => {
-    expect(() => createObserverDevtools({ capacity: 0 })).toThrow(RangeError);
+    expect(() => createObserverDevtools({ capacity: 0 })).toThrow(
+      'capacity must be positive integer',
+    );
     expect(() => createObserverDevtools({ capacity: -1 })).toThrow(RangeError);
     expect(() => createObserverDevtools({ capacity: 1.5 })).toThrow(RangeError);
   });
 
   it('resolveMaxEvents throws on invalid', () => {
-    expect(() => createObserverDevtools({ maxEvents: 0 })).toThrow(RangeError);
+    expect(() => createObserverDevtools({ maxEvents: 0 })).toThrow(
+      'maxEvents must be positive integer',
+    );
+    expect(() => createObserverDevtools({ maxEvents: -1 })).toThrow(RangeError);
     expect(() => createObserverDevtools({ maxEvents: NaN })).toThrow(RangeError);
   });
 

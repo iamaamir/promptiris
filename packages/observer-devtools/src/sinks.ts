@@ -59,7 +59,7 @@ function isAllowedEntry(key: string, value: unknown): boolean {
 function projectData(data: unknown): unknown {
   if (typeof data !== 'object' || data === null) return undefined;
   if (Array.isArray(data)) return undefined;
-  const out: Record<string, unknown> = {};
+  const out: Record<string, unknown> = Object.create(null) as Record<string, unknown>;
   for (const [k, v] of Object.entries(data as Record<string, unknown>)) {
     if (!isAllowedEntry(k, v)) continue;
     out[k] = typeof v === 'string' ? boundedString(v) : v;
