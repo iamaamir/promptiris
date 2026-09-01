@@ -20,3 +20,5 @@ export {
   type ObserverDevtools,
   type ObserverDevtoolsOptions,
 } from './observer.js';
+/** @public */
+export const OBSERVER_DEVTOOLS_PACKAGE = '@promptiris/observer-devtools';

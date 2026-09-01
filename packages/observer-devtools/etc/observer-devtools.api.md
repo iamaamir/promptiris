@@ -8,12 +8,7 @@ import type { DebugRecord } from '@promptiris/core';
 import type { DebugRecordSink } from '@promptiris/core';
 import type { Event as Event_2 } from '@promptiris/protocol';
 import type { EventDispatcher } from '@promptiris/core';
-
-// @public (undocumented)
-export function attachObserver(dispatcher: EventDispatcher, sink: EventSink, options?: {
-    readonly observerId?: string;
-    readonly capacity?: number;
-}): ObserverAttachment;
+import { PluginRegistration } from '@promptiris/plugin-sdk';
 
 // @public (undocumented)
 export interface BundleInput {
@@ -45,29 +40,10 @@ export interface ConsoleSinkOptions {
 export function createConsoleSink(options?: ConsoleSinkOptions): EventSink;
 
 // @public (undocumented)
-export function createDebugCapture(limit?: number): DebugCapture;
-
-// @public (undocumented)
-export function createEventCapture(limit?: number): EventCapture;
+export function createObserverDevtools(options?: ObserverDevtoolsOptions): ObserverDevtools;
 
 // @public (undocumented)
 export function createSupportBundle(input: BundleInput): SupportBundle;
-
-// @public (undocumented)
-export interface DebugCapture extends DebugRecordSink {
-    // (undocumented)
-    readonly dropped: number;
-    // (undocumented)
-    readonly records: readonly DebugRecord[];
-}
-
-// @public (undocumented)
-export interface EventCapture extends EventSink {
-    // (undocumented)
-    readonly dropped: number;
-    // (undocumented)
-    readonly events: readonly Event_2[];
-}
 
 // @public (undocumented)
 export interface EventSink {
@@ -76,16 +52,23 @@ export interface EventSink {
 }
 
 // @public (undocumented)
+export function formatEvent(event: Event_2): string;
+
+// @public (undocumented)
 export class JsonLinesSink implements EventSink {
-    constructor(options?: {
-        readonly capacity?: number;
-    });
+    constructor(options?: JsonLinesSinkOptions);
     // (undocumented)
     clear(): void;
     // (undocumented)
     get lines(): readonly string[];
     // (undocumented)
     write(event: Event_2): void;
+}
+
+// @public (undocumented)
+export interface JsonLinesSinkOptions {
+    // (undocumented)
+    readonly capacity?: number;
 }
 
 // @public (undocumented)
@@ -98,11 +81,48 @@ export const MAX_BUNDLE_DEBUG_RECORDS = 128;
 export const MAX_BUNDLE_EVENTS = 256;
 
 // @public (undocumented)
-export interface ObserverAttachment extends AsyncDisposable {
+export const OBSERVER_DEVTOOLS_PACKAGE = "@promptiris/observer-devtools";
+
+// @public (undocumented)
+export interface ObserverDevtools extends DebugRecordSink {
     // (undocumented)
-    detach(): Promise<void>;
+    attach(dispatcher: EventDispatcher): {
+        detach(): Promise<void>;
+    };
     // (undocumented)
-    readonly done: Promise<void>;
+    capture(record: DebugRecord): void;
+    // (undocumented)
+    createBundle(options?: {
+        createdAt?: string;
+    }): SupportBundle;
+    // (undocumented)
+    getDebugRecords(): readonly DebugRecord[];
+    // (undocumented)
+    getEvents(): readonly Event_2[];
+    // (undocumented)
+    readonly jsonSink: JsonLinesSink;
+    // (undocumented)
+    readonly manifest: PluginRegistration['manifest'];
+    // (undocumented)
+    readonly observerId: string;
+}
+
+// @public (undocumented)
+export interface ObserverDevtoolsOptions {
+    // (undocumented)
+    readonly capacity?: number;
+    // (undocumented)
+    readonly configTraceId?: string;
+    // (undocumented)
+    readonly consoleSink?: EventSink | false;
+    // (undocumented)
+    readonly jsonSink?: JsonLinesSink;
+    // (undocumented)
+    readonly manifestIds?: readonly string[];
+    // (undocumented)
+    readonly maxEvents?: number;
+    // (undocumented)
+    readonly observerId?: string;
 }
 
 // @public (undocumented)
@@ -117,11 +137,11 @@ export interface SupportBundle {
     // (undocumented)
     readonly createdAt: string;
     // (undocumented)
-    readonly debugRecords: readonly unknown[];
+    readonly debugRecords: readonly DebugRecord[];
     // (undocumented)
     readonly deterministic: true;
     // (undocumented)
-    readonly events: readonly unknown[];
+    readonly events: readonly Event_2[];
     // (undocumented)
     readonly manifestRefs: readonly string[];
     // (undocumented)
@@ -131,7 +151,7 @@ export interface SupportBundle {
     // (undocumented)
     readonly runId?: string;
     // (undocumented)
-    readonly schemaVersion: '1';
+    readonly schemaVersion: typeof SUPPORT_BUNDLE_SCHEMA_VERSION;
     // (undocumented)
     readonly traceId?: string;
 }

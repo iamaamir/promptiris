@@ -5,6 +5,11 @@ import type { Event } from '@promptiris/protocol';
 import { createObserverDevtools } from './observer.js';
 import { JsonLinesSink, createConsoleSink, formatEvent } from './sinks.js';
 import { createSupportBundle, MAX_BUNDLE_BYTES, MAX_BUNDLE_EVENTS } from './support-bundle.js';
+import { OBSERVER_DEVTOOLS_PACKAGE } from './index.js';
+
+it('exports package identity', () => {
+  expect(OBSERVER_DEVTOOLS_PACKAGE).toBe('@promptiris/observer-devtools');
+});
 
 function emit(
   dispatcher: ReturnType<typeof createEventDispatcher>,
