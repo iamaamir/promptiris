@@ -113,6 +113,23 @@ describe('observer devtools', () => {
     expect(jsonSink.lines[0]).toContain('promptiris.phase.started');
   });
 
+  it('defaults json sink capacity to maxEvents and bundles run identity', async () => {
+    const dispatcher = createEventDispatcher('run-capacity');
+    const devtools = createObserverDevtools({ observerId: 'test/capacity', maxEvents: 1 });
+    const handle = devtools.attach(dispatcher);
+    emit(dispatcher, 'promptiris.phase.started', { phase: 'first' });
+    emit(dispatcher, 'promptiris.phase.completed', { phase: 'second' });
+    dispatcher.complete('success');
+    await new Promise((r) => setTimeout(r, 20));
+    expect(devtools.jsonSink.lines.length).toBe(1);
+    expect(devtools.getEvents().length).toBe(1);
+    const bundle = devtools.createBundle();
+    expect(bundle.runId).toBe('run-capacity');
+    expect(bundle.traceId).toBe('run-capacity');
+    expect(bundle.createdAt).toBe('1970-01-01T00:00:00.000Z');
+    await handle.detach();
+  });
+
   it('console and json sinks show fallback, timing, artifact refs via allowlisted projection', async () => {
     const lines: string[] = [];
     const consoleSink = createConsoleSink({ writer: (l) => lines.push(l) });
@@ -153,10 +170,16 @@ describe('observer devtools', () => {
     expect(devtools.getEvents().length).toBeGreaterThan(0);
   });
 
-  it('does not allow one instance to mix run lifecycles', () => {
+  it('does not allow one instance to mix run lifecycles', async () => {
     const devtools = createObserverDevtools();
     const first = createEventDispatcher('first');
-    devtools.attach(first);
+    const handle = devtools.attach(first);
+    emit(first, 'promptiris.phase.started', { phase: 'one' });
+    await new Promise((r) => setTimeout(r, 10));
+    await handle.detach();
+    emit(first, 'promptiris.phase.completed', { phase: 'two' });
+    await new Promise((r) => setTimeout(r, 10));
+    expect(devtools.getEvents().length).toBe(1);
     expect(() => devtools.attach(createEventDispatcher('second'))).toThrow(/attach only once/);
   });
 
@@ -170,6 +193,49 @@ describe('observer devtools', () => {
     await new Promise((r) => setTimeout(r, 20));
     // should have at least drop event in dispatcher sink + not throw
     await expect(h.detach()).resolves.not.toThrow();
+  });
+
+  it('detaches from live subscription before next event arrives', async () => {
+    let returnCalled = 0;
+    let detached = false;
+    const handleRef: { current?: { detach(): Promise<void> } } = {};
+    const iterator = {
+      step: 0,
+      async next() {
+        this.step += 1;
+        if (this.step === 1)
+          return {
+            done: false,
+            value: makeEvent({ id: '1', sequence: 1, runId: 'run-live', traceId: 'run-live' }),
+          };
+        await new Promise<void>((resolve) => setTimeout(resolve, 50));
+        return {
+          done: false,
+          value: makeEvent({ id: '2', sequence: 2, runId: 'run-live', traceId: 'run-live' }),
+        };
+      },
+      async return() {
+        returnCalled += 1;
+        detached = true;
+        throw new Error('detach boom');
+      },
+      [Symbol.asyncIterator]() {
+        return this;
+      },
+    } as AsyncIterator<Event> & AsyncIterableIterator<Event> & { step: number };
+    const dispatcher = {
+      subscribe: () => iterator,
+    } as unknown as ReturnType<typeof createEventDispatcher>;
+    const consoleSink = createConsoleSink({
+      writer: () => {
+        if (!detached) void handleRef.current?.detach();
+      },
+    });
+    const devtools = createObserverDevtools({ observerId: 'test/obs-live', consoleSink });
+    handleRef.current = devtools.attach(dispatcher);
+    await new Promise((r) => setTimeout(r, 100));
+    expect(returnCalled).toBeGreaterThan(0);
+    expect(devtools.getEvents().length).toBeGreaterThanOrEqual(1);
   });
 
   it('support bundle is explicit bounded deterministic redacted', async () => {
@@ -197,6 +263,7 @@ describe('observer devtools', () => {
     });
     await new Promise((r) => setTimeout(r, 10));
     const bundle = devtools.createBundle({ createdAt: '2026-01-01T00:00:00.000Z' });
+    expect(bundle.createdAt).toBe('2026-01-01T00:00:00.000Z');
     expect(bundle.bounded).toBe(true);
     expect(bundle.redacted).toBe(true);
     expect(bundle.deterministic).toBe(true);
@@ -204,7 +271,10 @@ describe('observer devtools', () => {
     const sensitive = bundle.events.find((e) => e.type === 'test.sensitive');
     expect(sensitive?.data).toEqual({ redacted: true });
     expect(bundle.manifestRefs).toEqual(['plug/a']);
+    expect(bundle.manifestRefs).toHaveLength(1);
     expect(bundle.configTraceRef).toBe('trace-1');
+    expect(bundle.runId).toBe('run-6');
+    expect(bundle.traceId).toBe('run-6');
     // debug records must be redacted, no raw message/stack
     expect(bundle.debugRecords[0]?.exception.message).toBe('[redacted]');
     expect(
@@ -246,6 +316,7 @@ describe('observer devtools', () => {
     const devtools = createObserverDevtools({ observerId: 'test/usable' });
     expect(devtools.manifest.type).toBe('observer');
     expect(devtools.manifest.id).toBe('test/usable');
+    expect(devtools.manifest.version).toBe('0.1.0');
     // plugin authors can attach via public EventDispatcher and DebugRecordSink interfaces
     const dispatcher = createEventDispatcher('run-usable');
     const handle = devtools.attach(dispatcher);

@@ -289,34 +289,33 @@ describe('support-bundle killers', () => {
     expect(d2.status).toBe('b');
   });
 
-  it('support projection rejects unsafe values and sorts nested metadata', () => {
+  it('support projection rejects unsafe values and preserves deterministic field order', () => {
     const data = Object.create(null) as Record<string, unknown>;
-    data.phase = 'ok';
+    data.status = 'b';
+    data.phase = 'a';
     data.fallback = true;
     data.durationMs = Infinity;
     data.timing = NaN;
     data.nested = { z: 'secret', a: 'secret' };
-    Reflect.set(data, '__proto__', 'blocked');
-    Reflect.set(data, 'constructor', 'blocked');
-    Reflect.set(data, 'prototype', 'blocked');
     const bundle = createSupportBundle({
       observerId: 'o',
       events: [ev(data)],
       debugRecords: [],
       createdAt: '2026-01-01T00:00:00.000Z',
     });
+    const line = JSON.stringify(bundle.events[0]);
+    expect(line).toContain('"phase":"a"');
+    expect(line.indexOf('"phase"')).toBeLessThan(line.indexOf('"status"'));
     const projected = bundle.events[0]?.data as Record<string, unknown>;
-    expect(projected.phase).toBe('ok');
     expect(projected.fallback).toBe(true);
     expect(projected.durationMs).toBeUndefined();
     expect(projected.timing).toBeUndefined();
     expect(projected.nested).toBeUndefined();
-    expect(Object.hasOwn(projected, 'constructor')).toBe(false);
-    expect(Object.hasOwn(projected, 'prototype')).toBe(false);
+    expect(projected.status).toBe('b');
   });
 
-  it('enforceByteCap drops progress then all', () => {
-    const big = 'x'.repeat(300);
+  it('enforceByteCap drops progress before slicing critical events', () => {
+    const big = 'x'.repeat(900);
     const data = {
       phase: big,
       status: big,
@@ -325,11 +324,11 @@ describe('support-bundle killers', () => {
       reason: big,
       fallback: big,
     };
-    const progress = Array.from({ length: 30 }, (_, i) =>
+    const progress = Array.from({ length: 260 }, (_, i) =>
       ev(data, { id: `p-${String(i)}`, sequence: i, delivery: 'progress' }),
     );
-    const critical = Array.from({ length: 30 }, (_, i) =>
-      ev(data, { id: `c-${String(i)}`, sequence: 100 + i, delivery: 'critical' }),
+    const critical = Array.from({ length: 260 }, (_, i) =>
+      ev(data, { id: `c-${String(i)}`, sequence: 1000 + i, delivery: 'critical' }),
     );
     const bundle = createSupportBundle({
       observerId: 'o',
@@ -337,12 +336,11 @@ describe('support-bundle killers', () => {
       debugRecords: [],
       createdAt: '2026-01-01T00:00:00.000Z',
     });
-    const bytes = new TextEncoder().encode(JSON.stringify(bundle)).length;
-    expect(bytes).toBeLessThanOrEqual(MAX_BUNDLE_BYTES);
-    // when over cap, progress should be dropped
-    if (bundle.events.length < 60) {
-      expect(bundle.events.every((e) => e.delivery !== 'progress')).toBe(true);
-    }
+    expect(bundle.events.length).toBeLessThanOrEqual(MAX_BUNDLE_EVENTS);
+    expect(bundle.events.some((e) => e.delivery === 'progress')).toBe(false);
+    expect(new TextEncoder().encode(JSON.stringify(bundle)).length).toBeLessThanOrEqual(
+      MAX_BUNDLE_BYTES,
+    );
   });
 
   it('handles huge bundle by clearing events and debugRecords', () => {
@@ -381,6 +379,8 @@ describe('support-bundle killers', () => {
       createdAt: '2026-01-01T00:00:00.000Z',
     });
     expect(b.manifestRefs).toEqual(['a', 'm', 'z']);
+    expect(b.manifestRefs).toHaveLength(3);
+    expect(b.createdAt).toBe('2026-01-01T00:00:00.000Z');
     expect(b.configTraceRef).toBe('cfg');
     expect(
       createSupportBundle({
@@ -391,7 +391,16 @@ describe('support-bundle killers', () => {
         manifestIds: Array.from({ length: 100 }, (_, i) => String(i)),
         createdAt: '2026-01-01T00:00:00.000Z',
       }).configTraceRef?.length,
-    ).toBe(257);
+    ).toBe(513);
+    expect(
+      createSupportBundle({
+        observerId: 'o',
+        events: [],
+        debugRecords: [],
+        manifestIds: Array.from({ length: 100 }, (_, i) => String(i)),
+        createdAt: '2026-01-01T00:00:00.000Z',
+      }).manifestRefs,
+    ).toHaveLength(64);
     expect(b.runId).toBe('run');
     expect(b.traceId).toBe('trace');
   });

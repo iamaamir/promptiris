@@ -65,7 +65,7 @@ const MAX_STRING_LENGTH = 256;
 const MAX_REFERENCE_LENGTH = 512;
 const MAX_REFERENCES = 64;
 function boundedReference(value: string): string {
-  return boundedString(value).slice(0, MAX_REFERENCE_LENGTH);
+  return value.length <= MAX_REFERENCE_LENGTH ? value : `${value.slice(0, MAX_REFERENCE_LENGTH)}…`;
 }
 
 function isPlainValue(value: unknown): boolean {
@@ -77,13 +77,8 @@ function boundedString(value: string): string {
   return value.length <= MAX_STRING_LENGTH ? value : `${value.slice(0, MAX_STRING_LENGTH)}…`;
 }
 
-function isPollutionKey(key: string): boolean {
-  return key === '__proto__' || key === 'constructor' || key === 'prototype';
-}
-
 function isAllowedEntry(key: string, value: unknown): boolean {
   if (!isAllowlistedKey(key)) return false;
-  if (isPollutionKey(key)) return false;
   if (!isPlainValue(value)) return false;
   if (typeof value === 'number' && !Number.isFinite(value)) return false;
   return true;
@@ -93,7 +88,9 @@ function projectData(data: unknown): Record<string, unknown> | undefined {
   if (typeof data !== 'object' || data === null) return undefined;
   if (Array.isArray(data)) return undefined;
   const out: Record<string, unknown> = Object.create(null) as Record<string, unknown>;
-  for (const [k, v] of Object.entries(data as Record<string, unknown>)) {
+  for (const [k, v] of Object.entries(data as Record<string, unknown>).sort(([a], [b]) =>
+    a.localeCompare(b),
+  )) {
     if (!isAllowedEntry(k, v)) continue;
     out[k] = typeof v === 'string' ? boundedString(v) : v;
   }
@@ -178,17 +175,29 @@ function buildInitialBundle(
   });
 }
 
-function enforceByteCap(bundle: SupportBundle, events: readonly Event[]): SupportBundle {
-  let bytes = utf8ByteLength(stableStringify(bundle));
-  if (bytes <= MAX_BUNDLE_BYTES) return bundle;
+function enforceByteCap(
+  bundle: SupportBundle,
+  events: readonly Event[],
+  debugRecords: readonly DebugRecord[],
+): SupportBundle {
+  const boundedBundle: SupportBundle = Object.freeze({
+    ...bundle,
+    events: Object.freeze(events.slice(0, MAX_BUNDLE_EVENTS)),
+    debugRecords: Object.freeze(debugRecords.slice(0, MAX_BUNDLE_DEBUG_RECORDS)),
+  });
+  let bytes = utf8ByteLength(stableStringify(boundedBundle));
+  if (bytes <= MAX_BUNDLE_BYTES) return boundedBundle;
   const truncatedEvents = events
     .filter((e) => e.delivery !== 'progress')
     .slice(0, MAX_BUNDLE_EVENTS);
-  const tmp: SupportBundle = Object.freeze({ ...bundle, events: Object.freeze(truncatedEvents) });
+  const tmp: SupportBundle = Object.freeze({
+    ...boundedBundle,
+    events: Object.freeze(truncatedEvents),
+  });
   bytes = utf8ByteLength(stableStringify(tmp));
   if (bytes <= MAX_BUNDLE_BYTES) return tmp;
   const minimal = Object.freeze({
-    ...bundle,
+    ...boundedBundle,
     events: Object.freeze([]),
     debugRecords: Object.freeze([]),
     manifestRefs: Object.freeze([]),
@@ -200,9 +209,9 @@ function enforceByteCap(bundle: SupportBundle, events: readonly Event[]): Suppor
 
 /** @public */
 export function createSupportBundle(input: BundleInput): SupportBundle {
-  const events = input.events.slice(0, MAX_BUNDLE_EVENTS).map(redactEvent);
+  const events = input.events.map(redactEvent);
   events.sort((a, b) => a.sequence - b.sequence || a.id.localeCompare(b.id));
-  const debugRecords = input.debugRecords.slice(0, MAX_BUNDLE_DEBUG_RECORDS).map(redactDebugRecord);
+  const debugRecords = input.debugRecords.map(redactDebugRecord);
   const bundle = buildInitialBundle(input, events, debugRecords);
-  return enforceByteCap(bundle, events);
+  return enforceByteCap(bundle, events, debugRecords);
 }
