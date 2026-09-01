@@ -32,10 +32,8 @@ export interface ObserverDevtools extends DebugRecordSink {
   createBundle(options?: { createdAt?: string }): SupportBundle;
 }
 
-const DEFAULT_OBSERVER_ID = 'promptiris/observer-devtools';
-
 function resolveObserverId(input?: string): string {
-  const id = input ?? DEFAULT_OBSERVER_ID;
+  const id = input ?? 'promptiris/observer-devtools';
   if (typeof id !== 'string' || id.length === 0)
     throw new Error('observerId must be non-empty string');
   return id;

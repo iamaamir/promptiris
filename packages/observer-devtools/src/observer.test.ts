@@ -7,8 +7,9 @@ import { JsonLinesSink, createConsoleSink, formatEvent } from './sinks.js';
 import { createSupportBundle, MAX_BUNDLE_BYTES, MAX_BUNDLE_EVENTS } from './support-bundle.js';
 import { OBSERVER_DEVTOOLS_PACKAGE } from './index.js';
 
-it('exports package identity', () => {
+it('exports package identity and default observer id', () => {
   expect(OBSERVER_DEVTOOLS_PACKAGE).toBe('@promptiris/observer-devtools');
+  expect(createObserverDevtools().observerId).toBe('promptiris/observer-devtools');
 });
 
 function emit(

@@ -124,11 +124,13 @@ describe('sinks killers', () => {
     spy.mockRestore();
   });
 
-  it('formatEvent handles missing data', () => {
-    const e = ev(null);
+  it('formatEvent handles missing data and rejects wrong field types', () => {
+    const e = ev({ phase: 42, durationMs: '5' });
     const line = formatEvent(e);
     expect(line).toContain('[0]');
     expect(line).toContain('source=s');
+    expect(line).not.toContain('phase=42');
+    expect(line).not.toContain('durationMs=5');
   });
 
   it('formatEvent filters non-finite numbers', () => {
@@ -150,6 +152,8 @@ describe('sinks killers', () => {
       kind: 'k',
       artifactKind: 'ak',
       digest: 'd',
+      durationMs: 42,
+      timing: 5,
     };
     const line = formatEvent(ev(data));
     expect(line).toContain('phase=p');
@@ -164,7 +168,7 @@ describe('sinks killers', () => {
     expect(line).toContain('digest=d');
     for (const v of Object.values(data)) expect(line).toContain(v);
     expect(line).toBe(
-      '[0] t source=s phase=p plugin=pl contrib=c status=s observer=o reason=r fallback=f kind=k artifactKind=ak digest=d delivery=critical',
+      '[0] t source=s phase=p plugin=pl contrib=c status=s observer=o reason=r fallback=f kind=k artifactKind=ak digest=d durationMs=42 timing=5 delivery=critical',
     );
     const sink = new JsonLinesSink({ capacity: 2 });
     sink.write(ev(data));
@@ -289,6 +293,28 @@ describe('support-bundle killers', () => {
     expect(d2.status).toBe('b');
   });
 
+  it('support projection handles undefined metadata', () => {
+    const bundle = createSupportBundle({
+      observerId: 'o',
+      events: [ev(undefined)],
+      debugRecords: [],
+      createdAt: '2026-01-01T00:00:00.000Z',
+    });
+    expect(bundle.events[0]?.data).toEqual({});
+  });
+
+  it('support projection rejects arrays with allowlisted own properties', () => {
+    const array = [] as unknown as Record<string, unknown>;
+    array.phase = 'must-not-export';
+    const bundle = createSupportBundle({
+      observerId: 'o',
+      events: [ev(array)],
+      debugRecords: [],
+      createdAt: '2026-01-01T00:00:00.000Z',
+    });
+    expect((bundle.events[0]?.data as Record<string, unknown>).phase).toBeUndefined();
+  });
+
   it('support projection rejects unsafe values and preserves deterministic field order', () => {
     const data = Object.create(null) as Record<string, unknown>;
     data.status = 'b';
@@ -312,6 +338,17 @@ describe('support-bundle killers', () => {
     expect(projected.timing).toBeUndefined();
     expect(projected.nested).toBeUndefined();
     expect(projected.status).toBe('b');
+  });
+
+  it('enforceByteCap removes progress while retaining bounded critical events', () => {
+    const data = { phase: 'x'.repeat(1000) };
+    const bundle = createSupportBundle({
+      observerId: 'o',
+      events: [ev(data, { delivery: 'progress' }), ev(data, { id: 'critical' })],
+      debugRecords: [],
+      createdAt: '2026-01-01T00:00:00.000Z',
+    });
+    expect(bundle.events.map((event) => event.delivery)).toEqual(['critical']);
   });
 
   it('enforceByteCap drops progress before slicing critical events', () => {
@@ -359,12 +396,25 @@ describe('support-bundle killers', () => {
       observerId: 'o',
       events: hugeEvents,
       debugRecords: hugeDebug,
+      manifestIds: ['secret-manifest'],
       createdAt: '2026-01-01T00:00:00.000Z',
     });
     const bytes = new TextEncoder().encode(JSON.stringify(b)).length;
     expect(bytes).toBeLessThanOrEqual(MAX_BUNDLE_BYTES);
     // when still over after dropping progress, it clears both
     if (b.events.length === 0) expect(b.debugRecords.length).toBe(0);
+  });
+
+  it('minimal byte-cap fallback clears manifest refs', () => {
+    const bundle = createSupportBundle({
+      observerId: 'o'.repeat(300_000),
+      events: [],
+      debugRecords: [],
+      manifestIds: ['must-clear'],
+    });
+    expect(bundle.manifestRefs).toEqual([]);
+    expect(bundle.events).toEqual([]);
+    expect(bundle.debugRecords).toEqual([]);
   });
 
   it('buildInitialBundle sorts manifestRefs and handles optional fields', () => {
@@ -397,7 +447,7 @@ describe('support-bundle killers', () => {
         observerId: 'o',
         events: [],
         debugRecords: [],
-        configTraceId: 'x'.repeat(513),
+        configTraceId: 'x'.repeat(600),
         manifestIds: Array.from({ length: 100 }, (_, i) => String(i)),
         createdAt: '2026-01-01T00:00:00.000Z',
       }).configTraceRef?.length,
@@ -413,6 +463,7 @@ describe('support-bundle killers', () => {
     ).toHaveLength(64);
     expect(b.runId).toBe('run');
     expect(b.traceId).toBe('trace');
+    expect(b.configTraceRef).toBe('cfg');
   });
 
   it('buildInitialBundle without optional fields', () => {
@@ -459,6 +510,33 @@ describe('support-bundle killers', () => {
     expect(b.debugRecords[0]?.exception.message).toBe('[redacted]');
     expect((b.debugRecords[0] as unknown as Record<string, unknown>).stack).toBeUndefined();
     expect(b.debugRecords[0]?.contributionId).toBe('c');
+  });
+
+  it('returns bundle exactly at byte cap without dropping critical data', () => {
+    const seed = createSupportBundle({
+      observerId: 'o',
+      events: [ev({ phase: 'x' })],
+      debugRecords: [],
+    });
+    const seedBytes = new TextEncoder().encode(JSON.stringify(seed)).length;
+    const observerId = 'o'.repeat(MAX_BUNDLE_BYTES - seedBytes + 1);
+    const bundle = createSupportBundle({
+      observerId,
+      events: [ev({ phase: 'x' })],
+      debugRecords: [],
+    });
+    expect(new TextEncoder().encode(JSON.stringify(bundle)).length).toBe(MAX_BUNDLE_BYTES);
+    expect(bundle.events).toHaveLength(1);
+  });
+
+  it('exports exact byte-cap constant and slices events before byte-cap processing', () => {
+    expect(MAX_BUNDLE_BYTES).toBe(262144);
+    const events = Array.from({ length: MAX_BUNDLE_EVENTS + 1 }, (_, i) =>
+      ev({}, { id: String(i), sequence: i }),
+    );
+    const bundle = createSupportBundle({ observerId: 'o', events, debugRecords: [] });
+    expect(bundle.events).toHaveLength(MAX_BUNDLE_EVENTS);
+    expect(bundle.events.at(-1)?.id).toBe(String(MAX_BUNDLE_EVENTS - 1));
   });
 
   it('slices events and debugRecords at max', () => {

@@ -44,21 +44,15 @@ function boundedString(value: string): string {
   return value.length <= MAX_STRING_LENGTH ? value : `${value.slice(0, MAX_STRING_LENGTH)}…`;
 }
 
-function isPollutionKey(key: string): boolean {
-  return key === '__proto__' || key === 'constructor' || key === 'prototype';
-}
-
 function isAllowedEntry(key: string, value: unknown): boolean {
   if (!isAllowlistedKey(key)) return false;
-  if (isPollutionKey(key)) return false;
   if (!isPlainValue(value)) return false;
   if (typeof value === 'number' && !Number.isFinite(value)) return false;
   return true;
 }
 
 function projectData(data: unknown): Record<string, unknown> {
-  if (typeof data !== 'object' || data === null || Array.isArray(data))
-    return Object.create(null) as Record<string, unknown>;
+  if (data == null || Array.isArray(data)) return Object.create(null) as Record<string, unknown>;
   const out: Record<string, unknown> = Object.create(null) as Record<string, unknown>;
   for (const [k, v] of Object.entries(data as Record<string, unknown>)) {
     if (!isAllowedEntry(k, v)) continue;
@@ -72,36 +66,25 @@ function pushIfString(parts: string[], key: string, value: unknown): void {
 }
 
 function pushIfNumber(parts: string[], key: string, value: unknown): void {
-  if (typeof value === 'number' && Number.isFinite(value)) parts.push(`${key}=${String(value)}`);
+  if (Number.isFinite(value)) parts.push(`${key}=${String(value)}`);
 }
-
-const STRING_FIELDS: [string, string][] = [
-  ['phase', 'phase'],
-  ['plugin', 'pluginId'],
-  ['contrib', 'contributionId'],
-  ['status', 'status'],
-  ['observer', 'observerId'],
-  ['reason', 'reason'],
-  ['fallback', 'fallback'],
-  ['kind', 'kind'],
-  ['artifactKind', 'artifactKind'],
-  ['digest', 'digest'],
-];
-
-const NUMBER_FIELDS: [string, string][] = [
-  ['durationMs', 'durationMs'],
-  ['timing', 'timing'],
-];
 
 /** @public */
 export function formatEvent(event: Event): string {
-  const data = event.data as Record<string, unknown>;
-  const parts: string[] = [];
-  parts.push(`[${String(event.sequence)}]`);
-  parts.push(event.type);
-  parts.push(`source=${event.source}`);
-  for (const [label, key] of STRING_FIELDS) pushIfString(parts, label, data?.[key]);
-  for (const [label, key] of NUMBER_FIELDS) pushIfNumber(parts, label, data?.[key]);
+  const data = (event.data ?? {}) as Record<string, unknown>;
+  const parts: string[] = [`[${String(event.sequence)}]`, event.type, `source=${event.source}`];
+  pushIfString(parts, 'phase', data.phase);
+  pushIfString(parts, 'plugin', data.pluginId);
+  pushIfString(parts, 'contrib', data.contributionId);
+  pushIfString(parts, 'status', data.status);
+  pushIfString(parts, 'observer', data.observerId);
+  pushIfString(parts, 'reason', data.reason);
+  pushIfString(parts, 'fallback', data.fallback);
+  pushIfString(parts, 'kind', data.kind);
+  pushIfString(parts, 'artifactKind', data.artifactKind);
+  pushIfString(parts, 'digest', data.digest);
+  pushIfNumber(parts, 'durationMs', data.durationMs);
+  pushIfNumber(parts, 'timing', data.timing);
   parts.push(`delivery=${event.delivery}`);
   return parts.join(' ');
 }

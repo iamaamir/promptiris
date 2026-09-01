@@ -8,7 +8,7 @@ export const MAX_BUNDLE_EVENTS = 256;
 /** @public */
 export const MAX_BUNDLE_DEBUG_RECORDS = 128;
 /** @public */
-export const MAX_BUNDLE_BYTES = 256 * 1024;
+export const MAX_BUNDLE_BYTES = 262_144;
 
 /** @public */
 export interface SupportBundle {
@@ -85,8 +85,7 @@ function isAllowedEntry(key: string, value: unknown): boolean {
 }
 
 function projectData(data: unknown): Record<string, unknown> {
-  if (typeof data !== 'object' || data === null || Array.isArray(data))
-    return Object.create(null) as Record<string, unknown>;
+  if (data == null || Array.isArray(data)) return Object.create(null) as Record<string, unknown>;
   const out: Record<string, unknown> = Object.create(null) as Record<string, unknown>;
   for (const [k, v] of Object.entries(data as Record<string, unknown>).sort(([a], [b]) =>
     a.localeCompare(b),
@@ -182,19 +181,15 @@ function enforceByteCap(
 ): SupportBundle {
   const boundedBundle: SupportBundle = Object.freeze({
     ...bundle,
-    events: Object.freeze(events.slice(0, MAX_BUNDLE_EVENTS)),
+    events: Object.freeze(events),
     debugRecords: Object.freeze(debugRecords.slice(0, MAX_BUNDLE_DEBUG_RECORDS)),
   });
-  let bytes = utf8ByteLength(stableStringify(boundedBundle));
-  if (bytes <= MAX_BUNDLE_BYTES) return boundedBundle;
-  const truncatedEvents = events
-    .filter((e) => e.delivery !== 'progress')
-    .slice(0, MAX_BUNDLE_EVENTS);
+  const truncatedEvents = events.filter((e) => e.delivery !== 'progress');
   const tmp: SupportBundle = Object.freeze({
     ...boundedBundle,
     events: Object.freeze(truncatedEvents),
   });
-  bytes = utf8ByteLength(stableStringify(tmp));
+  const bytes = utf8ByteLength(stableStringify(tmp));
   if (bytes <= MAX_BUNDLE_BYTES) return tmp;
   const minimal = Object.freeze({
     ...boundedBundle,
@@ -207,7 +202,7 @@ function enforceByteCap(
 
 /** @public */
 export function createSupportBundle(input: BundleInput): SupportBundle {
-  const events = input.events.map(redactEvent);
+  const events = input.events.map(redactEvent).filter((_event, index) => index < MAX_BUNDLE_EVENTS);
   events.sort((a, b) => a.sequence - b.sequence || a.id.localeCompare(b.id));
   const debugRecords = input.debugRecords.map(redactDebugRecord);
   const bundle = buildInitialBundle(input, events, debugRecords);
