@@ -77,9 +77,10 @@ out-of-scope paths, new suppressions, focused or skipped tests, and mutation/cov
 
 Do not hand-edit `stryker.config.mjs` or `tooling/quality/mutation-policy.json` to add a newly
 changed production TypeScript file. Use `node scripts/register-mutation-target.mjs <path>` instead.
-The command is intentionally narrow: it adds one target and a 90% minimum, zero-debt policy entry.
-The trusted verifier accepts only that exact additive shape; every removal, aggregate-policy change,
-suppression, or unrelated Stryker edit remains protected.
+Run the command once per new production module when a Work Item needs several targets. Each command
+adds one target and a 90% minimum, zero-debt policy entry. The trusted verifier accepts only the
+resulting additive shape; every removal, aggregate-policy change, suppression, or unrelated Stryker
+edit remains protected.
 
 ## Reviewer contract
 
