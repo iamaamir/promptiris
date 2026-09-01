@@ -34,9 +34,9 @@ interface FakeChildHandle {
 }
 
 interface FakeNativeScript {
-  initialize: () => Record<string, unknown> | Promise<Record<string, unknown>>;
-  invoke: (params: unknown) => Promise<Record<string, unknown>> | Record<string, unknown>;
-  shutdown: (handle: FakeChildHandle) => void | Promise<void>;
+  initialize: () => Promise<unknown>;
+  invoke: (params: unknown) => Promise<unknown>;
+  shutdown: (handle: FakeChildHandle) => Promise<unknown>;
 }
 
 interface FakeNativeTransport {
@@ -663,14 +663,19 @@ describe('defineNativePlugin', () => {
   it('accepts a fake in-memory transport without spawning a real process', async () => {
     const transport = createFakeNativeTransport({
       script: {
-        initialize: () => ({
-          protocolVersion: '1',
-          capabilities: { methods: ['plugin/invoke'], events: [] },
-          limits: { maxFrameBytes: 8 * 1024 * 1024, maxDepth: 64 },
-        }),
-        invoke: () => ({ patches: [{ operations: [{ block: { text: 'fake' } }] }] }),
+        initialize: () =>
+          Promise.resolve({
+            protocolVersion: '1',
+            capabilities: { methods: ['plugin/invoke'], events: [] },
+            limits: { maxFrameBytes: 8 * 1024 * 1024, maxDepth: 64 },
+          }),
+        invoke: () =>
+          Promise.resolve({
+            patches: [{ operations: [{ block: { text: 'fake' } }] }],
+          }),
         shutdown: (handle) => {
           handle.kill('SIGTERM');
+          return Promise.resolve();
         },
       },
     });
@@ -689,14 +694,16 @@ describe('defineNativePlugin', () => {
         // the first invocation stays in flight while the duplicate is attempted.
         const transport = createFakeNativeTransport({
           script: {
-            initialize: () => ({
-              protocolVersion: '1',
-              capabilities: { methods: ['plugin/invoke'], events: [] },
-              limits: { maxFrameBytes: 8 * 1024 * 1024, maxDepth: 64 },
-            }),
-            invoke: () => new Promise(() => undefined),
+            initialize: () =>
+              Promise.resolve({
+                protocolVersion: '1',
+                capabilities: { methods: ['plugin/invoke'], events: [] },
+                limits: { maxFrameBytes: 8 * 1024 * 1024, maxDepth: 64 },
+              }),
+            invoke: () => new Promise<unknown>(() => undefined),
             shutdown: (handle) => {
               handle.kill('SIGTERM');
+              return Promise.resolve();
             },
           },
         });
@@ -722,17 +729,19 @@ describe('defineNativePlugin', () => {
     let resolveInvoke: ((value: unknown) => void) | undefined;
     const transport = createFakeNativeTransport({
       script: {
-        initialize: () => ({
-          protocolVersion: '1',
-          capabilities: { methods: ['plugin/invoke'], events: [] },
-          limits: { maxFrameBytes: 8 * 1024 * 1024, maxDepth: 64 },
-        }),
+        initialize: () =>
+          Promise.resolve({
+            protocolVersion: '1',
+            capabilities: { methods: ['plugin/invoke'], events: [] },
+            limits: { maxFrameBytes: 8 * 1024 * 1024, maxDepth: 64 },
+          }),
         invoke: () =>
           new Promise<unknown>((resolve) => {
             resolveInvoke = resolve;
           }),
         shutdown: (handle) => {
           handle.kill('SIGTERM');
+          return Promise.resolve();
         },
       },
     });
