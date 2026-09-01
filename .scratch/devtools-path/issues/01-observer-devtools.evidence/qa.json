@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "producerId": "observer-devtools-source-blind-qa",
+  "independent": true,
+  "verdict": "pass",
+  "findings": [],
+  "commentDecisions": [],
+  "evidence": [
+    {"checkId":"qa.package-tests","status":"passed","evidenceRef":"packages/observer-devtools/src/observer.test.ts","evidenceSha256":"30f5ffcb4842e1fbe4e44836d668266189bb2215415fac7c14e65d518cc2e360"},
+    {"checkId":"qa.public-dist-lifecycle","status":"passed","evidenceRef":"packages/observer-devtools/dist/observer.js"},
+    {"checkId":"qa.public-dist-bounds","status":"passed","evidenceRef":"packages/observer-devtools/dist/support-bundle.js"}
+  ],
+  "residualRisks": ["Generated dist is rebuilt by package build and is gitignored; mutation quality remains a separate candidate gate."],
+  "taskId": ".scratch/devtools-path/issues/01-observer-devtools.md",
+  "baseRevision": "81379e5df594b7d872e0ddf5d4cd19e870d47672",
+  "candidateRevision": "c724fd2e9c3714187f0b8e44c532312e0e8b7bd0"
+}
