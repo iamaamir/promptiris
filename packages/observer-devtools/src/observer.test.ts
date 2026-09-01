@@ -282,6 +282,27 @@ describe('observer devtools', () => {
     ).toBeUndefined();
   });
 
+  it('support bundle preserves exact string boundaries and strips non-plain allowlisted values', () => {
+    const at256 = 'x'.repeat(256);
+    const at257 = 'y'.repeat(257);
+    const bundle = createSupportBundle({
+      observerId: 'test/boundaries',
+      events: [
+        makeEvent({
+          id: 'boundary',
+          sequence: 0,
+          data: { phase: at256, status: at257, pluginId: { nested: 'nope' } },
+        }),
+      ],
+      debugRecords: [],
+      createdAt: '2026-01-01T00:00:00.000Z',
+    });
+    const data = bundle.events[0]?.data as Record<string, unknown>;
+    expect(data.phase).toBe(at256);
+    expect(data.status).toBe(`${'y'.repeat(256)}…`);
+    expect(data.pluginId).toBeUndefined();
+  });
+
   it('bounds bundle bytes deterministically with exact UTF-8 cap', () => {
     const fixedAt = '2026-01-01T00:00:00.000Z';
     const events: Event[] = Array.from({ length: MAX_BUNDLE_EVENTS + 20 }, (_, i) =>
@@ -335,11 +356,13 @@ describe('observer devtools', () => {
       traceId: 'r',
       source: 'core',
       dataSchema: 'promptiris/event/phase-started-v1',
-      data: { phase: 'transform' },
+      data: { phase: 'transform', timing: 7 },
       classification: 'metadata',
       delivery: 'critical',
     };
-    expect(formatEvent(e)).toContain('phase=transform');
+    const line = formatEvent(e);
+    expect(line).toContain('phase=transform');
+    expect(line).toContain('timing=7');
   });
 
   it('allowlisted projection strips unknown and nested values', async () => {

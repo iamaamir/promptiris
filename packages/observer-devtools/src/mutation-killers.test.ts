@@ -46,9 +46,9 @@ describe('sinks killers', () => {
     const sink = new JsonLinesSink({ capacity: 5 });
     const pollution = Object.create(null) as Record<string, unknown>;
     pollution.phase = 'ok';
-    Reflect.set(pollution, '__proto__', 'x');
-    Reflect.set(pollution, 'constructor', 'y');
-    Reflect.set(pollution, 'prototype', 'z');
+    Object.defineProperty(pollution, '__proto__', { value: 'x', enumerable: true });
+    Object.defineProperty(pollution, 'constructor', { value: 'y', enumerable: true });
+    Object.defineProperty(pollution, 'prototype', { value: 'z', enumerable: true });
     sink.write(ev(pollution));
     const line = sink.lines[0] ?? '';
     expect(line).not.toContain('__proto__');
@@ -89,7 +89,7 @@ describe('sinks killers', () => {
   });
 
   it('JsonLinesSink throws on invalid capacity', () => {
-    expect(() => new JsonLinesSink({ capacity: 0 })).toThrow(RangeError);
+    expect(() => new JsonLinesSink({ capacity: 0 })).toThrow('capacity must be positive integer');
     expect(() => new JsonLinesSink({ capacity: -1 })).toThrow(RangeError);
     expect(() => new JsonLinesSink({ capacity: 1.5 })).toThrow(RangeError);
     expect(() => new JsonLinesSink({ capacity: NaN })).toThrow(RangeError);
@@ -387,7 +387,17 @@ describe('support-bundle killers', () => {
         observerId: 'o',
         events: [],
         debugRecords: [],
-        configTraceId: 'x'.repeat(600),
+        configTraceId: 'x'.repeat(512),
+        manifestIds: Array.from({ length: 100 }, (_, i) => String(i)),
+        createdAt: '2026-01-01T00:00:00.000Z',
+      }).configTraceRef?.length,
+    ).toBe(512);
+    expect(
+      createSupportBundle({
+        observerId: 'o',
+        events: [],
+        debugRecords: [],
+        configTraceId: 'x'.repeat(513),
         manifestIds: Array.from({ length: 100 }, (_, i) => String(i)),
         createdAt: '2026-01-01T00:00:00.000Z',
       }).configTraceRef?.length,
@@ -565,33 +575,64 @@ describe('observer killers', () => {
 
   it('detach isolates failures', async () => {
     const dev = createObserverDevtools();
+    let returnCalled = 0;
     const dispatcher = {
       subscribe: () => ({
         [Symbol.asyncIterator]: async function* () {
           yield ev({ phase: 'x' });
         },
         return: async () => {
+          returnCalled += 1;
           throw new Error('detach boom');
         },
       }),
     } as unknown as import('@promptiris/core').EventDispatcher;
     const h = dev.attach(dispatcher);
     await expect(h.detach()).resolves.toBeUndefined();
+    expect(returnCalled).toBe(1);
   });
 
-  it('attach isolates backpressure', async () => {
-    const dev = createObserverDevtools();
+  it('attach stops after detach and closes subscription once', async () => {
+    let returnCalled = 0;
+    let detached = false;
+    const handleRef: { current?: { detach(): Promise<void> } } = {};
     const dispatcher = {
       subscribe: () => ({
-        [Symbol.asyncIterator]: async function* (): AsyncGenerator<Event> {
-          yield ev({ phase: 'x' });
-          throw new Error('backpressure');
+        index: 0,
+        async next() {
+          this.index += 1;
+          if (this.index === 1)
+            return {
+              done: false,
+              value: ev({ phase: 'first' }, { sequence: 1 }),
+            };
+          await new Promise((resolve) => setTimeout(resolve, 25));
+          return {
+            done: false,
+            value: ev({ phase: 'second' }, { sequence: 2 }),
+          };
         },
-        return: async () => undefined,
+        async return() {
+          returnCalled += 1;
+          detached = true;
+          return { done: true, value: undefined };
+        },
+        [Symbol.asyncIterator]() {
+          return this;
+        },
       }),
     } as unknown as import('@promptiris/core').EventDispatcher;
-    const h = dev.attach(dispatcher);
-    await new Promise((r) => setTimeout(r, 20));
-    await h.detach();
+    const consoleSink = createConsoleSink({
+      writer: () => {
+        if (!detached) void handleRef.current?.detach();
+      },
+    });
+    const dev = createObserverDevtools({ consoleSink });
+    const handle = dev.attach(dispatcher);
+    handleRef.current = handle;
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(returnCalled).toBeGreaterThanOrEqual(1);
+    expect(dev.getEvents().length).toBe(1);
+    expect(dev.getEvents()[0]?.data).toEqual({ phase: 'first' });
   });
 });

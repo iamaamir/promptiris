@@ -56,15 +56,15 @@ function isAllowedEntry(key: string, value: unknown): boolean {
   return true;
 }
 
-function projectData(data: unknown): unknown {
-  if (typeof data !== 'object' || data === null) return undefined;
-  if (Array.isArray(data)) return undefined;
+function projectData(data: unknown): Record<string, unknown> {
+  if (typeof data !== 'object' || data === null || Array.isArray(data))
+    return Object.create(null) as Record<string, unknown>;
   const out: Record<string, unknown> = Object.create(null) as Record<string, unknown>;
   for (const [k, v] of Object.entries(data as Record<string, unknown>)) {
     if (!isAllowedEntry(k, v)) continue;
     out[k] = typeof v === 'string' ? boundedString(v) : v;
   }
-  return Object.keys(out).length === 0 ? undefined : out;
+  return out;
 }
 
 function pushIfString(parts: string[], key: string, value: unknown): void {
@@ -142,7 +142,7 @@ export class JsonLinesSink implements EventSink {
     try {
       if (this.#lines.length >= this.#capacity) return;
       const projectedData =
-        event.classification !== 'metadata' ? { redacted: true } : (projectData(event.data) ?? {});
+        event.classification !== 'metadata' ? { redacted: true } : projectData(event.data);
       const projected = {
         schemaVersion: event.schemaVersion,
         id: event.id,

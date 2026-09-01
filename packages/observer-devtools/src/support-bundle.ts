@@ -84,9 +84,9 @@ function isAllowedEntry(key: string, value: unknown): boolean {
   return true;
 }
 
-function projectData(data: unknown): Record<string, unknown> | undefined {
-  if (typeof data !== 'object' || data === null) return undefined;
-  if (Array.isArray(data)) return undefined;
+function projectData(data: unknown): Record<string, unknown> {
+  if (typeof data !== 'object' || data === null || Array.isArray(data))
+    return Object.create(null) as Record<string, unknown>;
   const out: Record<string, unknown> = Object.create(null) as Record<string, unknown>;
   for (const [k, v] of Object.entries(data as Record<string, unknown>).sort(([a], [b]) =>
     a.localeCompare(b),
@@ -94,7 +94,7 @@ function projectData(data: unknown): Record<string, unknown> | undefined {
     if (!isAllowedEntry(k, v)) continue;
     out[k] = typeof v === 'string' ? boundedString(v) : v;
   }
-  return Object.keys(out).length === 0 ? undefined : out;
+  return out;
 }
 
 function stableStringify(value: unknown): string {
@@ -133,7 +133,7 @@ function redactEvent(event: Event): Event {
     traceId: event.traceId,
     source: event.source,
     dataSchema: event.dataSchema,
-    data: projected ?? {},
+    data: projected,
     classification: event.classification,
     delivery: event.delivery,
   });
@@ -202,8 +202,6 @@ function enforceByteCap(
     debugRecords: Object.freeze([]),
     manifestRefs: Object.freeze([]),
   });
-  if (utf8ByteLength(stableStringify(minimal)) > MAX_BUNDLE_BYTES)
-    throw new RangeError('support bundle byte limit is too small');
   return minimal;
 }
 
