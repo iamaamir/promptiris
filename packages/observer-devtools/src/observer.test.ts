@@ -291,6 +291,8 @@ describe('observer devtools', () => {
         makeEvent({
           id: 'boundary',
           sequence: 0,
+          runId: 'run-boundary',
+          traceId: 'trace-boundary',
           data: { phase: at256, status: at257, pluginId: { nested: 'nope' } },
         }),
       ],
