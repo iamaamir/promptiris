@@ -1,0 +1,20 @@
+{
+  "name": "@promptiris/observer-devtools",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@promptiris/core": "workspace:*",
+    "@promptiris/plugin-sdk": "workspace:*",
+    "@promptiris/protocol": "workspace:*"
+  }
+}
