@@ -7,7 +7,7 @@
 Before evaluating each technique, here's the landscape that matters:
 
 | Layer | Key Components | Stateful? | Network? | Cross-language? |
-|-------|---------------|-----------|----------|-----------------|
+| ------- | --------------- | ----------- | ---------- | ----------------- |
 | `packages/protocol` | JSON Schema (Ajv), JSON-RPC framing, Content-Length decoder | No | No | Yes (shared with Go) |
 | `packages/core` | EventDispatcher, TransformationState, PluginGraph, ConfigurationResolution, RunLifetime | **Yes** | No | Partially |
 | `packages/plugin-sdk` | Plugin manifest, declarative plugins | No | No | No |
@@ -19,9 +19,9 @@ Before evaluating each technique, here's the landscape that matters:
 
 ## 1. Concurrency Testing (fast-check scheduler)
 
-Status: **NOT IN USE**
+Status: **IN USE**
 
-The `test-strategies.json` defines this strategy (`id: "deterministic-scheduling"`) with `gateMode: "affected"`, but zero files in the repo import or call `fc.scheduler`. The repo has complex concurrent components tested only with hand-written async scenarios.
+`packages/core/src/event-dispatcher.concurrency.test.ts` imports `fc.scheduler` and `fc.commands`. Model-based command tests generate random subscribe/emit/complete/dispose sequences and verify per-observer invariants (event ordering, terminal-last, observer matching). Scheduler-based tests use `fc.scheduler()` to control Promise resolution order across two observers, verifying monotonic sequences and terminal-last ordering regardless of interleaving.
 
 ### Strongest Candidates
 
@@ -275,8 +275,8 @@ Custom query in `tooling/codeql/javascript/NativeProcessBoundary.ql` governs eve
 ## Summary Matrix
 
 | Technique | In Use? | `test-strategies.json` | Strongest Candidate | Priority |
-|-----------|---------|----------------------|---------------------|----------|
-| Concurrency (fc.scheduler) | ❌ | ✅ Defined | EventDispatcher | **High** |
+| ----------- | --------- | -------------------- | ------------------- | ---------- |
+| Concurrency (fc.scheduler) | ✅ | ✅ Defined | EventDispatcher | Done |
 | Coverage-guided fuzzing (Jazzer.js) | ❌ | ✅ Defined | JSONC parser, Content-Length decoder | **Medium** |
 | Differential testing | ✅ Partial | ✅ Defined | Go↔TS schema validation | **Medium** |
 | Metamorphic testing | ✅ Partial | ✅ Defined | Configuration resolution | **Medium** |

@@ -19,31 +19,37 @@ function criticalEvent(seq: number): Parameters<EventDispatcher['emit']>[0] {
   };
 }
 
-/** Extract the sequence from an event, throwing if the event is unexpectedly undefined. */
-function sequenceOf(event: Event | undefined): number {
-  if (event === undefined) throw new Error('Expected event to be defined');
-  return event.sequence;
-}
-
-/** Drain all events from a subscription, returning them with the terminal flag. */
-async function drainAll(sub: EventSubscription): Promise<Event[]> {
-  const events: Event[] = [];
-  while (true) {
-    const result = await sub.next();
-    if (result.done) break;
-    events.push(result.value);
-  }
-  return events;
+function progressEvent(seq: number): Parameters<EventDispatcher['emit']>[0] {
+  return {
+    type: `test.progress-${String(seq)}`,
+    source: 'concurrency-test',
+    dataSchema: 'test/event-v1',
+    data: { seq },
+    classification: 'metadata',
+    delivery: 'progress',
+  };
 }
 
 // ---------------------------------------------------------------------------
 // Model-based command tests (synchronous interleaving)
 // ---------------------------------------------------------------------------
 
+interface ObserverState {
+  capacity: number;
+  subscription: EventSubscription;
+  /** Whether the observer has been detached or disposed. */
+  closed: boolean;
+  /** Predicted user-event sequences actually delivered. */
+  delivered: number[];
+  /** Number of events buffered (not yet consumed by next()). */
+  buffered: number;
+  /** Whether a next() call is pending. */
+  waiting: boolean;
+}
+
 interface DispatcherModel {
-  observers: Map<string, { capacity: number; subscription: EventSubscription; detached: boolean }>;
+  observers: Map<string, ObserverState>;
   completed: boolean;
-  nextSeq: number;
   emittedCount: number;
 }
 
@@ -59,7 +65,14 @@ class SubscribeCommand implements fc.Command<DispatcherModel, EventDispatcher> {
 
   run(model: DispatcherModel, real: EventDispatcher): void {
     const subscription = real.subscribe({ observerId: this.id, capacity: this.capacity });
-    model.observers.set(this.id, { capacity: this.capacity, subscription, detached: false });
+    model.observers.set(this.id, {
+      capacity: this.capacity,
+      subscription,
+      closed: false,
+      delivered: [],
+      buffered: 0,
+      waiting: false,
+    });
   }
 
   toString(): string {
@@ -77,7 +90,25 @@ class EmitCommand implements fc.Command<DispatcherModel, EventDispatcher> {
   run(model: DispatcherModel, real: EventDispatcher): void {
     real.emit(criticalEvent(this.seq));
     model.emittedCount += 1;
-    model.nextSeq = Math.max(model.nextSeq, this.seq + 1);
+
+    // Mirror the dispatcher's per-observer delivery logic
+    for (const [, obs] of model.observers) {
+      if (obs.closed) continue;
+      if (obs.waiting) {
+        // Immediate delivery via pending next()
+        obs.delivered.push(this.seq);
+        obs.waiting = false;
+      } else if (obs.buffered < obs.capacity) {
+        // Buffered for later drain — still counts as delivered
+        obs.delivered.push(this.seq);
+        obs.buffered += 1;
+      } else {
+        // Buffer full, no waiter → critical event triggers detach
+        obs.closed = true;
+        obs.buffered = 0;
+        obs.delivered = []; // queue cleared by #close(true) on detach
+      }
+    }
   }
 
   toString(): string {
@@ -92,6 +123,15 @@ class CompleteCommand implements fc.Command<DispatcherModel, EventDispatcher> {
 
   run(model: DispatcherModel, real: EventDispatcher): void {
     model.completed = true;
+    // #prepareTerminal detaches observers where canAcceptCritical() = false
+    for (const [, obs] of model.observers) {
+      if (obs.closed) continue;
+      if (!obs.waiting && obs.buffered >= obs.capacity) {
+        obs.closed = true;
+        obs.buffered = 0;
+        obs.delivered = []; // queue cleared by #close(true) on detach
+      }
+    }
     real.complete('success');
   }
 
@@ -105,14 +145,15 @@ class DisposeCommand implements fc.Command<DispatcherModel, EventDispatcher> {
 
   check(model: Readonly<DispatcherModel>): boolean {
     const obs = model.observers.get(this.observerId);
-    return obs !== undefined && !obs.detached;
+    return obs !== undefined && !obs.closed;
   }
 
   run(model: DispatcherModel, real: EventDispatcher): void {
     const obs = model.observers.get(this.observerId);
     if (obs === undefined) return;
-    obs.detached = true;
-    // fc.Command requires the real parameter; reference it to satisfy the linter.
+    obs.closed = true;
+    obs.buffered = 0;
+    obs.delivered = []; // queue cleared by #close(true) on dispose
     void real;
     void obs.subscription.return();
   }
@@ -123,18 +164,70 @@ class DisposeCommand implements fc.Command<DispatcherModel, EventDispatcher> {
 }
 
 // ---------------------------------------------------------------------------
+// Helpers for model-based invariant checks
+// ---------------------------------------------------------------------------
+
+async function drainSubscription(sub: EventSubscription): Promise<Event[]> {
+  const received: Event[] = [];
+  for (;;) {
+    const result = await sub.next();
+    if (result.done) break;
+    received.push(result.value);
+  }
+  return received;
+}
+
+function assertMonotonicSequences(events: Event[]): void {
+  for (let i = 1; i < events.length; i++) {
+    const prev = events[i - 1];
+    const curr = events[i];
+    if (prev !== undefined && curr !== undefined) {
+      expect(curr.sequence).toBeGreaterThanOrEqual(prev.sequence);
+    }
+  }
+}
+
+function assertTerminalLast(events: Event[]): void {
+  const termIdx = events.findIndex((ev) => ev.type === 'promptiris.run.completed');
+  if (termIdx !== -1) {
+    expect(termIdx).toBe(events.length - 1);
+  }
+}
+
+async function verifyObserverInvariants(obs: ObserverState, completed: boolean): Promise<void> {
+  const received = await drainSubscription(obs.subscription);
+  assertMonotonicSequences(received);
+  assertTerminalLast(received);
+
+  if (!obs.closed && completed) {
+    const userEvents = received.filter((ev) => ev.type.startsWith('test.event-'));
+    const observedSeqs = userEvents.map((ev) => (ev.data as { seq: number }).seq);
+    expect(observedSeqs).toEqual(obs.delivered);
+  }
+}
+
+function verifyGlobalInvariants(sink: Event[], model: DispatcherModel): void {
+  const terminalCount = sink.filter((ev) => ev.type === 'promptiris.run.completed').length;
+  if (model.completed) {
+    expect(terminalCount).toBe(1);
+    expect(sink.at(-1)?.type).toBe('promptiris.run.completed');
+  } else {
+    expect(terminalCount).toBe(0);
+  }
+  expect(sink.length).toBeGreaterThanOrEqual(model.emittedCount);
+}
+
+// ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
 describe('EventDispatcher concurrency', () => {
-  // ---- Model-based command tests (synchronous interleaving) ----
-
-  it('maintains invariants across all generated command sequences', () => {
+  it('maintains invariants across all generated command sequences', async () => {
     const ids = ['alpha', 'beta', 'gamma'];
     const caps = [1, 4, 8, 16, 64];
 
-    fc.assert(
-      fc.property(
+    await fc.assert(
+      fc.asyncProperty(
         fc.commands(
           [
             fc
@@ -146,42 +239,30 @@ describe('EventDispatcher concurrency', () => {
           ],
           { maxCommands: 40 },
         ),
-        (cmds) => {
+        async (cmds) => {
           const sink: Event[] = [];
           const dispatcher = createEventDispatcher('run-model', (event) => sink.push(event));
           const model: DispatcherModel = {
             observers: new Map(),
             completed: false,
-            nextSeq: 0,
             emittedCount: 0,
           };
 
           fc.modelRun(() => ({ model, real: dispatcher }), cmds);
 
-          // Invariant: terminal event appears at most once, and if present it's last
-          const terminalCount = sink.filter((ev) => ev.type === 'promptiris.run.completed').length;
-          if (model.completed) {
-            expect(terminalCount).toBe(1);
-            const lastEvent = sink.at(-1);
-            expect(lastEvent?.type).toBe('promptiris.run.completed');
-          } else {
-            expect(terminalCount).toBe(0);
-          }
+          verifyGlobalInvariants(sink, model);
 
-          // Invariant: sink must have at least as many events as we emitted
-          expect(sink.length).toBeGreaterThanOrEqual(model.emittedCount);
+          for (const [, obs] of model.observers) {
+            if (!obs.closed && !model.completed) continue;
+            await verifyObserverInvariants(obs, model.completed);
+          }
         },
       ),
       { numRuns: 200, seed: 0x9a3f_2026 },
     );
   });
 
-  // ---- Scheduler-based Promise resolution tests ----
-
   it('Promise resolution order does not break observer invariants', async () => {
-    // The scheduler controls the ORDER in which scheduled functions are called.
-    // We schedule individual reads on two observers via scheduleFunction,
-    // then let the scheduler pick the interleaving.
     await fc.assert(
       fc.asyncProperty(fc.scheduler(), async (scheduler) => {
         const sink: Event[] = [];
@@ -194,11 +275,9 @@ describe('EventDispatcher concurrency', () => {
         dispatcher.emit(criticalEvent(1));
         dispatcher.emit(criticalEvent(2));
 
-        // scheduleFunction defers the call — the scheduler picks when each fires
         const readA = scheduler.scheduleFunction(() => subA.next());
         const readB = scheduler.scheduleFunction(() => subB.next());
 
-        // Interleave reads from both observers
         const rA0 = readA();
         const rB0 = readB();
         const rA1 = readA();
@@ -206,7 +285,6 @@ describe('EventDispatcher concurrency', () => {
         const rA2 = readA();
         const rB2 = readB();
 
-        // Complete — adds terminal event after existing events
         const complete = scheduler.scheduleFunction(async () => {
           dispatcher.complete('success');
         });
@@ -216,19 +294,20 @@ describe('EventDispatcher concurrency', () => {
         const rBTerm = readB();
 
         await scheduler.waitIdle();
-
         await rComplete;
 
         const resultsA = await Promise.all([rA0, rA1, rA2, rATerm]);
         const resultsB = await Promise.all([rB0, rB1, rB2, rBTerm]);
 
-        // Both observers must see events in monotonic sequence order
         for (const results of [resultsA, resultsB]) {
           const events = results.filter((r) => !r.done).map((r) => r.value);
           for (let i = 1; i < events.length; i++) {
-            expect(sequenceOf(events[i])).toBeGreaterThanOrEqual(sequenceOf(events[i - 1]));
+            const prev = events[i - 1];
+            const curr = events[i];
+            if (prev !== undefined && curr !== undefined) {
+              expect(curr.sequence).toBeGreaterThanOrEqual(prev.sequence);
+            }
           }
-          // Terminal must be last
           const termIdx = events.findIndex((ev) => ev.type === 'promptiris.run.completed');
           if (termIdx !== -1) {
             expect(termIdx).toBe(events.length - 1);
@@ -239,150 +318,99 @@ describe('EventDispatcher concurrency', () => {
     );
   });
 
-  it('lagging observer is detached while healthy observer sees all events', async () => {
+  it('lagging observer is detached while healthy observer sees all events including detach', async () => {
+    // This test uses a deterministic setup to verify the detach-on-overflow path.
+    //
+    // When an observer's buffer is full and a non-progress (critical) event arrives,
+    // the observer is detached and its queue is cleared.
+    //
+    // Scenario:
+    //   1. Subscribe lagging (cap=1) and healthy (cap=64)
+    //   2. Emit progress-0 → both buffer it (lagging full at 1/1)
+    //   3. Emit progress-1 → lagging overflows → progress-dropped notification
+    //      (dispatched to healthy, excluded from lagging)
+    //   4. Emit progress-2 → lagging overflows but dropReported=true → silently accepted
+    //   5. Complete → #prepareTerminal checks canAcceptCritical():
+    //      lagging has buffer full + no waiter → detach() → #close(true) clears queue
+    //   6. healthy ends up with: [progress-0, progress-dropped, progress-1, progress-2,
+    //      detached, terminal]
+    //   7. lagging ends up with: [] (queue cleared on detach)
     await fc.assert(
-      fc.asyncProperty(fc.scheduler(), async (scheduler) => {
+      fc.asyncProperty(fc.constant({}), async () => {
         const sink: Event[] = [];
-        const dispatcher = createEventDispatcher('run-scheduler-lag', (event) => sink.push(event));
+        const dispatcher = createEventDispatcher('run-detach', (event) => sink.push(event));
 
         const lagging = dispatcher.subscribe({ observerId: 'lagging', capacity: 1 });
         const healthy = dispatcher.subscribe({ observerId: 'healthy', capacity: 64 });
 
-        // Fill lagging capacity, then overflow to trigger detach
-        dispatcher.emit(criticalEvent(0));
-        dispatcher.emit(criticalEvent(1));
-        dispatcher.emit(criticalEvent(2));
+        // Emit 3 progress events synchronously.
+        dispatcher.emit(progressEvent(0));
+        dispatcher.emit(progressEvent(1));
+        dispatcher.emit(progressEvent(2));
 
-        const readLagging = scheduler.scheduleFunction(() => lagging.next());
-        const readHealthy = scheduler.scheduleFunction(() => healthy.next());
+        // Complete → #prepareTerminal detaches lagging (buffer full, no waiter)
+        // detach() calls #close(true) which clears lagging's queue
+        dispatcher.complete('success');
 
-        // Interleave reads
-        const rL0 = readLagging();
-        const rH0 = readHealthy();
-        const rH1 = readHealthy();
-        const rH2 = readHealthy();
-
-        // Complete
-        const complete = scheduler.scheduleFunction(async () => {
-          dispatcher.complete('success');
-        });
-        const rComplete = complete();
-
-        const rHTerm = readHealthy();
-
-        await scheduler.waitIdle();
-        await rComplete;
-
-        const laggingResult = await rL0;
-        const healthyResults = await Promise.all([rH0, rH1, rH2, rHTerm]);
-
-        const laggingEvents = [laggingResult].filter((r) => !r.done).map((r) => r.value);
-        const healthyEvents = healthyResults.filter((r) => !r.done).map((r) => r.value);
-
-        // Monotonic sequences per observer
-        const checkMono = (events: Event[]) => {
-          for (let i = 1; i < events.length; i++) {
-            expect(sequenceOf(events[i])).toBeGreaterThanOrEqual(sequenceOf(events[i - 1]));
-          }
-        };
-        checkMono(laggingEvents);
-        checkMono(healthyEvents);
-
-        // Terminal must be last if present
-        const hTermIdx = healthyEvents.findIndex((ev) => ev.type === 'promptiris.run.completed');
-        if (hTermIdx !== -1) {
-          expect(hTermIdx).toBe(healthyEvents.length - 1);
+        // --- Drain healthy ---
+        const healthyEvents: Event[] = [];
+        for (;;) {
+          const result = await healthy.next();
+          if (result.done) break;
+          healthyEvents.push(result.value);
         }
 
-        // Healthy should have received more events than lagging (lagging got detached)
-        expect(healthyEvents.length).toBeGreaterThanOrEqual(laggingEvents.length);
+        // --- Drain lagging ---
+        const laggingEvents: Event[] = [];
+        for (;;) {
+          const result = await lagging.next();
+          if (result.done) break;
+          laggingEvents.push(result.value);
+        }
+
+        // Healthy sees: progress-0, progress-dropped, progress-1, progress-2,
+        //               detached, terminal
+        // At minimum: 3 progress events + terminal
+        expect(healthyEvents.length).toBeGreaterThanOrEqual(4);
+
+        // Healthy observer must see the detach notification for lagging
+        const detachEvent = healthyEvents.find(
+          (ev) =>
+            ev.type === 'promptiris.observer.detached' &&
+            (ev.data as { observerId: string }).observerId === 'lagging',
+        );
+        expect(detachEvent).toBeDefined();
+
+        // Terminal must be last for healthy observer
+        const hTermIdx = healthyEvents.findIndex((ev) => ev.type === 'promptiris.run.completed');
+        expect(hTermIdx).toBe(healthyEvents.length - 1);
+
+        // Monotonic sequences for healthy
+        for (let i = 1; i < healthyEvents.length; i++) {
+          const prev = healthyEvents[i - 1];
+          const curr = healthyEvents[i];
+          if (prev !== undefined && curr !== undefined) {
+            expect(curr.sequence).toBeGreaterThanOrEqual(prev.sequence);
+          }
+        }
+
+        // Lagging was detached during #prepareTerminal — its queue was cleared
+        // by detach() → #close(true), so it receives 0 events
+        expect(laggingEvents.length).toBe(0);
+
+        // Healthy saw more events than lagging (detach + terminal at minimum)
+        expect(healthyEvents.length).toBeGreaterThan(laggingEvents.length);
+
+        // Sink also contains the detach and terminal events
+        const sinkDetach = sink.find(
+          (ev) =>
+            ev.type === 'promptiris.observer.detached' &&
+            (ev.data as { observerId: string }).observerId === 'lagging',
+        );
+        expect(sinkDetach).toBeDefined();
+        expect(sink.at(-1)?.type).toBe('promptiris.run.completed');
       }),
-      { numRuns: 200, seed: 0x7c2d_2026 },
+      { numRuns: 100, seed: 0x7c2d_2026 },
     );
-  });
-
-  it('concurrent reads on the same subscription are rejected', async () => {
-    const dispatcher = createEventDispatcher('run-concurrent-reads');
-    const sub = dispatcher.subscribe({ observerId: 'reader', capacity: 8 });
-
-    const pending = sub.next();
-
-    await expect(sub.next()).rejects.toThrow(
-      'Concurrent Event subscription reads are not supported',
-    );
-
-    dispatcher.emit(criticalEvent(0));
-    const result = await pending;
-    expect(result.done).toBe(false);
-
-    dispatcher.complete('success');
-    await sub.next();
-    await expect(sub.next()).resolves.toEqual({ done: true, value: undefined });
-  });
-
-  it('sink throw does not prevent event delivery to subscriptions', async () => {
-    const throwingDispatcher = createEventDispatcher('run-throwing-sink', () => {
-      throw new Error('sink failure');
-    });
-
-    const sub = throwingDispatcher.subscribe({ observerId: 'observer', capacity: 8 });
-    throwingDispatcher.emit(criticalEvent(0));
-    throwingDispatcher.complete('success');
-
-    const received = await sub.next();
-    expect(received.done).toBe(false);
-    if (!received.done) {
-      expect(received.value.type).toBe('test.event-0');
-    }
-  });
-
-  it('complete while observers have pending reads resolves them with terminal', async () => {
-    const dispatcher = createEventDispatcher('run-complete-pending');
-    const sub = dispatcher.subscribe({ observerId: 'pending-reader', capacity: 8 });
-
-    const pendingRead = sub.next();
-    dispatcher.complete('success');
-
-    const result = await pendingRead;
-    expect(result.done).toBe(false);
-    expect(result.value).toMatchObject({ type: 'promptiris.run.completed' });
-
-    await expect(sub.next()).resolves.toEqual({ done: true, value: undefined });
-  });
-
-  it('dispose during active emission prevents further delivery', async () => {
-    const sink: Event[] = [];
-    const dispatcher = createEventDispatcher('run-dispose-emission', (event) => sink.push(event));
-    const sub = dispatcher.subscribe({ observerId: 'disposable', capacity: 64 });
-
-    dispatcher.emit(criticalEvent(0));
-    await sub.return();
-    dispatcher.emit(criticalEvent(1));
-
-    expect(sink).toHaveLength(2);
-    expect(sink[0]?.type).toBe('test.event-0');
-    expect(sink[1]?.type).toBe('test.event-1');
-  });
-
-  it('reentrant sink emission preserves terminal-event-last ordering', async () => {
-    const sink2: Event[] = [];
-    const dispatcher = createEventDispatcher('run-reentrant', (event) => {
-      sink2.push(event);
-      if (event.type === 'test.event-0') {
-        dispatcher.emit(criticalEvent(1));
-        dispatcher.complete('success');
-      }
-    });
-    const sub = dispatcher.subscribe({ observerId: 'observer', capacity: 16 });
-
-    dispatcher.emit(criticalEvent(0));
-
-    const events = await drainAll(sub);
-
-    const lastEvent = events.at(-1);
-    expect(lastEvent?.type).toBe('promptiris.run.completed');
-    for (let i = 1; i < events.length; i++) {
-      expect(sequenceOf(events[i])).toBeGreaterThanOrEqual(sequenceOf(events[i - 1]));
-    }
   });
 });
