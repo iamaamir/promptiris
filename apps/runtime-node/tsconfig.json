@@ -1,6 +1,11 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": { "rootDir": "src", "outDir": "dist", "declaration": true },
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "declaration": true,
+    "stripInternal": true
+  },
   "include": ["src"],
   "exclude": ["src/**/*.test.ts"],
   "references": [{ "path": "../../packages/core" }, { "path": "../../packages/protocol" }]
