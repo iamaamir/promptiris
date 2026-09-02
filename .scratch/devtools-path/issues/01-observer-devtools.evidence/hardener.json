@@ -18,12 +18,12 @@
       "checkId": "hardener.cap-drops",
       "status": "passed",
       "evidenceRef": "packages/observer-devtools/src/observer.ts",
-      "evidenceSha256": "ef0429befa74f101ea48d6f5d0f5f7c28badd62cccd4a6e7b7539fcaf1b106b1"
+      "evidenceSha256": "5da98854945d654d2f33951a7367c53bd5bd0e3d432ee651496dd8cce8b30f46"
     }
   ],
   "taskId": ".scratch/devtools-path/issues/01-observer-devtools.md",
   "baseRevision": "2a7576366f8eb140a39820749b9e22569b1765e3",
-  "candidateRevision": "sha256:52386abd9b41314f2f5693190dfb763e36ce351da904c0bfd088f20db02cb5f4",
+  "candidateRevision": "sha256:c226458b0751283de2a3245ecceabe6ba31494523a7ab234f1f8256f2951fe04",
   "role": "hardener",
   "status": "passed",
   "scenarios": [
