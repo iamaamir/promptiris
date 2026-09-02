@@ -29,6 +29,6 @@
     "Mutation score remains a separate candidate gate and must pass before merge."
   ],
   "taskId": ".scratch/devtools-path/issues/01-observer-devtools.md",
-  "baseRevision": "881eb412de65e4e6a0465a6ec9819b2fec87f12e",
-  "candidateRevision": "sha256:fb3b47950c33f2411f760f9afc6b9fa875af11a896e9d653c41cd754c7fce03e"
+  "baseRevision": "2a7576366f8eb140a39820749b9e22569b1765e3",
+  "candidateRevision": "sha256:45d766d558091f96b82c6f5d951be4e0a9412a09205acf4cd477eccdc7b519ef"
 }
