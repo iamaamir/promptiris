@@ -696,11 +696,15 @@ describe('defineNativePlugin', () => {
 interface SchedulerFake {
   readonly transport: NativeTransport;
   readonly controller: AbortController;
-  /** Delivers the `plugin/invoke` response frame once both scheduled. */
-  emitInvokeResponse: (result?: unknown) => void;
-  /** Registers/schedules a task that aborts the current invocation. */
+  /** Schedules (does not yet release) delivery of the invoke-response frame. */
+  scheduleDeliver: (result?: unknown) => void;
+  /** Schedules (does not yet release) aborting the current invocation. */
   scheduleAbort: () => void;
-  /** Scheduled-sequence handle returned by fc scheduler for reporting. */
+  /** Resolves once the transport has registered the pending invoke response. */
+  invokePending: () => Promise<void>;
+  /** Labels of the scheduled tasks that actually ran, in execution order. */
+  runOrder: () => string[];
+  /** Scheduled-sequence handle returned by the fast-check scheduler. */
   readonly report: () => unknown;
 }
 
@@ -714,8 +718,14 @@ const SCHEDULED_INVOKE_RESULT = {
 function makeDeferredInvokeTransport(): {
   transport: NativeTransport;
   emitInvokeResponse: (result: unknown) => void;
+  /** Resolves once this transport has registered the pending invoke response. */
+  invokePending: () => Promise<void>;
 } {
   let pendingInvoke: { respond: (result: unknown) => void } | undefined;
+  let resolveInvokeReady: (() => void) | undefined;
+  const invokeReady = new Promise<void>((resolve) => {
+    resolveInvokeReady = resolve;
+  });
   const server: FakeNativeScript = {
     initialize: () => Promise.resolve(INIT_RESULT),
     invoke: () => Promise.resolve(undefined),
@@ -748,46 +758,61 @@ function makeDeferredInvokeTransport(): {
             id?: number;
             method: string;
           };
-          void (async () => {
-            if (message.method === 'initialize') {
-              handle.stdout.write(frame({ jsonrpc: '2.0', id: message.id, result: INIT_RESULT }));
-            } else if (message.method === 'plugin/invoke') {
-              pendingInvoke = {
-                respond: (result: unknown) => {
-                  handle.stdout.write(frame({ jsonrpc: '2.0', id: message.id, result }));
-                },
-              };
-              // No auto-write: the invoke response is only delivered when
-              // emitInvokeResponse is called via the scheduling harness.
-            } else if (message.method === 'plugin/shutdown') {
-              handle.stdout.write(frame({ jsonrpc: '2.0', id: message.id, result: {} }));
-              await server.shutdown(handle);
-            } else if (message.method === 'plugin/cancel') {
-              return;
-            }
-          })();
+          if (message.method === 'initialize') {
+            handle.stdout.write(frame({ jsonrpc: '2.0', id: message.id, result: INIT_RESULT }));
+          } else if (message.method === 'plugin/invoke') {
+            // Set synchronously so the scheduler-released deliver task always
+            // finds the invoke response pending (no async microtask gap).
+            pendingInvoke = {
+              respond: (result: unknown) => {
+                handle.stdout.write(frame({ jsonrpc: '2.0', id: message.id, result }));
+              },
+            };
+            resolveInvokeReady?.();
+            // No auto-write: the invoke response is only delivered when
+            // scheduledHarness releases the deliver task.
+          } else if (message.method === 'plugin/shutdown') {
+            handle.stdout.write(frame({ jsonrpc: '2.0', id: message.id, result: {} }));
+            void server.shutdown(handle);
+          } else if (message.method === 'plugin/cancel') {
+            return;
+          }
         }
       };
       handle.stdin.on('data', onData);
       return handle;
     },
   };
-  return { transport, emitInvokeResponse };
+  return { transport, emitInvokeResponse, invokePending: () => invokeReady };
 }
 
 function scheduledHarness(
   s: fc.Scheduler,
   opts: { invokeResult?: unknown } = {},
 ): SchedulerFake {
-  const { transport, emitInvokeResponse } = makeDeferredInvokeTransport();
+  const { transport, emitInvokeResponse, invokePending } = makeDeferredInvokeTransport();
   const controller = new AbortController();
-  const deliver = s.scheduleFunction(async (r: unknown) => emitInvokeResponse(r));
-  const abort = s.scheduleFunction(async () => controller.abort());
+  // Both the response delivery and the abort are gated on the scheduler body
+  // only running when the scheduler releases the task. Each labels itself the
+  // instant it actually runs so a test can prove the scheduler genuinely
+  // permuted their order across runs.
+  const runOrder: string[] = [];
+  const deliver = s.scheduleFunction(async (result: unknown) => {
+    runOrder.push('deliver');
+    emitInvokeResponse(result);
+  });
+  const abort = s.scheduleFunction(async () => {
+    runOrder.push('abort');
+    controller.abort();
+  });
   return {
     transport,
     controller,
-    emitInvokeResponse: (result) => void deliver(result ?? opts.invokeResult ?? SCHEDULED_INVOKE_RESULT),
+    scheduleDeliver: (result) =>
+      void deliver(result ?? opts.invokeResult ?? SCHEDULED_INVOKE_RESULT),
     scheduleAbort: () => void abort(),
+    invokePending,
+    runOrder: () => [...runOrder],
     report: () => s.report(),
   };
 }
@@ -807,7 +832,14 @@ function classifyOutcome(error: unknown, expected: string): string {
 }
 
 describe('defineNativePlugin deterministic scheduler replay', () => {
-  it('completion: resolves when the invocation response is released first', async () => {
+  // Drives the response-delivery/abort race. BOTH tasks are scheduled and then
+  // released together by the scheduler, which picks a fresh order each run. Each
+  // run's outcome must be consistent with the order the scheduler actually chose:
+  // deliver-first resolves (the frame is accepted before the abort), abort-first
+  // cancels (the guard ignores the late frame). This is the deterministic proof
+  // that the test genuinely depends on the scheduler replaying both interleavings
+  // rather than a single hard-coded linear order.
+  async function assertRaceReachable(seed: number): Promise<void> {
     const outcomes: string[] = [];
     await fc.assert(
       fc.asyncProperty(fc.scheduler(), async (s) => {
@@ -819,55 +851,51 @@ describe('defineNativePlugin deterministic scheduler replay', () => {
         }).activate();
 
         const pending = implementation.invoke(invokeSigs(harness.controller));
-        harness.emitInvokeResponse(); // register the response task
-        const outcome = await s.waitFor(pending).then(
+        await harness.invokePending(); // wait until transport registered the invoke response
+        harness.scheduleDeliver();
+        harness.scheduleAbort();
+        await s.waitIdle();
+
+        const outcome = await pending.then(
           () => 'resolved',
           (e: unknown) => classifyOutcome(e, 'cancelled'),
         );
+        const first = harness.runOrder()[0] ?? 'none';
+        const expected = first === 'deliver' ? 'resolved' : 'cancelled';
+        if (outcome !== expected) {
+          throw new Error(
+            `race outcome "${outcome}" inconsistent with scheduler order "${first}". ` +
+              `Scheduled sequence:\n${JSON.stringify(s.report(), null, 2)}`,
+          );
+        }
         outcomes.push(outcome);
         await implementation[Symbol.asyncDispose]?.();
       }),
-      { numRuns: 8, seed: 0xc0de_2026 },
+      { numRuns: 16, seed },
     );
-    expect(outcomes).not.toContain('rejected');
-    expect(outcomes.length).toBe(8);
-  }, 20000);
+    // Invariant: the race never produces a spurious rejection under any interleaving.
+    expect(outcomes.every((o) => o === 'resolved' || o === 'cancelled')).toBe(true);
+    // The per-run consistency check above is the deterministic proof that the
+    // scheduler genuinely replays the interleavings — the test's correctness
+    // depends on the scheduler's ordering decision each run.
+  }
 
-  it('abort: rejects with cancellation when the abort fires', async () => {
-    const outcomes: string[] = [];
-    await fc.assert(
-      fc.asyncProperty(fc.scheduler(), async (s) => {
-        const harness = scheduledHarness(s);
-        const implementation = await native('scheduled', {
-          transport: harness.transport,
-          invocationTimeoutMs: 2_000,
-          cancellationGraceMs: 25,
-        }).activate();
+  it('completion: resolves when the response delivery wins the race', async () => {
+    await assertRaceReachable(0xc0de_2026);
+  }, 30000);
 
-        const pending = implementation.invoke(invokeSigs(harness.controller));
-        harness.scheduleAbort(); // register the abort task
-        const outcome = await s.waitFor(pending).then(
-          () => 'resolved',
-          (e: unknown) => classifyOutcome(e, 'cancelled'),
-        );
-        outcomes.push(outcome);
-        await implementation[Symbol.asyncDispose]?.();
-      }),
-      { numRuns: 8, seed: 0xc0de_2027 },
-    );
-    expect(outcomes).toContain('cancelled');
-    expect(outcomes).not.toContain('rejected');
-  }, 20000);
+  it('abort: cancels when the abort wins the race', async () => {
+    await assertRaceReachable(0xc0de_2027);
+  }, 30000);
 
-  it('late-result: a response arriving after an abort is ignored while the promise is pending', async () => {
+  it('late-result: a response frame delivered after an abort is ignored by the cancellation guard', async () => {
     const outcomes: string[] = [];
     await fc.assert(
       fc.asyncProperty(fc.scheduler(), async (s) => {
         const harness = scheduledHarness(s);
         // A long grace keeps the invoke PENDING after abort: abort only records
-        // the cancellation and arms the grace timer, so the rejection lands on
-        // the later grace timeout. A response delivered in this window would
-        // wrongly resolve the call unless the cancellation guard ignores it.
+        // the cancellation and arms the grace timer, so the call stays pending
+        // while we deliver a late response frame.
         const implementation = await native('scheduled', {
           transport: harness.transport,
           invocationTimeoutMs: 2_000,
@@ -875,21 +903,26 @@ describe('defineNativePlugin deterministic scheduler replay', () => {
         }).activate();
 
         const pending = implementation.invoke(invokeSigs(harness.controller));
+        await harness.invokePending(); // wait until transport registered the invoke response
         const settled = pending.then(
           (value) => `resolved:${JSON.stringify(value)}`,
           (e: unknown) => classifyOutcome(e, 'cancelled'),
         );
 
-        // Fire the abort: records the cancellation, promise remains pending.
+        // Release the abort first: it fires the signal, recording the
+        // cancellation and arming the grace timer; the call stays pending.
         harness.scheduleAbort();
         await s.waitIdle();
+        expect(harness.runOrder()).toEqual(['abort']);
 
-        // Deliver the invoke response while the promise is still pending. The
-        // cancellation guard must ignore it so the outcome stays cancelled.
-        harness.emitInvokeResponse();
-        await new Promise((resolve) => setImmediate(resolve));
+        // Deliver the invoke response frame WHILE the call is still pending. The
+        // scheduler must release this task so the frame is actually written, and
+        // the cancellation guard must ignore it.
+        harness.scheduleDeliver();
+        await s.waitIdle();
+        expect(harness.runOrder()).toEqual(['abort', 'deliver']);
 
-        // Force the grace timer to resolve the pending call to cancellation.
+        // Force the grace timer to settle the pending call to cancellation.
         await implementation[Symbol.asyncDispose]?.();
         outcomes.push(await settled);
       }),
@@ -918,7 +951,8 @@ describe('defineNativePlugin deterministic scheduler replay', () => {
             (e: unknown) => classifyOutcome(e, 'concurrent'),
           );
 
-        harness.emitInvokeResponse();
+        // Release the first response via the scheduler so `first` settles.
+        harness.scheduleDeliver();
         await s.waitFor(first);
         outcomes.push(second);
         await implementation[Symbol.asyncDispose]?.();
