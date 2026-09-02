@@ -66,7 +66,19 @@ Rebasing onto updated `main` produced repeated protected-file conflicts. Conflic
 
 Local targeted ESLint passed while the full candidate formatter failed on a template expression. CodeQL also rejected a test fixture that passed runtime tests. CI-only validators were consulted too late.
 
-### 7. Completion claims were made before all gates were green
+### 7. Independent roles were not used as an early design gate
+
+Reviewer, hardener, and source-blind QA agents were used during the work, but too late and against intermediate candidates. Their reports were then invalidated by later source changes, rebases, and force-pushes. The workflow lacked a rule that independent roles must review the same final SHA before PR review.
+
+This mattered because:
+
+- Reviewer did not catch default-console sensitive-event leakage before the external inline review.
+- QA validated the available test surface rather than a source-blind adversarial acceptance matrix.
+- Hardener exposed mutation debt only after implementation branches had accumulated.
+- Evidence refresh repaired report metadata but did not replace stale semantic review.
+- No independent agent was assigned to challenge retention priority, exact byte boundaries, and completion semantics together.
+
+### 8. Completion claims were made before all gates were green
 
 Targeted mutation success and package tests were reported while full mutation, hardener, trusted policy, and reviewer evidence were not all green. This created false closure and extra back-and-forth.
 
@@ -105,13 +117,15 @@ Targeted mutation success and package tests were reported while full mutation, h
 1. Create acceptance matrix before implementation, including CI-only validators.
 2. Establish minimal API and state-machine design before adding tests.
 3. Add adversarial contract tests before implementation branches.
-4. Run full candidate verification before opening PR.
-5. Never manually edit evidence fields; generate them from final HEAD in one command.
-6. Rebase before final hardening, not during review.
-7. Avoid force-pushes after external review unless necessary; if required, immediately trigger and inspect fresh CI.
-8. Treat “targeted pass” as partial evidence, never completion.
-9. Do not report ready until candidate, hardener, integrity, CodeQL, evidence, and trusted-policy gates are all green.
-10. Prefer removing production branches over adding tests for behavior that cannot be reached or observed.
+4. Run independent reviewer, hardener, and source-blind QA in parallel against one frozen candidate SHA before opening PR.
+5. Require each role to return structured findings and block on unresolved blocker/high findings.
+6. Re-run all independent roles after any production change, rebase, or force-push; metadata refresh alone is insufficient.
+7. Never manually edit evidence fields; generate them from final HEAD in one command.
+8. Rebase before final hardening, not during review.
+9. Avoid force-pushes after external review unless necessary; if required, immediately trigger and inspect fresh CI.
+10. Treat “targeted pass” as partial evidence, never completion.
+11. Do not report ready until candidate, hardener, integrity, CodeQL, evidence, and trusted-policy gates are all green.
+12. Prefer removing production branches over adding tests for behavior that cannot be reached or observed.
 
 ## Primary lesson
 
