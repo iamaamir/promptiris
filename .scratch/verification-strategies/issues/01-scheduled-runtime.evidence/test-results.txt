@@ -1,0 +1,26 @@
+scheduled-runtime candidate verification - role evidence
+Base revision: 881eb412de65e4e6a0465a6ec9819b2fec87f12e
+Head revision: 2019b0a0a787f7ea87639876405e4bce340a08ee
+Date: 2026-09-02
+
+apps/runtime-node (native-plugin + native transport injection):
+  88 tests passed across 5 files
+  native-plugin.test.ts: 34 passed (31 existing + 3 new scheduler/fake-transport)
+  Fast-check scheduler tests: duplicate-invoke denial, late-response-after-cancellation
+
+Coverage (apps/runtime-node):
+  Statements   : 96.37% (346/359)
+  Branches     : 93.51% (245/262)
+  Functions    : 98.79% (82/83)
+  Lines        : 99% (300/303)
+
+Mutation testing (apps/runtime-node/src/native-plugin.ts):
+  92.57% (survived 8, uncovered 5, ignored 80)
+  Overall mutation score: 94.53% (threshold: 90%)
+
+TypeScript typecheck: clean
+ESLint: clean (max-warnings 0)
+Prettier: clean
+API Extractor: completed successfully
+CRAP: 0 violations across 329 functions
+ast-grep structural scan: 2 tests passed, no violations

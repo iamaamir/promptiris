@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "role": "hardener",
+  "producerId": "hardener.scheduled-runtime",
+  "sourceBlind": false,
+  "status": "passed",
+  "scenarios": [
+    "Mutation testing on apps/runtime-node/src/native-plugin.ts: 92.57% (survived 8, uncovered 5, ignored 80)",
+    "Fast-check scheduler tests replay duplicate-invoke denial, late-response-after-cancellation interleavings",
+    "Fake in-memory transport smoke test proves native transport injection without spawning a real process",
+    "Real-child-process integration tests (27) remain intact and exercise the full process-boundary contract"
+  ],
+  "evidence": [
+    {
+      "checkId": "mutation-testing",
+      "status": "passed",
+      "evidenceRef": ".scratch/verification-strategies/issues/01-scheduled-runtime.evidence/test-results.txt",
+      "evidenceSha256": "421954cc05b16f936fb98ea999e5fbd23cd78b102bb4864d39effe9b690df282"
+    },
+    {
+      "checkId": "scheduler-interleavings",
+      "status": "passed",
+      "evidenceRef": ".scratch/verification-strategies/issues/01-scheduled-runtime.evidence/test-results.txt",
+      "evidenceSha256": "421954cc05b16f936fb98ea999e5fbd23cd78b102bb4864d39effe9b690df282"
+    }
+  ],
+  "taskId": ".scratch/verification-strategies/issues/01-scheduled-runtime.md",
+  "baseRevision": "881eb412de65e4e6a0465a6ec9819b2fec87f12e",
+  "candidateRevision": "sha256:4860a771155225391295ff179d2a280fafc32a753eb571ef00ad7ae5b2bff495"
+}
