@@ -3,7 +3,6 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PassThrough } from 'node:stream';
-import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import { compilePluginGraph, createRunContext, executePluginPlan } from '@promptiris/core';
 import { makeTextDocument } from '@promptiris/protocol';
@@ -37,6 +36,7 @@ interface FakeNativeScript {
   initialize: () => Promise<unknown>;
   invoke: (params: unknown) => Promise<unknown>;
   shutdown: (handle: FakeChildHandle) => Promise<unknown>;
+  waitForInvoke?: () => Promise<void>;
 }
 
 interface FakeNativeTransport {
@@ -159,6 +159,7 @@ function driveFakeChild(handle: FakeChildHandle, script: FakeNativeScript): { st
           if (message.method === 'initialize') {
             result = await script.initialize();
           } else if (message.method === 'plugin/invoke') {
+            await script.waitForInvoke?.();
             result = await script.invoke(message.params);
           } else if (message.method === 'plugin/shutdown') {
             // Send the shutdown response before signalling the fake child,
@@ -205,6 +206,21 @@ function createFakeNativeTransport(
     },
   };
 }
+
+function never(): Promise<unknown> {
+  return new Promise(() => undefined);
+}
+
+function defaultShutdown(handle: FakeChildHandle): Promise<void> {
+  handle.kill('SIGTERM');
+  return Promise.resolve();
+}
+
+const INIT_RESULT = {
+  protocolVersion: '1',
+  capabilities: { methods: ['plugin/invoke'], events: [] },
+  limits: { maxFrameBytes: 8 * 1024 * 1024, maxDepth: 64 },
+};
 
 function native(mode: string, options: Record<string, unknown> = {}) {
   return defineNativePlugin({
@@ -663,20 +679,12 @@ describe('defineNativePlugin', () => {
   it('accepts a fake in-memory transport without spawning a real process', async () => {
     const transport = createFakeNativeTransport({
       script: {
-        initialize: () =>
-          Promise.resolve({
-            protocolVersion: '1',
-            capabilities: { methods: ['plugin/invoke'], events: [] },
-            limits: { maxFrameBytes: 8 * 1024 * 1024, maxDepth: 64 },
-          }),
+        initialize: () => Promise.resolve(INIT_RESULT),
         invoke: () =>
           Promise.resolve({
             patches: [{ operations: [{ block: { text: 'fake' } }] }],
           }),
-        shutdown: (handle) => {
-          handle.kill('SIGTERM');
-          return Promise.resolve();
-        },
+        shutdown: defaultShutdown,
       },
     });
     const registration = native('happy', { transport });
@@ -687,61 +695,44 @@ describe('defineNativePlugin', () => {
     await implementation[Symbol.asyncDispose]?.();
   });
 
-  it('denies a duplicate invoke while a prior invoke is still in flight (scheduler)', async () => {
-    await fc.assert(
-      fc.asyncProperty(fc.integer({ min: 1, max: 25 }), async (seed) => {
-        // Auto-respond to initialize, but never respond to plugin/invoke so
-        // the first invocation stays in flight while the duplicate is attempted.
-        const transport = createFakeNativeTransport({
-          script: {
-            initialize: () =>
-              Promise.resolve({
-                protocolVersion: '1',
-                capabilities: { methods: ['plugin/invoke'], events: [] },
-                limits: { maxFrameBytes: 8 * 1024 * 1024, maxDepth: 64 },
-              }),
-            invoke: () => new Promise<unknown>(() => undefined),
-            shutdown: (handle) => {
-              handle.kill('SIGTERM');
-              return Promise.resolve();
-            },
-          },
-        });
-        const plugin = native('happy', {
-          transport,
-          invocationTimeoutMs: 5_000,
-          cancellationGraceMs: 50,
-        });
-        const implementation = await plugin.activate();
-        const controller = new AbortController();
-        const first = implementation.invoke(invocation(controller.signal));
-        await expect(implementation.invoke(invocation())).rejects.toThrow(/concurrent invocation/i);
-        controller.abort();
-        await expect(first).rejects.toThrow(/cancelled/i);
-        await implementation[Symbol.asyncDispose]?.();
-        return seed > 0;
-      }),
-      { seed: 20260901, numRuns: 10 },
-    );
+  it('denies a duplicate invoke while a prior invoke is still in flight', async () => {
+    const transport = createFakeNativeTransport({
+      script: {
+        initialize: () => Promise.resolve(INIT_RESULT),
+        invoke: () => never(),
+        shutdown: defaultShutdown,
+      },
+    });
+    const plugin = native('happy', {
+      transport,
+      invocationTimeoutMs: 5_000,
+      cancellationGraceMs: 50,
+    });
+    const implementation = await plugin.activate();
+    const controller = new AbortController();
+    const first = implementation.invoke(invocation(controller.signal));
+    await expect(implementation.invoke(invocation())).rejects.toThrow(/concurrent invocation/i);
+    controller.abort();
+    await expect(first).rejects.toThrow(/cancelled/i);
+    await implementation[Symbol.asyncDispose]?.();
   });
 
   it('ignores a late successful response delivered after cancellation begins', async () => {
     let resolveInvoke: ((value: unknown) => void) | undefined;
+    let invokeCalled!: () => void;
+    const invokeCalledPromise = new Promise<void>((resolve) => {
+      invokeCalled = resolve;
+    });
     const transport = createFakeNativeTransport({
       script: {
-        initialize: () =>
-          Promise.resolve({
-            protocolVersion: '1',
-            capabilities: { methods: ['plugin/invoke'], events: [] },
-            limits: { maxFrameBytes: 8 * 1024 * 1024, maxDepth: 64 },
-          }),
+        initialize: () => Promise.resolve(INIT_RESULT),
         invoke: () =>
           new Promise<unknown>((resolve) => {
             resolveInvoke = resolve;
           }),
-        shutdown: (handle) => {
-          handle.kill('SIGTERM');
-          return Promise.resolve();
+        shutdown: defaultShutdown,
+        waitForInvoke: async () => {
+          invokeCalled();
         },
       },
     });
@@ -752,8 +743,7 @@ describe('defineNativePlugin', () => {
     const implementation = await registration.activate();
     const controller = new AbortController();
     const pending = implementation.invoke(invocation(controller.signal));
-    // Let the supervisor's cancellation settle before delivering a response.
-    await new Promise((r) => setTimeout(r, 10));
+    await invokeCalledPromise;
     controller.abort();
     resolveInvoke?.({ patches: [{ operations: [{ block: { text: 'too-late' } }] }] });
     await expect(pending).rejects.toThrow(/cancelled/i);
