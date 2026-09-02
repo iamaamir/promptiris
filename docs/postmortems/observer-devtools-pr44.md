@@ -77,6 +77,7 @@ This mattered because:
 - Hardener exposed mutation debt only after implementation branches had accumulated.
 - Evidence refresh repaired report metadata but did not replace stale semantic review.
 - No independent agent was assigned to challenge retention priority, exact byte boundaries, and completion semantics together.
+- The postmortem itself introduced a Markdown table-formatting lint failure (`MD060`) because exact CI-equivalent lint was not run before pushing documentation. A stale Stryker sandbox also caused noisy local lint behavior. Both were fixed, but this repeated the same premature-completion pattern.
 
 ### 8. Completion claims were made before all gates were green
 
@@ -94,6 +95,8 @@ Targeted mutation success and package tests were reported while full mutation, h
 
 ### Completed
 
+- Run exact CI-equivalent lint after documentation changes, not only package-scoped formatter/linter checks.
+- Keep generated Stryker sandboxes outside lint inputs or remove them before verification.
 - Register all production mutation targets through repository tooling.
 - Restore protected quality configuration after scoped experiments.
 - Add default console redaction.
