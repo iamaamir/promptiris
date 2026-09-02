@@ -208,6 +208,14 @@ interface Event_2<T = unknown> {
 export { Event_2 as Event }
 
 // @public (undocumented)
+export interface GenerateMessage {
+    // (undocumented)
+    readonly content: string;
+    // (undocumented)
+    readonly role: 'system' | 'user' | 'assistant';
+}
+
+// @public (undocumented)
 export interface InitializeParams {
     // (undocumented)
     capabilities?: Record<string, boolean>;
@@ -334,6 +342,18 @@ export function makeTextDocument(text: string): PromptDocument;
 // @public (undocumented)
 export const MAX_FRAME_BYTES: number;
 
+// @public
+export interface ModelBinding {
+    // (undocumented)
+    readonly endpoint?: string;
+    // (undocumented)
+    readonly fingerprint: string;
+    // (undocumented)
+    readonly model: string;
+    // (undocumented)
+    readonly provider: NamespacedId;
+}
+
 // @public (undocumented)
 export type NamespacedId = `${string}/${string}`;
 
@@ -421,6 +441,79 @@ export interface Provenance {
     phase: Phase;
     // (undocumented)
     pluginId: string;
+}
+
+// @public
+export interface ProviderConfiguration {
+    // (undocumented)
+    readonly binding: ModelBinding;
+    // (undocumented)
+    readonly evidence: readonly CapabilityEvidence[];
+    // (undocumented)
+    readonly schemaVersion: '1';
+}
+
+// @public (undocumented)
+export type ProviderErrorKind = 'unsupported-capability' | 'cancelled' | 'malformed-output' | 'timeout' | 'rate-limit' | 'authentication' | 'network' | 'unknown';
+
+// @public
+export interface ProviderFailure {
+    // (undocumented)
+    readonly diagnostics: readonly Diagnostic[];
+    // (undocumented)
+    readonly kind: ProviderErrorKind;
+    // (undocumented)
+    readonly message: string;
+    // (undocumented)
+    readonly retryable: boolean;
+    // (undocumented)
+    readonly schemaVersion: '1';
+}
+
+// @public
+export interface ProviderGenerateRequest {
+    // (undocumented)
+    readonly id: string;
+    // (undocumented)
+    readonly maxOutputTokens?: number;
+    // (undocumented)
+    readonly messages: readonly GenerateMessage[];
+    // (undocumented)
+    readonly providerOptions?: Readonly<Record<NamespacedId, JsonValue>>;
+    // (undocumented)
+    readonly requiredCapabilities: readonly NamespacedId[];
+    // (undocumented)
+    readonly schemaVersion: '1';
+    // (undocumented)
+    readonly temperature?: number;
+}
+
+// @public
+export interface ProviderGenerateResult {
+    // (undocumented)
+    readonly bindingFingerprint: string;
+    // (undocumented)
+    readonly content: string;
+    // (undocumented)
+    readonly diagnostics: readonly Diagnostic[];
+    // (undocumented)
+    readonly finishReason: 'stop' | 'length' | 'content-filter';
+    // (undocumented)
+    readonly requestId: string;
+    // (undocumented)
+    readonly schemaVersion: '1';
+    // (undocumented)
+    readonly usage?: ProviderUsage;
+}
+
+// @public (undocumented)
+export interface ProviderUsage {
+    // (undocumented)
+    readonly completionTokens: number;
+    // (undocumented)
+    readonly promptTokens: number;
+    // (undocumented)
+    readonly totalTokens: number;
 }
 
 // @public (undocumented)
@@ -585,6 +678,18 @@ export function validatePatch(value: unknown): value is Patch;
 
 // @public (undocumented)
 export function validatePromptDocument(value: unknown): value is PromptDocument;
+
+// @public (undocumented)
+export function validateProviderConfiguration(value: unknown): value is ProviderConfiguration;
+
+// @public (undocumented)
+export function validateProviderFailure(value: unknown): value is ProviderFailure;
+
+// @public (undocumented)
+export function validateProviderGenerateRequest(value: unknown): value is ProviderGenerateRequest;
+
+// @public (undocumented)
+export function validateProviderGenerateResult(value: unknown): value is ProviderGenerateResult;
 
 // (No @packageDocumentation comment for this package)
 

@@ -12,6 +12,7 @@ import type {
   SchemaReference,
   PermissionHint,
 } from '@promptiris/protocol';
+export * from './provider.js';
 
 /** @public */
 export interface PluginContribution {

@@ -322,6 +322,23 @@ export type JsonRpcMessage = JsonRpcRequest | JsonRpcNotification | JsonRpcRespo
 /** @public */
 export const MAX_FRAME_BYTES = 8 * 1024 * 1024;
 
+export {
+  validateProviderConfiguration,
+  validateProviderFailure,
+  validateProviderGenerateRequest,
+  validateProviderGenerateResult,
+} from './provider-contract.js';
+export type {
+  GenerateMessage,
+  ModelBinding,
+  ProviderConfiguration,
+  ProviderErrorKind,
+  ProviderFailure,
+  ProviderGenerateRequest,
+  ProviderGenerateResult,
+  ProviderUsage,
+} from './provider-contract.js';
+
 import { Ajv2020 } from 'ajv/dist/2020.js';
 
 const namespacedPattern = '^[A-Za-z][A-Za-z0-9._-]*/[A-Za-z][A-Za-z0-9._-]*(?:/[A-Za-z0-9._-]+)*$';

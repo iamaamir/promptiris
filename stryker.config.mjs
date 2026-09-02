@@ -18,6 +18,8 @@ export default {
     'apps/runtime-node/src/server.ts',
     'apps/runtime-node/src/execution-context.ts',
     'apps/runtime-node/src/lazy-plugin.ts',
+    'packages/protocol/src/provider-contract.ts',
+    'packages/plugin-sdk/src/provider.ts',
   ],
   plugins: ['@stryker-mutator/vitest-runner', '@stryker-mutator/typescript-checker'],
   testRunner: 'vitest',

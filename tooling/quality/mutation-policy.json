@@ -115,6 +115,18 @@
       "maxIgnored": 10,
       "maxSurvived": 0,
       "maxNoCoverage": 0
+    },
+    "packages/protocol/src/provider-contract.ts": {
+      "minScore": 90,
+      "maxIgnored": 0,
+      "maxSurvived": 0,
+      "maxNoCoverage": 0
+    },
+    "packages/plugin-sdk/src/provider.ts": {
+      "minScore": 90,
+      "maxIgnored": 0,
+      "maxSurvived": 0,
+      "maxNoCoverage": 0
     }
   }
 }

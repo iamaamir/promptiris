@@ -6,13 +6,21 @@
 
 import type { Artifact } from '@promptiris/protocol';
 import type { Event as Event_2 } from '@promptiris/protocol';
+import { GenerateMessage } from '@promptiris/protocol';
 import type { JsonValue } from '@promptiris/protocol';
+import { ModelBinding } from '@promptiris/protocol';
 import type { NamespacedId } from '@promptiris/protocol';
 import type { Patch } from '@promptiris/protocol';
 import type { PermissionHint } from '@promptiris/protocol';
 import type { Phase } from '@promptiris/protocol';
 import type { PromptDocument } from '@promptiris/protocol';
 import type { Provenance } from '@promptiris/protocol';
+import { ProviderConfiguration } from '@promptiris/protocol';
+import { ProviderErrorKind } from '@promptiris/protocol';
+import { ProviderFailure } from '@promptiris/protocol';
+import { ProviderGenerateRequest } from '@promptiris/protocol';
+import { ProviderGenerateResult } from '@promptiris/protocol';
+import { ProviderUsage } from '@promptiris/protocol';
 import type { ResourceReference } from '@promptiris/protocol';
 import type { RunResult } from '@promptiris/protocol';
 import type { SchemaReference } from '@promptiris/protocol';
@@ -60,8 +68,40 @@ export function defineDeclarativePlugin(manifest: PluginManifest, contributions:
 // @public (undocumented)
 export function definePlugin<T extends PluginManifest>(manifest: T): T;
 
+// @public
+export class FakeProvider implements Provider {
+    constructor(configuration: ProviderConfiguration, scenarios: readonly FakeProviderScenario[]);
+    // (undocumented)
+    close(): void;
+    // (undocumented)
+    readonly configuration: ProviderConfiguration;
+    // (undocumented)
+    generate(request: ProviderGenerateRequest, context?: ProviderExecutionContext): Promise<ProviderGenerateResult>;
+}
+
+// @public (undocumented)
+export type FakeProviderResponse = {
+    readonly kind: 'success';
+    readonly value: unknown;
+} | {
+    readonly kind: 'failure';
+    readonly value: unknown;
+};
+
+// @public
+export interface FakeProviderScenario {
+    // (undocumented)
+    readonly requestId: string;
+    // (undocumented)
+    readonly responses: readonly FakeProviderResponse[];
+}
+
+export { GenerateMessage }
+
 // @public (undocumented)
 export function identityArtifact(input: PromptDocument, provenance?: Provenance): Artifact;
+
+export { ModelBinding }
 
 // @public (undocumented)
 export interface PluginContribution {
@@ -130,6 +170,41 @@ export interface PluginRegistration {
     // (undocumented)
     readonly manifest: PluginManifest;
 }
+
+// @public
+export interface Provider {
+    // (undocumented)
+    close?(): Promise<void> | void;
+    // (undocumented)
+    readonly configuration: ProviderConfiguration;
+    // (undocumented)
+    generate(request: ProviderGenerateRequest, context?: ProviderExecutionContext): Promise<ProviderGenerateResult>;
+}
+
+export { ProviderConfiguration }
+
+export { ProviderErrorKind }
+
+// @public
+export interface ProviderExecutionContext {
+    // (undocumented)
+    readonly signal?: AbortSignal;
+}
+
+export { ProviderFailure }
+
+// @public
+export class ProviderFailureError extends Error {
+    constructor(failure: ProviderFailure);
+    // (undocumented)
+    readonly failure: ProviderFailure;
+}
+
+export { ProviderGenerateRequest }
+
+export { ProviderGenerateResult }
+
+export { ProviderUsage }
 
 // @public (undocumented)
 export interface Recipe {
