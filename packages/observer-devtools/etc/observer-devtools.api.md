@@ -72,7 +72,7 @@ export interface JsonLinesSinkOptions {
 }
 
 // @public (undocumented)
-export const MAX_BUNDLE_BYTES: number;
+export const MAX_BUNDLE_BYTES = 262144;
 
 // @public (undocumented)
 export const MAX_BUNDLE_DEBUG_RECORDS = 128;
@@ -88,6 +88,7 @@ export interface ObserverDevtools extends DebugRecordSink {
     // (undocumented)
     attach(dispatcher: EventDispatcher): {
         detach(): Promise<void>;
+        done: Promise<void>;
     };
     // (undocumented)
     capture(record: DebugRecord): void;

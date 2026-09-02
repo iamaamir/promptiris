@@ -71,6 +71,8 @@ function pushIfNumber(parts: string[], key: string, value: unknown): void {
 
 /** @public */
 export function formatEvent(event: Event): string {
+  const prefix = `[${String(event.sequence)}] ${event.type} source=${event.source}`;
+  if (event.classification !== 'metadata') return `${prefix} [redacted] delivery=${event.delivery}`;
   const data = (event.data ?? {}) as Record<string, unknown>;
   const parts: string[] = [`[${String(event.sequence)}]`, event.type, `source=${event.source}`];
   pushIfString(parts, 'phase', data.phase);

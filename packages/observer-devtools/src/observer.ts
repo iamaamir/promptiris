@@ -25,7 +25,7 @@ export interface ObserverDevtools extends DebugRecordSink {
   readonly observerId: string;
   readonly manifest: PluginRegistration['manifest'];
   readonly jsonSink: JsonLinesSink;
-  attach(dispatcher: EventDispatcher): { detach(): Promise<void> };
+  attach(dispatcher: EventDispatcher): { detach(): Promise<void>; done: Promise<void> };
   capture(record: DebugRecord): void;
   getEvents(): readonly Event[];
   getDebugRecords(): readonly DebugRecord[];
@@ -98,7 +98,10 @@ function onEvent(
   jsonSink: JsonLinesSink,
 ): void {
   try {
-    if (state.events.length < maxEvents) state.events.push(event);
+    const retained = state.events.length < maxEvents;
+    const progressIndex = state.events.findIndex((item) => item.delivery === 'progress');
+    if (retained) state.events.push(event);
+    else if (event.delivery !== 'progress' && progressIndex >= 0) state.events[progressIndex] = event;
     forwardToSinks(event, consoleSink, jsonSink);
     state.runId ??= event.runId;
     state.traceId ??= event.traceId;
@@ -112,10 +115,10 @@ function attachToDispatcher(
   observerId: string,
   capacity: number,
   handler: (event: Event) => void,
-): { detach(): Promise<void> } {
+): { detach(): Promise<void>; done: Promise<void> } {
   const subscription = dispatcher.subscribe({ observerId, capacity });
   let detached = false;
-  void (async () => {
+  const done = (async () => {
     try {
       for await (const event of subscription) {
         if (detached) break;
@@ -126,6 +129,7 @@ function attachToDispatcher(
     }
   })();
   return {
+    done,
     async detach(): Promise<void> {
       detached = true;
       try {
@@ -133,6 +137,7 @@ function attachToDispatcher(
       } catch {
         // detach isolated
       }
+      await done;
     },
   };
 }

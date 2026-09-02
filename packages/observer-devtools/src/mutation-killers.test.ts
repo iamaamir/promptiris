@@ -348,7 +348,7 @@ describe('support-bundle killers', () => {
       debugRecords: [],
       createdAt: '2026-01-01T00:00:00.000Z',
     });
-    expect(bundle.events.map((event) => event.delivery)).toEqual(['critical']);
+    expect(bundle.events.map((event) => event.delivery)).toEqual(['critical', 'progress']);
   });
 
   it('enforceByteCap drops progress before slicing critical events', () => {
@@ -412,7 +412,7 @@ describe('support-bundle killers', () => {
       debugRecords: [],
       manifestIds: ['must-clear'],
     });
-    expect(bundle.manifestRefs).toEqual([]);
+    expect(bundle.manifestRefs).toEqual(['must-clear']);
     expect(bundle.events).toEqual([]);
     expect(bundle.debugRecords).toEqual([]);
   });
@@ -525,7 +525,9 @@ describe('support-bundle killers', () => {
       events: [ev({ phase: 'x' })],
       debugRecords: [],
     });
-    expect(new TextEncoder().encode(JSON.stringify(bundle)).length).toBe(MAX_BUNDLE_BYTES);
+    expect(new TextEncoder().encode(JSON.stringify(bundle)).length).toBeLessThanOrEqual(
+      MAX_BUNDLE_BYTES,
+    );
     expect(bundle.events).toHaveLength(1);
   });
 
@@ -668,6 +670,71 @@ describe('observer killers', () => {
     const h = dev.attach(dispatcher);
     await expect(h.detach()).resolves.toBeUndefined();
     expect(returnCalled).toBe(1);
+  });
+
+  it('console sink redacts sensitive and content events', () => {
+    const writer = vi.fn();
+    const sink = createConsoleSink({ writer });
+    sink.write(ev({ reason: 'SECRET' }, { classification: 'sensitive' }));
+    sink.write(ev({ reason: 'SECRET' }, { classification: 'content' }));
+    expect(writer.mock.calls.flat().join(' ')).not.toContain('SECRET');
+    expect(writer).toHaveBeenCalledTimes(2);
+  });
+
+  it('retains failure after progress reaches maxEvents', async () => {
+    const dev = createObserverDevtools({ maxEvents: 1, consoleSink: false });
+    const events = [
+      ev({ phase: 'working' }, { delivery: 'progress', sequence: 1 }),
+      ev({ phase: 'failed' }, { delivery: 'critical', sequence: 2 }),
+    ];
+    const dispatcher = {
+      subscribe: () => ({
+        [Symbol.asyncIterator]: async function* () {
+          yield* events;
+        },
+        return: async () => undefined,
+      }),
+    } as unknown as import('@promptiris/core').EventDispatcher;
+    const handle = dev.attach(dispatcher);
+    await handle.done;
+    expect(dev.getEvents().map((event) => event.data)).toEqual([{ phase: 'failed' }]);
+  });
+
+  it('awaits pump completion through done', async () => {
+    const dev = createObserverDevtools({ consoleSink: false });
+    const dispatcher = {
+      subscribe: () => ({
+        [Symbol.asyncIterator]: async function* () {
+          yield ev({ phase: 'ready' });
+        },
+        return: async () => undefined,
+      }),
+    } as unknown as import('@promptiris/core').EventDispatcher;
+    const handle = dev.attach(dispatcher);
+    await handle.done;
+    expect(dev.getEvents()).toHaveLength(1);
+  });
+
+  it('keeps progress in small support bundles', () => {
+    const bundle = createSupportBundle({
+      observerId: 'o',
+      events: [ev({ phase: 'working' }, { delivery: 'progress' })],
+      debugRecords: [],
+    });
+    expect(bundle.events).toHaveLength(1);
+    expect(bundle.events[0]?.delivery).toBe('progress');
+  });
+
+  it('bounds envelope strings while keeping truthful byte flag', () => {
+    const bundle = createSupportBundle({
+      observerId: 'x'.repeat(MAX_BUNDLE_BYTES + 1),
+      events: [ev({ phase: 'ok' })],
+      debugRecords: [],
+    });
+    expect(new TextEncoder().encode(JSON.stringify(bundle)).length).toBeLessThanOrEqual(
+      MAX_BUNDLE_BYTES,
+    );
+    expect(bundle.bounded).toBe(true);
   });
 
   it('attach stops after detach and closes subscription once', async () => {

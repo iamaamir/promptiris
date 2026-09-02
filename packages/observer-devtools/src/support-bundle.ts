@@ -62,15 +62,16 @@ function isAllowlistedKey(key: string): boolean {
 }
 
 const MAX_STRING_LENGTH = 256;
-const MAX_REFERENCE_LENGTH = 512;
-const MAX_REFERENCES = 64;
-function boundedReference(value: string): string {
-  return value.length <= MAX_REFERENCE_LENGTH ? value : `${value.slice(0, MAX_REFERENCE_LENGTH)}…`;
-}
 
 function isPlainValue(value: unknown): boolean {
   const t = typeof value;
   return t === 'string' || t === 'number' || t === 'boolean';
+}
+
+const MAX_REFERENCE_LENGTH = 512;
+const MAX_REFERENCES = 64;
+function boundedReference(value: string): string {
+  return value.length <= MAX_REFERENCE_LENGTH ? value : `${value.slice(0, MAX_REFERENCE_LENGTH)}…`;
 }
 
 function boundedString(value: string): string {
@@ -108,14 +109,14 @@ function redactEvent(event: Event): Event {
   if (event.classification !== 'metadata') {
     return Object.freeze({
       schemaVersion: event.schemaVersion,
-      id: event.id,
-      type: event.type,
-      time: event.time,
+      id: boundedString(event.id),
+      type: boundedString(event.type),
+      time: boundedString(event.time),
       sequence: event.sequence,
-      runId: event.runId,
-      traceId: event.traceId,
-      source: event.source,
-      dataSchema: event.dataSchema,
+      runId: boundedString(event.runId),
+      traceId: boundedString(event.traceId),
+      source: boundedString(event.source),
+      dataSchema: boundedString(event.dataSchema),
       data: { redacted: true },
       classification: event.classification,
       delivery: event.delivery,
@@ -124,14 +125,14 @@ function redactEvent(event: Event): Event {
   const projected = projectData(event.data);
   return Object.freeze({
     schemaVersion: event.schemaVersion,
-    id: event.id,
-    type: event.type,
-    time: event.time,
+    id: boundedString(event.id),
+    type: boundedString(event.type),
+    time: boundedString(event.time),
     sequence: event.sequence,
-    runId: event.runId,
-    traceId: event.traceId,
-    source: event.source,
-    dataSchema: event.dataSchema,
+    runId: boundedString(event.runId),
+    traceId: boundedString(event.traceId),
+    source: boundedString(event.source),
+    dataSchema: boundedString(event.dataSchema),
     data: projected,
     classification: event.classification,
     delivery: event.delivery,
@@ -140,13 +141,13 @@ function redactEvent(event: Event): Event {
 
 function redactDebugRecord(record: DebugRecord): DebugRecord {
   return Object.freeze({
-    id: record.id,
-    runId: record.runId,
-    traceId: record.traceId,
-    operation: record.operation,
-    ...(record.pluginId ? { pluginId: record.pluginId } : {}),
-    ...(record.contributionId ? { contributionId: record.contributionId } : {}),
-    exception: Object.freeze({ type: record.exception.type, message: '[redacted]' }),
+    id: boundedString(record.id),
+    runId: boundedString(record.runId),
+    traceId: boundedString(record.traceId),
+    operation: boundedString(record.operation),
+    ...(record.pluginId ? { pluginId: boundedString(record.pluginId) } : {}),
+    ...(record.contributionId ? { contributionId: boundedString(record.contributionId) } : {}),
+    exception: Object.freeze({ type: boundedString(record.exception.type), message: '[redacted]' }),
   });
 }
 
@@ -160,10 +161,10 @@ function buildInitialBundle(
     .slice(0, MAX_REFERENCES);
   return Object.freeze({
     schemaVersion: SUPPORT_BUNDLE_SCHEMA_VERSION,
-    createdAt: input.createdAt ?? '1970-01-01T00:00:00.000Z',
-    observerId: input.observerId,
-    ...(input.runId ? { runId: input.runId } : {}),
-    ...(input.traceId ? { traceId: input.traceId } : {}),
+    createdAt: boundedString(input.createdAt ?? '1970-01-01T00:00:00.000Z'),
+    observerId: boundedString(input.observerId),
+    ...(input.runId ? { runId: boundedString(input.runId) } : {}),
+    ...(input.traceId ? { traceId: boundedString(input.traceId) } : {}),
     bounded: true as const,
     redacted: true as const,
     deterministic: true as const,
@@ -184,20 +185,25 @@ function enforceByteCap(
     events: Object.freeze(events),
     debugRecords: Object.freeze(debugRecords.slice(0, MAX_BUNDLE_DEBUG_RECORDS)),
   });
+  const bytes = utf8ByteLength(stableStringify(boundedBundle));
+  if (bytes <= MAX_BUNDLE_BYTES) return boundedBundle;
   const truncatedEvents = events.filter((e) => e.delivery !== 'progress');
   const tmp: SupportBundle = Object.freeze({
     ...boundedBundle,
     events: Object.freeze(truncatedEvents),
   });
-  const bytes = utf8ByteLength(stableStringify(tmp));
-  if (bytes <= MAX_BUNDLE_BYTES) return tmp;
+  if (utf8ByteLength(stableStringify(tmp)) <= MAX_BUNDLE_BYTES) return tmp;
   const minimal = Object.freeze({
     ...boundedBundle,
     events: Object.freeze([]),
     debugRecords: Object.freeze([]),
     manifestRefs: Object.freeze([]),
   });
-  return minimal;
+  if (utf8ByteLength(stableStringify(minimal)) <= MAX_BUNDLE_BYTES) return minimal;
+  return Object.freeze({
+    ...minimal,
+    observerId: boundedString(bundle.observerId).slice(0, 64),
+  });
 }
 
 /** @public */
