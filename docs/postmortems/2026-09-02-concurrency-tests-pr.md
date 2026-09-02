@@ -65,13 +65,13 @@ The commit template included `Co-Authored-By: Codebuff` trailers. AGENTS.md rule
 
 ### 6. Scheduler test was conceptually wrong
 
-`fc.scheduler()` was used to "test Promise resolution order" but:
+The initial `fc.scheduler()` test scheduled emits and reads incorrectly:
 
 - Emits were synchronous — scheduler couldn't control them
 - Multiple `next()` calls on the same subscription created concurrent reads (API violation)
 - The scheduler only reordered trivially-resolved promises from a pre-filled buffer
 
-The test looked like it tested concurrency but tested nothing.
+The test looked like it tested concurrency but tested nothing. Fixed by scheduling reads (not emits) via `fc.scheduler()`, which controls which observer's `next()` resolves first.
 
 ## What Was Fixed
 
@@ -79,7 +79,7 @@ The test looked like it tested concurrency but tested nothing.
 | --------- | ---------- | ----- |
 | Model doesn't track `#dropReported` | BLOCKER | Added `dropReported` to `ObserverState`, branch on progress vs critical overflow |
 | Model doesn't dispatch notifications to survivors | BLOCKER | `notifySurvivors()` helper dispatches detached/drop notifications |
-| Scheduler test doesn't test concurrency | BLOCKER | Replaced with `Promise.all([drainEvents(subA), drainEvents(subB)])` |
+| Scheduler test doesn't test concurrency | BLOCKER | Rewrote with `fc.scheduler()` scheduling reads to control interleaving order |
 | Lagging test comment mischaracterizes scenario | BLOCKER | Rewrote comment to match actual behavior |
 | Mutation test contradicts itself | HIGH | Removed entirely (own comment concluded E2C) |
 | `sink.at(-1)` assertion wrong | HIGH | Terminal may not be last — detached notifications can follow |

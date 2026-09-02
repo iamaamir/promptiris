@@ -1,11 +1,11 @@
 EventDispatcher concurrency tests - evidence
-Base revision: 4d5af3d9a49000b32f22a604d6d41ee12a357f95
-Date: 2026-09-01
+Base revision: 2a7576366f8eb140a39820749b9e22569b1765e3
+Date: 2026-09-02
 
 packages/core: 212 tests passed across 13 files
-  event-dispatcher.test.ts: 25 passed (17 existing + 8 mutation-killing)
-  event-dispatcher.concurrency.test.ts: 8 passed (model-based + scheduler-based)
-  All other test files: 179 passed
+  event-dispatcher.test.ts: 24 passed (17 existing + 7 mutation-killing)
+  event-dispatcher.concurrency.test.ts: 3 passed (model-based + scheduler-based)
+  All other test files: 185 passed
 
 Stryker mutation testing on event-dispatcher.ts:
   230 mutants, 149 killed, 2 timeout, 9 survived

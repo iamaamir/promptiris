@@ -1,10 +1,10 @@
 # EventDispatcher concurrency tests
 
-Status: ready-for-agent
+Status: ready-for-human
 
 Branch: `concurrency-tests`
 
-GitHub issue: pending
+GitHub PR: #46
 
 ## Outcome
 
@@ -13,7 +13,7 @@ Add scheduler-based concurrency tests and mutation-killing edge-case tests for t
 ## Acceptance
 
 - fc.scheduler() tests explore Promise interleaving across multiple observers
-- fc.commands() model-based tests exercise subscribe/emit/complete/dispose sequences
+- fc.commands() model-based tests exercise subscribe/emit/complete/dispose sequences with progress/critical overflow and notification dispatch
 - Mutation testing on event-dispatcher.ts passes the 90% threshold
 - All existing tests continue to pass
 - No production code changes

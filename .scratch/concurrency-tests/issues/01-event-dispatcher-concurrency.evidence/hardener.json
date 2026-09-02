@@ -9,8 +9,8 @@
   "status": "passed",
   "scenarios": [
     "Mutation testing on event-dispatcher.ts: 230 mutants, 149 killed, 2 timeout, 9 survived, score 94.38%",
-    "Model-based command tests exercise subscribe/emit/complete/dispose interleaving",
-    "Scheduler-based tests verify Promise resolution interleaving across observers"
+    "Model-based command tests exercise subscribe/emit/complete/dispose interleaving with progress/critical overflow",
+    "fc.scheduler() test verifies Promise resolution order across concurrent observers"
   ],
   "evidence": [
     {
