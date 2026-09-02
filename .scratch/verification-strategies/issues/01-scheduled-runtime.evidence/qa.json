@@ -1,25 +1,37 @@
 {
   "schemaVersion": 1,
   "role": "qa",
-  "producerId": "qa.scheduled-runtime",
-  "sourceBlind": true,
+  "producerId": "qa.scheduled-runtime.recheck",
   "status": "passed",
+  "sourceBlind": true,
   "scenarios": [
-    "Public API unchanged: NativePluginOptions gains an optional @internal transport field with no public surface change.",
-    "86 runtime-node tests pass across 5 files; fake in-memory transport smoke test verifies the NativeTransport injection seam without a subprocess.",
-    "Duplicate-invoke denial and late-response-after-cancellation are covered by the real-subprocess integration suite.",
-    "TypeScript typecheck clean, ESLint clean (max-warnings 0), Prettier clean",
-    "Coverage 96.37% statements / 99% lines for apps/runtime-node"
+    "dist build succeeds cleanly",
+    ".d.ts exports only defineNativePlugin and NativePluginOptions — no leaked transport symbols",
+    "all 90 unit tests pass",
+    "4 deterministic scheduler replay tests pass",
+    "tsc --noEmit typecheck is clean"
   ],
   "evidence": [
     {
-      "checkId": "full-suite-pass",
+      "checkId": "build",
       "status": "passed",
-      "evidenceRef": ".scratch/verification-strategies/issues/01-scheduled-runtime.evidence/test-results.txt",
-      "evidenceSha256": "15f5de182d43d653b67bbeaad5c7f6c1b147fc30ad5fae6f101c6b093c4d6884"
+      "evidenceRef": "issues/01-scheduled-runtime.evidence/build-output.txt",
+      "evidenceSha256": "29c5ee0f6b0b20dbb259b99d01276198c3d28190090706394608d4deda6d2c0b"
+    },
+    {
+      "checkId": "dts-exports",
+      "status": "passed",
+      "evidenceRef": "issues/01-scheduled-runtime.evidence/dts-exports-check.txt",
+      "evidenceSha256": "0424d24aec4cff3d3e4f26b6237887c97223708eea913eedaa13f93c8d7576b7"
+    },
+    {
+      "checkId": "vitest",
+      "status": "passed",
+      "evidenceRef": "issues/01-scheduled-runtime.evidence/vitest-output.txt",
+      "evidenceSha256": "fa69b146a3093891d5b46fd6830e661cdd845259d2bc1c1003e2c77b470facff"
     }
   ],
   "taskId": ".scratch/verification-strategies/issues/01-scheduled-runtime.md",
-  "baseRevision": "7beebfbd680835c2db6b04cf4b07f4006ab48853",
-  "candidateRevision": "sha256:6a3938fb2e1e7b946f142f7f8196c97e98d158ebdf91f49b480462893cc81d8a"
+  "baseRevision": "f0c2e6a912f4de0565019fcbd167c8244f627a0a",
+  "candidateRevision": "sha256:82b9280888baa88e36113059fa6f8818191168b1223f67c56edc63f50912f11f"
 }
