@@ -10,7 +10,7 @@
       "checkId": "review.work-item",
       "status": "passed",
       "evidenceRef": ".scratch/devtools-path/issues/01-observer-devtools.md",
-      "evidenceSha256": "d87b6bfd1e1fbd82806e41573bd459616f86d93dbaa2ebf9f7245486fac8e943"
+      "evidenceSha256": "95e7e76a5115566c3647172262762dd5e33bb23540671e43dace5ac46dbfedde"
     },
     {
       "checkId": "review.lifecycle-and-privacy",
@@ -30,5 +30,5 @@
   ],
   "taskId": ".scratch/devtools-path/issues/01-observer-devtools.md",
   "baseRevision": "2a7576366f8eb140a39820749b9e22569b1765e3",
-  "candidateRevision": "sha256:d751c536033aa7d551d7c55b03dc88548a3e5543f917155e1bb13bbeebc01c98"
+  "candidateRevision": "sha256:feeec4d53347c996cbc0287043a4077cc5128ed20d418e01b1fec77e7fd9393f"
 }

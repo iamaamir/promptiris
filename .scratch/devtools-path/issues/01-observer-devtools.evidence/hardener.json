@@ -23,7 +23,7 @@
   ],
   "taskId": ".scratch/devtools-path/issues/01-observer-devtools.md",
   "baseRevision": "2a7576366f8eb140a39820749b9e22569b1765e3",
-  "candidateRevision": "sha256:d751c536033aa7d551d7c55b03dc88548a3e5543f917155e1bb13bbeebc01c98",
+  "candidateRevision": "sha256:feeec4d53347c996cbc0287043a4077cc5128ed20d418e01b1fec77e7fd9393f",
   "role": "hardener",
   "status": "passed",
   "scenarios": [
