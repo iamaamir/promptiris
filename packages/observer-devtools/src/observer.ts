@@ -101,7 +101,8 @@ function onEvent(
     const retained = state.events.length < maxEvents;
     const progressIndex = state.events.findIndex((item) => item.delivery === 'progress');
     if (retained) state.events.push(event);
-    else if (event.delivery !== 'progress' && progressIndex >= 0) state.events[progressIndex] = event;
+    else if (event.delivery !== 'progress' && progressIndex >= 0)
+      state.events[progressIndex] = event;
     forwardToSinks(event, consoleSink, jsonSink);
     state.runId ??= event.runId;
     state.traceId ??= event.traceId;
