@@ -15,23 +15,23 @@
     {
       "checkId": "build",
       "status": "passed",
-      "evidenceRef": "issues/01-scheduled-runtime.evidence/build-output.txt",
+      "evidenceRef": ".scratch/verification-strategies/issues/01-scheduled-runtime.evidence/build-output.txt",
       "evidenceSha256": "29c5ee0f6b0b20dbb259b99d01276198c3d28190090706394608d4deda6d2c0b"
     },
     {
       "checkId": "dts-exports",
       "status": "passed",
-      "evidenceRef": "issues/01-scheduled-runtime.evidence/dts-exports-check.txt",
+      "evidenceRef": ".scratch/verification-strategies/issues/01-scheduled-runtime.evidence/dts-exports-check.txt",
       "evidenceSha256": "0424d24aec4cff3d3e4f26b6237887c97223708eea913eedaa13f93c8d7576b7"
     },
     {
       "checkId": "vitest",
       "status": "passed",
-      "evidenceRef": "issues/01-scheduled-runtime.evidence/vitest-output.txt",
+      "evidenceRef": ".scratch/verification-strategies/issues/01-scheduled-runtime.evidence/vitest-output.txt",
       "evidenceSha256": "fa69b146a3093891d5b46fd6830e661cdd845259d2bc1c1003e2c77b470facff"
     }
   ],
   "taskId": ".scratch/verification-strategies/issues/01-scheduled-runtime.md",
   "baseRevision": "f0c2e6a912f4de0565019fcbd167c8244f627a0a",
-  "candidateRevision": "sha256:82b9280888baa88e36113059fa6f8818191168b1223f67c56edc63f50912f11f"
+  "candidateRevision": "sha256:ab3706274e66142746278bf9ca9346a95c8098aeec8258a2a1e172c0c0ccb860"
 }
