@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "taskId": ".scratch/concurrency-tests/issues/01-event-dispatcher-concurrency.md",
   "baseRevision": "2a7576366f8eb140a39820749b9e22569b1765e3",
-  "candidateRevision": "sha256:a8024f4a8f7c8a48cecf1b29ebb957414d3494ee7dc248cbcb519c24ec715f5a",
+  "candidateRevision": "sha256:97a41081b7d0edeb4c9cad874c6bc2cea00d33db672d18286f3b0d8ae2d0f7d6",
   "producerId": "buffy",
   "independent": true,
   "verdict": "pass",

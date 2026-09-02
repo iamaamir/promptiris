@@ -14,7 +14,7 @@ PR #46 added model-based and scheduler-based concurrency tests for `EventDispatc
 ## Timeline
 
 | Phase | Date | Commits | What happened |
-|-------|------|---------|---------------|
+| ------- | ------ | --------- | --------------- |
 | Initial implementation | Sep 1 | 6 | Wrote tests, evidence files, lint fixes |
 | PR review feedback | Sep 2 | 2 | Rebased, addressed 6 review findings |
 | Axiom round 1 | Sep 2 | 2 | Rewrote model, scheduler test, removed broken test |
@@ -76,7 +76,7 @@ The test looked like it tested concurrency but tested nothing.
 ## What Was Fixed
 
 | Finding | Severity | Fix |
-|---------|----------|-----|
+| --------- | ---------- | ----- |
 | Model doesn't track `#dropReported` | BLOCKER | Added `dropReported` to `ObserverState`, branch on progress vs critical overflow |
 | Model doesn't dispatch notifications to survivors | BLOCKER | `notifySurvivors()` helper dispatches detached/drop notifications |
 | Scheduler test doesn't test concurrency | BLOCKER | Replaced with `Promise.all([drainEvents(subA), drainEvents(subB)])` |
@@ -92,7 +92,7 @@ The test looked like it tested concurrency but tested nothing.
 ## Metrics
 
 | Metric | Value |
-|--------|-------|
+| ------- | ------- |
 | Total agent turns | ~45 |
 | Commits | 12 |
 | Review rounds | 3 |
