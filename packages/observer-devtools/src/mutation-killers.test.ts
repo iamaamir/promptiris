@@ -756,6 +756,22 @@ describe('observer killers', () => {
     expect(dev.getEvents()[0]?.data).toEqual({ phase: 'first' });
   });
 
+  it('drops later progress from a full buffer', async () => {
+    const dev = createObserverDevtools({ maxEvents: 1, consoleSink: false });
+    const dispatcher = {
+      subscribe: () => ({
+        [Symbol.asyncIterator]: async function* () {
+          yield ev({ phase: 'first' });
+          yield ev({ phase: 'progress' }, { delivery: 'progress' });
+        },
+        return: async () => undefined,
+      }),
+    } as unknown as import('@promptiris/core').EventDispatcher;
+    const handle = dev.attach(dispatcher);
+    await handle.done;
+    expect(dev.getEvents()[0]?.data).toEqual({ phase: 'first' });
+  });
+
   it('does not replace full critical buffer with ordinary critical event', async () => {
     const dev = createObserverDevtools({ maxEvents: 1, consoleSink: false });
     const dispatcher = {

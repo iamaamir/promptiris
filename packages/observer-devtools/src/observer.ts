@@ -103,10 +103,10 @@ function onEvent(
 ): void {
   try {
     if (state.events.length < maxEvents) state.events.push(event);
-    else if (isTerminalEvent(event)) state.events[0] = event;
+    else if (isTerminalEvent(event)) state.events.splice(0, 1, event);
     else {
       const progressIndex = state.events.findIndex((item) => item.delivery === 'progress');
-      if (event.delivery !== 'progress' && progressIndex >= 0) state.events[progressIndex] = event;
+      if (progressIndex >= 0) state.events.splice(progressIndex, 1, event);
     }
     forwardToSinks(event, consoleSink, jsonSink);
     state.runId ??= event.runId;
