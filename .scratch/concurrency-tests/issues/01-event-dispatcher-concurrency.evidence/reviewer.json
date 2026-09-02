@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "taskId": ".scratch/concurrency-tests/issues/01-event-dispatcher-concurrency.md",
-  "baseRevision": "2a7576366f8eb140a39820749b9e22569b1765e3",
-  "candidateRevision": "sha256:97a41081b7d0edeb4c9cad874c6bc2cea00d33db672d18286f3b0d8ae2d0f7d6",
+  "baseRevision": "f0c2e6a912f4de0565019fcbd167c8244f627a0a",
+  "candidateRevision": "sha256:7675690db442f22a5aacd7984c9a528025859b32bb73c7323247b269f4a15e5d",
   "producerId": "buffy",
   "independent": true,
   "verdict": "pass",
@@ -13,7 +13,7 @@
       "checkId": "test-suite-pass",
       "status": "passed",
       "evidenceRef": ".scratch/concurrency-tests/issues/01-event-dispatcher-concurrency.evidence/test-results.txt",
-      "evidenceSha256": "bcd79762982b03fb9b0ef7f33b289a56f0bc37494c90ac8691379f343c2756be"
+      "evidenceSha256": "ad3b783d069d80b4a72dfcbc008d6d1a973f912886f96632803f6f7f311d842b"
     }
   ],
   "residualRisks": [
