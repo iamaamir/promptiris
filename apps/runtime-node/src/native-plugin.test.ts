@@ -153,9 +153,7 @@ function driveFakeChild(handle: FakeChildHandle, script: FakeNativeScript): { st
           } else if (message.method === 'plugin/shutdown') {
             // Send the shutdown response before signalling the fake child,
             // because killing destroys the streams.
-            handle.stdout.write(
-              frame({ jsonrpc: '2.0', id: message.id, result: {} }),
-            );
+            handle.stdout.write(frame({ jsonrpc: '2.0', id: message.id, result: {} }));
             await script.shutdown(handle);
             return;
           } else if (message.method === 'plugin/cancel') {
@@ -185,9 +183,7 @@ function driveFakeChild(handle: FakeChildHandle, script: FakeNativeScript): { st
   };
 }
 
-function createFakeNativeTransport(
-  options: { script?: FakeNativeScript } = {},
-): NativeTransport {
+function createFakeNativeTransport(options: { script?: FakeNativeScript } = {}): NativeTransport {
   const script = options.script;
   const spawn: NativeTransport['spawn'] = () => {
     const handle = createFakeChild();
