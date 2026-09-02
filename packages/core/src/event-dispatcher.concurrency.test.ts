@@ -101,6 +101,27 @@ class SubscribeCommand implements fc.Command<DispatcherModel, EventDispatcher> {
   }
 }
 
+function handleEmitOverflow(
+  delivery: 'critical' | 'progress',
+  id: string,
+  obs: ObserverState,
+  observers: Map<string, ObserverState>,
+  newlyDetached: string[],
+): void {
+  if (delivery === 'progress') {
+    if (!obs.dropReported) {
+      obs.dropReported = true;
+      notifySurvivors(observers, -1, id);
+    }
+    return;
+  }
+  // Critical overflow → detach
+  obs.closed = true;
+  obs.buffered = 0;
+  obs.delivered = [];
+  newlyDetached.push(id);
+}
+
 class EmitCommand implements fc.Command<DispatcherModel, EventDispatcher> {
   constructor(
     private readonly seq: number,
@@ -127,31 +148,11 @@ class EmitCommand implements fc.Command<DispatcherModel, EventDispatcher> {
         obs.delivered.push(this.seq);
         obs.buffered += 1;
       } else {
-        this.handleOverflow(id, obs, model, newlyDetached);
+        handleEmitOverflow(this.delivery, id, obs, model.observers, newlyDetached);
       }
     }
 
-    notifySurvivors(newlyDetached.length, model.observers, -2);
-  }
-
-  private handleOverflow(
-    id: string,
-    obs: ObserverState,
-    model: DispatcherModel,
-    newlyDetached: string[],
-  ): void {
-    if (this.delivery === 'progress') {
-      if (!obs.dropReported) {
-        obs.dropReported = true;
-        notifySurvivors(1, model.observers, -1, id);
-      }
-      return;
-    }
-    // Critical overflow → detach
-    obs.closed = true;
-    obs.buffered = 0;
-    obs.delivered = [];
-    newlyDetached.push(id);
+    notifySurvivors(model.observers, -2);
   }
 
   toString(): string {
@@ -160,12 +161,10 @@ class EmitCommand implements fc.Command<DispatcherModel, EventDispatcher> {
 }
 
 function notifySurvivors(
-  count: number,
   observers: Map<string, ObserverState>,
   marker: number,
   excludedId?: string,
 ): void {
-  if (count === 0) return;
   for (const [id, obs] of observers) {
     if (!obs.closed && id !== excludedId) {
       obs.delivered.push(marker);
@@ -194,14 +193,10 @@ class CompleteCommand implements fc.Command<DispatcherModel, EventDispatcher> {
     }
 
     // Each lagging observer's detach notification goes to surviving observers
-    notifySurvivors(lagging.length, model.observers, -2);
+    notifySurvivors(model.observers, -2);
 
     // Terminal event goes to all surviving observers (no exclusion)
-    let survivorCount = 0;
-    for (const [, obs] of model.observers) {
-      if (!obs.closed) survivorCount += 1;
-    }
-    notifySurvivors(survivorCount, model.observers, -3);
+    notifySurvivors(model.observers, -3);
 
     real.complete('success');
   }
@@ -244,9 +239,7 @@ function assertMonotonicUserSequences(events: Event[]): void {
   for (let i = 1; i < userEvents.length; i++) {
     const prev = userEvents[i - 1];
     const curr = userEvents[i];
-    if (prev !== undefined && curr !== undefined) {
-      expect(curr.sequence).toBeGreaterThanOrEqual(prev.sequence);
-    }
+    expect(curr?.sequence).toBeGreaterThanOrEqual(prev?.sequence);
   }
 }
 
@@ -380,57 +373,52 @@ describe('EventDispatcher concurrency', () => {
     // 5. complete(): #prepareTerminal detaches lagging (full + no waiter) → #close(true) clears queue
     // 6. healthy sees: progress-0, progress-1, progress-dropped, progress-2, detached, terminal
     // 7. lagging sees: [] (queue cleared by detach)
-    await fc.assert(
-      fc.asyncProperty(fc.constant({}), async () => {
-        const sink: Event[] = [];
-        const dispatcher = createEventDispatcher('run-detach', (event) => sink.push(event));
+    const sink: Event[] = [];
+    const dispatcher = createEventDispatcher('run-detach', (event) => sink.push(event));
 
-        const lagging = dispatcher.subscribe({ observerId: 'lagging', capacity: 1 });
-        const healthy = dispatcher.subscribe({ observerId: 'healthy', capacity: 64 });
+    const lagging = dispatcher.subscribe({ observerId: 'lagging', capacity: 1 });
+    const healthy = dispatcher.subscribe({ observerId: 'healthy', capacity: 64 });
 
-        dispatcher.emit(progressEvent(0));
-        dispatcher.emit(progressEvent(1));
-        dispatcher.emit(progressEvent(2));
-        dispatcher.complete('success');
+    dispatcher.emit(progressEvent(0));
+    dispatcher.emit(progressEvent(1));
+    dispatcher.emit(progressEvent(2));
+    dispatcher.complete('success');
 
-        // Drain healthy
-        const healthyEvents = await drainEvents(healthy);
+    // Drain healthy
+    const healthyEvents = await drainEvents(healthy);
 
-        // Drain lagging
-        const laggingEvents = await drainEvents(lagging);
+    // Drain lagging
+    const laggingEvents = await drainEvents(lagging);
 
-        // Healthy sees user events in monotonic order, terminal last
-        assertMonotonicUserSequences(healthyEvents);
-        assertTerminalLast(healthyEvents);
+    // Healthy sees user events in monotonic order, terminal last
+    assertMonotonicUserSequences(healthyEvents);
+    assertTerminalLast(healthyEvents);
 
-        // Healthy observer must see the detach notification for lagging
-        const detachEvent = healthyEvents.find(
-          (ev) =>
-            ev.type === 'promptiris.observer.detached' &&
-            (ev.data as { observerId: string }).observerId === 'lagging',
-        );
-        expect(detachEvent).toBeDefined();
-
-        // Terminal must be last for healthy
-        const hTermIdx = healthyEvents.findIndex((ev) => ev.type === 'promptiris.run.completed');
-        expect(hTermIdx).toBe(healthyEvents.length - 1);
-
-        // Lagging was detached during #prepareTerminal — queue cleared by #close(true)
-        expect(laggingEvents.length).toBe(0);
-
-        // Healthy saw strictly more events than lagging
-        expect(healthyEvents.length).toBeGreaterThan(laggingEvents.length);
-
-        // Sink also contains the detach and terminal events
-        const sinkDetach = sink.find(
-          (ev) =>
-            ev.type === 'promptiris.observer.detached' &&
-            (ev.data as { observerId: string }).observerId === 'lagging',
-        );
-        expect(sinkDetach).toBeDefined();
-        expect(sink.at(-1)?.type).toBe('promptiris.run.completed');
-      }),
-      { numRuns: 100, seed: 0x7c2d_2026 },
+    // Healthy observer must see the detach notification for lagging
+    const detachEvent = healthyEvents.find(
+      (ev) =>
+        ev.type === 'promptiris.observer.detached' &&
+        (ev.data as { observerId: string }).observerId === 'lagging',
     );
+    expect(detachEvent).toBeDefined();
+
+    // Terminal must be last for healthy
+    const hTermIdx = healthyEvents.findIndex((ev) => ev.type === 'promptiris.run.completed');
+    expect(hTermIdx).toBe(healthyEvents.length - 1);
+
+    // Lagging was detached during #prepareTerminal — queue cleared by #close(true)
+    expect(laggingEvents.length).toBe(0);
+
+    // Healthy saw strictly more events than lagging
+    expect(healthyEvents.length).toBeGreaterThan(laggingEvents.length);
+
+    // Sink also contains the detach and terminal events
+    const sinkDetach = sink.find(
+      (ev) =>
+        ev.type === 'promptiris.observer.detached' &&
+        (ev.data as { observerId: string }).observerId === 'lagging',
+    );
+    expect(sinkDetach).toBeDefined();
+    expect(sink.at(-1)?.type).toBe('promptiris.run.completed');
   });
 });
