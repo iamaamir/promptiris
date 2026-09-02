@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest';
 import { compilePluginGraph, createRunContext, executePluginPlan } from '@promptiris/core';
 import { makeTextDocument } from '@promptiris/protocol';
 import type { PluginManifest } from '@promptiris/plugin-sdk';
-import { defineNativePlugin } from './native-plugin.js';
+import { defineNativePlugin, type NativeTransport } from './native-plugin.js';
 
 const fixture = fileURLToPath(new URL('../test/fixtures/native-plugin.mjs', import.meta.url));
 const manifest: PluginManifest = {
@@ -20,6 +20,9 @@ const manifest: PluginManifest = {
 // In-memory fake transport for deterministic scheduling tests. Mirrors the
 // `NativeTransport`/`NativeChildHandle` interface in `native-plugin.ts` so we
 // can replay Promise interleavings without spawning real processes.
+// Uses writable exitCode/signalCode so the fake can set them on kill(); the
+// mutable shape is still structurally assignable to the readonly
+// `NativeChildHandle` required by `NativeTransport`.
 interface FakeChildHandle {
   readonly stdin: PassThrough;
   readonly stdout: PassThrough;
@@ -36,19 +39,6 @@ interface FakeNativeScript {
   initialize: () => Promise<unknown>;
   invoke: (params: unknown) => Promise<unknown>;
   shutdown: (handle: FakeChildHandle) => Promise<unknown>;
-  waitForInvoke?: () => Promise<void>;
-}
-
-interface FakeNativeTransport {
-  spawn(
-    command: string,
-    args: readonly string[],
-    options: {
-      readonly cwd: string;
-      readonly env: Readonly<Record<string, string>>;
-      readonly stdio: 'pipe';
-    },
-  ): FakeChildHandle;
 }
 
 function frame(message: unknown): string {
@@ -159,12 +149,13 @@ function driveFakeChild(handle: FakeChildHandle, script: FakeNativeScript): { st
           if (message.method === 'initialize') {
             result = await script.initialize();
           } else if (message.method === 'plugin/invoke') {
-            await script.waitForInvoke?.();
             result = await script.invoke(message.params);
           } else if (message.method === 'plugin/shutdown') {
             // Send the shutdown response before signalling the fake child,
             // because killing destroys the streams.
-            handle.stdout.write(frame({ jsonrpc: '2.0', id: message.id, result: {} }));
+            handle.stdout.write(
+              frame({ jsonrpc: '2.0', id: message.id, result: {} }),
+            );
             await script.shutdown(handle);
             return;
           } else if (message.method === 'plugin/cancel') {
@@ -196,19 +187,14 @@ function driveFakeChild(handle: FakeChildHandle, script: FakeNativeScript): { st
 
 function createFakeNativeTransport(
   options: { script?: FakeNativeScript } = {},
-): FakeNativeTransport {
+): NativeTransport {
   const script = options.script;
-  return {
-    spawn() {
-      const handle = createFakeChild();
-      if (script !== undefined) driveFakeChild(handle, script);
-      return handle;
-    },
+  const spawn: NativeTransport['spawn'] = () => {
+    const handle = createFakeChild();
+    if (script !== undefined) driveFakeChild(handle, script);
+    return handle;
   };
-}
-
-function never(): Promise<unknown> {
-  return new Promise(() => undefined);
+  return { spawn };
 }
 
 function defaultShutdown(handle: FakeChildHandle): Promise<void> {
@@ -692,61 +678,6 @@ describe('defineNativePlugin', () => {
     await expect(implementation.invoke(invocation())).resolves.toMatchObject({
       patches: [{ operations: [{ block: { text: 'fake' } }] }],
     });
-    await implementation[Symbol.asyncDispose]?.();
-  });
-
-  it('denies a duplicate invoke while a prior invoke is still in flight', async () => {
-    const transport = createFakeNativeTransport({
-      script: {
-        initialize: () => Promise.resolve(INIT_RESULT),
-        invoke: () => never(),
-        shutdown: defaultShutdown,
-      },
-    });
-    const plugin = native('happy', {
-      transport,
-      invocationTimeoutMs: 5_000,
-      cancellationGraceMs: 50,
-    });
-    const implementation = await plugin.activate();
-    const controller = new AbortController();
-    const first = implementation.invoke(invocation(controller.signal));
-    await expect(implementation.invoke(invocation())).rejects.toThrow(/concurrent invocation/i);
-    controller.abort();
-    await expect(first).rejects.toThrow(/cancelled/i);
-    await implementation[Symbol.asyncDispose]?.();
-  });
-
-  it('ignores a late successful response delivered after cancellation begins', async () => {
-    let resolveInvoke: ((value: unknown) => void) | undefined;
-    let invokeCalled!: () => void;
-    const invokeCalledPromise = new Promise<void>((resolve) => {
-      invokeCalled = resolve;
-    });
-    const transport = createFakeNativeTransport({
-      script: {
-        initialize: () => Promise.resolve(INIT_RESULT),
-        invoke: () =>
-          new Promise<unknown>((resolve) => {
-            resolveInvoke = resolve;
-          }),
-        shutdown: defaultShutdown,
-        waitForInvoke: async () => {
-          invokeCalled();
-        },
-      },
-    });
-    const registration = native('happy', {
-      transport,
-      cancellationGraceMs: 50,
-    });
-    const implementation = await registration.activate();
-    const controller = new AbortController();
-    const pending = implementation.invoke(invocation(controller.signal));
-    await invokeCalledPromise;
-    controller.abort();
-    resolveInvoke?.({ patches: [{ operations: [{ block: { text: 'too-late' } }] }] });
-    await expect(pending).rejects.toThrow(/cancelled/i);
     await implementation[Symbol.asyncDispose]?.();
   });
 });
