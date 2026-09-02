@@ -11,7 +11,7 @@
   ],
   "taskId": ".scratch/devtools-path/issues/01-observer-devtools.md",
   "baseRevision": "2a7576366f8eb140a39820749b9e22569b1765e3",
-  "candidateRevision": "sha256:3af2c0cccdcc502c4f402bca088c4e84699c0311e139e61694bab1a322992cd4",
+  "candidateRevision": "sha256:59a8885bbc6ecdc194b3cc064e39e9b4720a0a4ecab6124a11b1eed78c60071b",
   "role": "qa",
   "status": "passed",
   "scenarios": [

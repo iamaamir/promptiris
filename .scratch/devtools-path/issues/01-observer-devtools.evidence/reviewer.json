@@ -16,13 +16,13 @@
       "checkId": "review.lifecycle-and-privacy",
       "status": "passed",
       "evidenceRef": "packages/observer-devtools/src/observer.ts",
-      "evidenceSha256": "dbd11d2d5ce46b204f8e7f8edc19a9d4355d66e392e8c93f843f5ad5d94b6c08"
+      "evidenceSha256": "ef0429befa74f101ea48d6f5d0f5f7c28badd62cccd4a6e7b7539fcaf1b106b1"
     },
     {
       "checkId": "review.bundle-bounds",
       "status": "passed",
       "evidenceRef": "packages/observer-devtools/src/support-bundle.ts",
-      "evidenceSha256": "d2ff4f4df1fefae8fd79f67065b603f504358976dc7e4d09656f14744bba79b5"
+      "evidenceSha256": "33203110ead851ab158747fa170889ab3ad7e1ab456817bf7c0b351d556ab70e"
     }
   ],
   "residualRisks": [
@@ -30,5 +30,5 @@
   ],
   "taskId": ".scratch/devtools-path/issues/01-observer-devtools.md",
   "baseRevision": "2a7576366f8eb140a39820749b9e22569b1765e3",
-  "candidateRevision": "sha256:3af2c0cccdcc502c4f402bca088c4e84699c0311e139e61694bab1a322992cd4"
+  "candidateRevision": "sha256:59a8885bbc6ecdc194b3cc064e39e9b4720a0a4ecab6124a11b1eed78c60071b"
 }
