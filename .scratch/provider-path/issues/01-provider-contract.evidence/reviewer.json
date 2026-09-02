@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "producerId": "luna-reviewer",
+  "independent": true,
+  "verdict": "pass",
+  "findings": [],
+  "commentDecisions": [],
+  "evidence": [
+    {
+      "checkId": "work-item-acceptance",
+      "status": "passed",
+      "evidenceRef": ".scratch/provider-path/issues/01-provider-contract.md",
+      "evidenceSha256": "f9b3711fbd26b8c9f8bed989ef65db533d8d2213c48b676f2b87a8d72e60f3b2"
+    },
+    {
+      "checkId": "provider-runtime-contract",
+      "status": "passed",
+      "evidenceRef": "packages/plugin-sdk/src/index.ts",
+      "evidenceSha256": "4ea971b65265fc05c753b23af1464617109c57729af6046294ce5291e31ccc09"
+    },
+    {
+      "checkId": "provider-runtime-tests",
+      "status": "passed",
+      "evidenceRef": "packages/plugin-sdk/etc/plugin-sdk.api.md",
+      "evidenceSha256": "63e19c355c7fafa396e0a49ae410f9037e3fa06b772864688bbce1a6d0c2cf7f"
+    },
+    {
+      "checkId": "portable-protocol-contract",
+      "status": "passed",
+      "evidenceRef": "packages/protocol/src/index.ts",
+      "evidenceSha256": "9c434386e1cd152519597160c742f9df44433aef3277cbc5a92415f9680110b3"
+    },
+    {
+      "checkId": "portable-protocol-tests",
+      "status": "passed",
+      "evidenceRef": "packages/protocol/etc/protocol.api.md",
+      "evidenceSha256": "ce7c2227097ca7ead3076e3a0556d4d712bb2be84872d414003a04b3cd28b807"
+    },
+    {
+      "checkId": "review-architecture",
+      "status": "passed",
+      "evidenceRef": "docs/development/code-quality-and-review.md",
+      "evidenceSha256": "2c18c3a151f3088ee68e2a2f73dd03c18f1326c561d82e97706a76048db4cbf1"
+    }
+  ],
+  "residualRisks": [],
+  "taskId": ".scratch/provider-path/issues/01-provider-contract.md",
+  "baseRevision": "881eb412de65e4e6a0465a6ec9819b2fec87f12e",
+  "candidateRevision": "sha256:7671508c72619ce4b1d070da0524b06c8da6aa629101d91418dddefe264a27e1"
+}

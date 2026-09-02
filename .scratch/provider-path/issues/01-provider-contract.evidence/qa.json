@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "role": "qa",
+  "sourceBlind": true,
+  "producerId": "luna-qa",
+  "status": "passed",
+  "scenarios": [
+    "FakeProvider deterministic success and public Provider interface",
+    "Binding-scoped capability evidence and unsupported-capability failure",
+    "Cancellation before and during generation",
+    "Malformed request, result, and failure normalization",
+    "Classified failures preserve kind and retryability",
+    "Portable contract excludes runtime controls and OpenAI-specific fields"
+  ],
+  "evidence": [
+    {
+      "checkId": "provider-contract-acceptance",
+      "status": "passed",
+      "evidenceRef": "packages/plugin-sdk/src/provider.test.ts",
+      "evidenceSha256": "ebce95d172a714b388572df197577043899f0fbeb18f9879767b82111481b98d"
+    },
+    {
+      "checkId": "portable-protocol-validation",
+      "status": "passed",
+      "evidenceRef": "packages/protocol/src/provider-contract.test.ts",
+      "evidenceSha256": "feacca5d452da1784c5dfe09c059f8d6ac8f0800aa0d434d28416b214dd6bfae"
+    },
+    {
+      "checkId": "public-api-provider-surface",
+      "status": "passed",
+      "evidenceRef": "packages/plugin-sdk/etc/plugin-sdk.api.md",
+      "evidenceSha256": "63e19c355c7fafa396e0a49ae410f9037e3fa06b772864688bbce1a6d0c2cf7f"
+    },
+    {
+      "checkId": "protocol-public-api",
+      "status": "passed",
+      "evidenceRef": "packages/protocol/etc/protocol.api.md",
+      "evidenceSha256": "ce7c2227097ca7ead3076e3a0556d4d712bb2be84872d414003a04b3cd28b807"
+    }
+  ],
+  "taskId": ".scratch/provider-path/issues/01-provider-contract.md",
+  "baseRevision": "881eb412de65e4e6a0465a6ec9819b2fec87f12e",
+  "candidateRevision": "sha256:7671508c72619ce4b1d070da0524b06c8da6aa629101d91418dddefe264a27e1"
+}
