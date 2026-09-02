@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "role": "qa",
+  "sourceBlind": true,
+  "producerId": "sourceblind-qa-seed-20260903",
+  "status": "passed",
+  "scenarios": [
+    "Freshly execute issue-sync check for the parent and all five child projections.",
+    "Verify packet hierarchy, reciprocal dependency graph, unique branches, conflict domains, explicit shared paths, commands, and ownership boundaries.",
+    "Verify the audit projection record is non-authoritative, binds the Candidate digest, and records all six exact checks.",
+    "Verify readiness is capped at ready-for-human and post-merge maintainer closeout is required."
+  ],
+  "evidence": [
+    {
+      "checkId": "projection-check-fresh-six",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/00-role-work-items.evidence/projection-check.json",
+      "evidenceSha256": "c52310c03a311d5559dcf375ed17b1cf29cd49bd7ce333617ee005c38c0b5bcc"
+    },
+    {
+      "checkId": "contract-prd",
+      "status": "passed",
+      "evidenceRef": ".scratch/role-assurance/PRD.md",
+      "evidenceSha256": "88e92435fcd0f4f2f9b282447b9943e48913a6cc3361934997223b0232730c49"
+    },
+    {
+      "checkId": "contract-seed",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/00-role-work-items.md",
+      "evidenceSha256": "d42e4ec526c8a2285553806368bfadca797d4a89e3ae2a292ecef62291713c6f"
+    },
+    {
+      "checkId": "contract-independent-roles",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.md",
+      "evidenceSha256": "abfaf4372b86999d8e90175820242fa6fd076371a5da9aa77563a407eaa42021"
+    },
+    {
+      "checkId": "contract-model-routing",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/06-model-routing.md",
+      "evidenceSha256": "83eb60c736480151688d7b549c15c9feaac338319ca68357f55799b7199ea25e"
+    },
+    {
+      "checkId": "contract-feature-postmortems",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/07-feature-postmortems.md",
+      "evidenceSha256": "05aeec13ad3da2f241b609fcd0f0bbb387fa6f119153d400984f846f608e5e97"
+    },
+    {
+      "checkId": "contract-feature-gauntlet",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/08-feature-gauntlet.md",
+      "evidenceSha256": "487591665e0eaa6dfdbc05bf2e782ddb810239ff28b0161c20898c8a031666b5"
+    }
+  ],
+  "taskId": ".scratch/harness-integrity/issues/00-role-work-items.md",
+  "baseRevision": "c51f9979a8e82ce9b60ac5b66f0b60185e376097",
+  "candidateRevision": "sha256:9381eb8d706f404af1112fd2e0922b3e0aaf68c2dc54899ee42757884d736d89"
+}

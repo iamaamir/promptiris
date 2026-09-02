@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "taskId": ".scratch/harness-integrity/issues/00-role-work-items.md",
+  "baseRevision": "c51f9979a8e82ce9b60ac5b66f0b60185e376097",
+  "candidateRevision": "sha256:e3c5ef0ced4702f1f51fbfc79448fe3024ad202d7346473d70fe3951fedf9728",
+  "producerId": "independent-reviewer-seed-10",
+  "independent": true,
+  "verdict": "changes-required",
+  "findings": [
+    {
+      "id": "R10-001",
+      "severity": "high",
+      "file": ".scratch/harness-integrity/issues/06-model-routing.md",
+      "line": 13,
+      "summary": "The packet set does not explicitly identify and serialize shared integration surfaces.",
+      "evidenceRef": ".scratch/harness-integrity/issues/00-role-work-items.md"
+    }
+  ],
+  "commentDecisions": [],
+  "evidence": [],
+  "residualRisks": [
+    "The 05 and 06 packets both authorize scripts/agent-context, scripts/agent-work, and scripts/verify-role-evidence.mjs, while the acceptance requires shared integration surfaces to be named separately and serialized. A dependency edge alone does not establish which contract each shared file integrates or prevent a later slice from weakening a predecessor contract."
+  ]
+}

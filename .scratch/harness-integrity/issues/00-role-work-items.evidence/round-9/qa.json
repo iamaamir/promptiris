@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "role": "qa",
+  "taskId": ".scratch/harness-integrity/issues/00-role-work-items.md",
+  "baseRevision": "c51f9979a8e82ce9b60ac5b66f0b60185e376097",
+  "candidateRevision": "sha256:773d3af8160970d32adbec6d42c2c83a9ade18d441476c7242f37a7703575e5f",
+  "producerId": "source-blind-qa-independent",
+  "status": "passed",
+  "sourceBlind": true,
+  "scenarios": [
+    "Operator-facing packet status, branches, parent, blockers, and reciprocal dependency graph are coherent.",
+    "All six managed projections pass issue-sync check at the frozen Candidate; the network-enabled checks returned exit 0 and in-sync.",
+    "Allowed paths, exact public commands, evidence locations, and patch-policy boundaries are explicit across the seed and four implementation packets.",
+    "Pre-merge readiness is distinguished from maintainer-only post-merge bootstrap closeout, including the terminal-status and origin/main prerequisites."
+  ],
+  "evidence": [
+    {
+      "checkId": "projection-and-contract-qa",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/00-role-work-items.evidence/projection-check.json",
+      "evidenceSha256": "deb7792644e83dca7d9f347372e82c757cbbe4cb63dad70bbf380d481d16d5a3"
+    }
+  ]
+}

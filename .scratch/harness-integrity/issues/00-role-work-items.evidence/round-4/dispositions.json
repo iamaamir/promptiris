@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "sourcePacket": ".scratch/harness-integrity/issues/00-role-work-items.md",
+  "candidateHead": "315acae",
+  "decisions": [
+    {
+      "findingIds": ["DEPENDENCY_PATH_INCONSISTENCY"],
+      "disposition": "rejected",
+      "reason": "Blocks fields correctly use repository-relative packet identifiers, while Markdown links correctly resolve relative to the role-assurance PRD. Both resolve to the same files and serve different syntactic contracts."
+    },
+    {
+      "findingIds": ["PUBLIC_INTERFACE_IDENTIFIERS_UNSPECIFIED"],
+      "disposition": "accepted",
+      "reason": "Issues 05, 07, and 08 now name stable public command verbs and artifact roots while leaving internal implementation details to their slices."
+    },
+    {
+      "findingIds": ["SEED_COMPLETION_PREDICATE_AMBIGUOUS"],
+      "disposition": "accepted",
+      "reason": "The seed now defines exact local and projected verification, role Evidence, terminal release, PR closure, maintainer merge authority, clean branch, and base-revision predicates."
+    },
+    {
+      "findingIds": ["SPEC-01", "SPEC-02", "SPEC-03", "SPEC-04", "SPEC-05", "SPEC-06", "SPEC-07", "SPEC-08"],
+      "disposition": "partially-accepted",
+      "reason": "The seed now fixes exact payload completeness, narrow sibling authority, role/disposition completeness, projection verification, clean-base start, and explicit bootstrap limits. Existing issue-sync and role schemas remain the executable contracts for interruption, drift, and report binding; this one-off planning slice does not duplicate their full negative-test suites."
+    }
+  ]
+}

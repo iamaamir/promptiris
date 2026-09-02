@@ -1,0 +1,53 @@
+{
+  "verdict": "fail",
+  "findings": [
+    {
+      "id": "IR-003",
+      "severity": "high",
+      "file": ".scratch/harness-integrity/issues/05-independent-roles.md",
+      "line": 43,
+      "summary": "The provenance acceptance still has no implementable attestation contract.",
+      "rationale": "The amendment requires every producer/invocation to resolve through a Host-issued or authenticated external attestation and validates issuer, expiry, replay protection, and role coverage, but defines no authorized issuer protocol, schema, key/discovery mechanism, or deterministic verification boundary. The Notes explicitly leave strong identity to the Host. Without a repository-owned contract, implementations can claim authentication while the verifier has no portable way to validate it.",
+      "direction": "Specify the attestation schema and trust boundary (issuer registry, signed claims/key resolution, expiry/replay checks, and authenticated-maintainer fallback) or explicitly narrow repository acceptance to validating host-provided evidence rather than asserting authentication."
+    },
+    {
+      "id": "IR-004",
+      "severity": "medium",
+      "file": ".scratch/harness-integrity/issues/05-independent-roles.md",
+      "line": 43,
+      "summary": "Invocation uniqueness and retry semantics remain internally ambiguous.",
+      "rationale": "The packet says uniqueness is scoped to `(Work Item, Candidate, role)` while also requiring retries, branches, and replayed attestations to remain visible. It does not state whether multiple legitimate retries for the same role/Candidate are permitted, how they are ordered, or which one satisfies completion. A strict interpretation rejects valid retries; a permissive interpretation can admit repeated role execution or allow stale reports to be selected.",
+      "direction": "Define one role-attempt identity/index model: permit multiple attempts with unique attempt IDs, record supersession/failure explicitly, and define deterministic selection/completeness rules."
+    },
+    {
+      "id": "IR-005",
+      "severity": "medium",
+      "file": ".scratch/harness-integrity/issues/05-independent-roles.md",
+      "line": 9,
+      "summary": "This Work Item is too broad and overlaps the dependent gauntlet/controller boundary.",
+      "rationale": "05 owns role provenance, prompt registry, final-candidate transitions, canonical invalidation across verifier imports, QA sandbox materialization, hardener surface derivation, finding consolidation, unsupported-host recovery, orientation, and public workflow documentation. The next Work Item 08 separately owns the end-to-end stage controller and consolidated repair loop. That split leaves no tight independently deliverable slice and invites duplicated or conflicting transition logic.",
+      "direction": "Limit 05 to role contracts, manifests, attestation binding, and role-evidence verification; move controller transitions, repair-loop consolidation, invalidation orchestration, and workflow closeout to 08 with explicit interfaces."
+    }
+  ],
+  "residualRisks": [
+    "The amended diff resolves the original small-change policy conflict by explicitly amending the exception.",
+    "The amended model-routing item resolves the prior classification gap with a fail-closed matrix and precedence requirement.",
+    "Host-dependent dogfood remains externally attestable rather than repository-proven."
+  ],
+  "evidenceInspected": [
+    "git diff c51f997..a3e02a8",
+    ".scratch/harness-integrity/PRD.md",
+    ".scratch/harness-integrity/issues/05-independent-roles.md",
+    ".scratch/harness-integrity/issues/06-model-routing.md",
+    ".scratch/harness-integrity/issues/07-feature-postmortems.md",
+    ".scratch/harness-integrity/issues/08-feature-gauntlet.md",
+    "docs/development/agent-operating-model.md",
+    "docs/development/tool-aware-execution.md",
+    "docs/development/code-quality-and-review.md"
+  ],
+  "role": "reviewer",
+  "producerId": "luna-scope-reviewer",
+  "candidateHead": "a3e02a8",
+  "baseHead": "c51f997",
+  "sourcePacket": ".scratch/harness-integrity/issues/00-role-work-items.md"
+}

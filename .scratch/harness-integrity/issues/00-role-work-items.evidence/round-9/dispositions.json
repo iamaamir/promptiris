@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "sourcePacket": ".scratch/harness-integrity/issues/00-role-work-items.md",
+  "candidateHead": "c2bbd6d",
+  "decisions": [
+    {
+      "findingIds": ["H-001"],
+      "disposition": "accepted",
+      "reason": "The contract now makes projection-check.json non-authoritative, requires fresh independent source-blind QA execution, binds the artifact digest through the schema-validated Candidate-bound QA report, and preserves an independent maintainer rerun for post-merge completion."
+    }
+  ]
+}

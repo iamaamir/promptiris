@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "role": "hardener",
+  "producerId": "independent-hardener-seed-12",
+  "status": "passed",
+  "sourceBlind": true,
+  "scenarios": [
+    "Attack dependency and hierarchy closure, including self-edge, cycle, reciprocal edge, parent, duplicate branch, and shared conflict-domain claims.",
+    "Attack shared-path serialization for sibling packet edits and predecessor-contract weakening or reinterpretation.",
+    "Attack projection evidence freshness, forgery, partial coverage, and issue-sync drift across the parent and five child projections.",
+    "Attack bootstrap self-authorization and the distinction between an audit projection record, fresh QA execution, and authenticated maintainer merge."
+  ],
+  "evidence": [
+    {
+      "checkId": "hardener-fresh-projection-qa-authority",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/00-role-work-items.evidence/projection-check.json",
+      "evidenceSha256": "c52310c03a311d5559dcf375ed17b1cf29cd49bd7ce333617ee005c38c0b5bcc"
+    }
+  ],
+  "taskId": ".scratch/harness-integrity/issues/00-role-work-items.md",
+  "baseRevision": "c51f9979a8e82ce9b60ac5b66f0b60185e376097",
+  "candidateRevision": "sha256:9381eb8d706f404af1112fd2e0922b3e0aaf68c2dc54899ee42757884d736d89"
+}

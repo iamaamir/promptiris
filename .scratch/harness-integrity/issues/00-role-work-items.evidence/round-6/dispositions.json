@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "sourcePacket": ".scratch/harness-integrity/issues/00-role-work-items.md",
+  "candidateHead": "5a8aa88",
+  "decisions": [
+    {
+      "findingIds": ["H-01", "H-02"],
+      "disposition": "accepted",
+      "reason": "The seed now defines a versioned post-merge maintainer closeout record with integration, Candidate, changed-path, projection, and relationship evidence, plus complete invalidation of reports, dispositions, readiness, projection claims, and closeout after any relevant change."
+    }
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "status": "fail",
+  "scenarios": [
+    {
+      "name": "seed_vs_future_implementation",
+      "result": "pass",
+      "details": "The seed explicitly adds no implementation, does not claim issues 05–08 complete/green/executable, and defines post-merge status/dependency progression."
+    },
+    {
+      "name": "status_and_dependencies",
+      "result": "fail",
+      "details": "PRD Blocks references `.scratch/harness-integrity/issues/...`, while its slice links use `../harness-integrity/issues/...`; this is internally inconsistent and could make dependency interpretation ambiguous."
+    },
+    {
+      "name": "unsupported_host",
+      "result": "pass",
+      "details": "Unsupported capability, reason, non-passing self-authored reports, needs-independent-roles state, and authenticated fallback binding are specified."
+    },
+    {
+      "name": "future_public_interfaces",
+      "result": "fail",
+      "details": "Acceptance requires commands, schemas, artifact locations, launchers, and binding interfaces, but does not identify the exact command names or complete public interface identifiers. This is deferred to implementation documentation and is not unambiguous as a planning contract."
+    },
+    {
+      "name": "role_independence",
+      "result": "pass",
+      "details": "Distinct Reviewer, Hardener, and source-blind QA invocations, identities, manifests, source-access rules, and attestation checks are explicit."
+    },
+    {
+      "name": "model_routing",
+      "result": "pass",
+      "details": "Risk and model-floor vocabularies, precedence, protected taxonomy, unknown/conflict behavior, escalation monotonicity, and maintainer adjudication are specified."
+    },
+    {
+      "name": "postmortem_closeout",
+      "result": "pass",
+      "details": "Machine-derived facts, authored analysis, provenance, contradiction checks, required artifact bindings, non-circular identity, and completion gating are explicit."
+    },
+    {
+      "name": "legal_completion",
+      "result": "fail",
+      "details": "The artifacts describe readiness conditions and required reports, but do not define a single unambiguous legal completion predicate for the seed itself versus the future implementation slices. The seed acceptance says its packet becomes complete after merge, while current status remains in-progress and no explicit transition authority/verification command is named."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "high",
+      "code": "DEPENDENCY_PATH_INCONSISTENCY",
+      "details": "The PRD's `Blocks` paths and slice link paths are not consistently expressed."
+    },
+    {
+      "severity": "medium",
+      "code": "PUBLIC_INTERFACE_IDENTIFIERS_UNSPECIFIED",
+      "details": "Future commands/interfaces are described functionally but not named precisely enough for an independently implementable contract."
+    },
+    {
+      "severity": "medium",
+      "code": "SEED_COMPLETION_PREDICATE_AMBIGUOUS",
+      "details": "Post-merge completion/status transition is stated procedurally but lacks an explicit legal-completion predicate and authority."
+    }
+  ],
+  "residualRisks": [
+    "An implementer could resolve the inconsistent dependency paths differently, producing incorrect blocker/ready-for-agent behavior.",
+    "Different implementations may expose incompatible command names or artifact interfaces while each claiming acceptance.",
+    "Reviewers may disagree about when the seed is legally complete because status, merge transition, and verification authority are not unified."
+  ],
+  "exactFilesRead": [
+    "/private/tmp/promptiris-independent-roles/.scratch/role-assurance/PRD.md",
+    "/private/tmp/promptiris-independent-roles/.scratch/harness-integrity/issues/00-role-work-items.md",
+    "/private/tmp/promptiris-independent-roles/.scratch/harness-integrity/issues/05-independent-roles.md",
+    "/private/tmp/promptiris-independent-roles/.scratch/harness-integrity/issues/06-model-routing.md",
+    "/private/tmp/promptiris-independent-roles/.scratch/harness-integrity/issues/07-feature-postmortems.md",
+    "/private/tmp/promptiris-independent-roles/.scratch/harness-integrity/issues/08-feature-gauntlet.md",
+    "/private/tmp/promptiris-independent-roles/AGENTS.md",
+    "/private/tmp/promptiris-independent-roles/docs/agents/issue-tracker.md"
+  ],
+  "metadata": {
+    "role": "qa",
+    "producerId": "luna-seed-qa4",
+    "candidateHead": "315acae",
+    "baseHead": "c51f997",
+    "sourcePacket": ".scratch/harness-integrity/issues/00-role-work-items.md",
+    "sourceBlind": true
+  }
+}

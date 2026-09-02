@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "sourcePacket": ".scratch/harness-integrity/issues/00-role-work-items.md",
+  "candidateHead": "9ff14ca",
+  "decisions": [
+    {
+      "findingIds": ["R8-001"],
+      "disposition": "accepted",
+      "reason": "The implementation packets now reserve exact slice-owned schema, policy, test, documentation, script, telemetry, and role-registry paths. Only explicitly named integration files remain shared and serialized by the dependency graph, and the seed forbids weakening predecessor contracts."
+    },
+    {
+      "findingIds": ["R8-002"],
+      "disposition": "accepted",
+      "reason": "The seed now requires Candidate-bound projection-check.json Evidence for all six pre-merge issue-sync checks. It also distinguishes that readiness proof from bootstrap-closeout.json, which cannot truthfully exist until after maintainer integration and remains mandatory before local terminal completion."
+    }
+  ]
+}

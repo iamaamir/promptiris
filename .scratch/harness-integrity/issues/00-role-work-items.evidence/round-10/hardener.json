@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "role": "hardener",
+  "taskId": ".scratch/harness-integrity/issues/00-role-work-items.md",
+  "baseRevision": "c51f9979a8e82ce9b60ac5b66f0b60185e376097",
+  "candidateRevision": "sha256:e3c5ef0ced4702f1f51fbfc79448fe3024ad202d7346473d70fe3951fedf9728",
+  "producerId": "independent-hardener-seed-10",
+  "status": "failed",
+  "scenarios": [
+    "Dependency graph bypass: the parent .scratch/role-assurance/PRD.md says it Blocks the seed, but the seed says Blocked by: none; a graph validator enforcing reciprocal edges must reject this non-reciprocal relationship, so the candidate cannot satisfy its own acyclic reciprocal-graph acceptance.",
+    "Bootstrap self-authorization and sibling-contract bypass: the seed authorizes edits to all four sibling packets and says maintainer-only merge is the control, but supplies no machine-verifiable maintainer identity, required-review binding, changed-path digest verifier, or protected-branch transition. A candidate author can therefore alter sibling contract text or statuses while retaining a superficially valid candidate digest and role JSON; prose notes do not enforce the bootstrap boundary.",
+    "Stale or forged projection evidence: projection-check.json is a static audit record with an observedAt and headRevision but no independently authenticated remote snapshot or verifier-produced proof. The only fresh issue-sync check attempted here fails with a GitHub connection outage and reports body drift, demonstrating that the checked-in record cannot establish current projection readiness; the seed correctly calls it non-authoritative but does not define a deterministic maintainer rerun artifact/schema before merge.",
+    "Weak-agent gaming and dependency errors: the seed requires markdown, diff, finalization, and role-evidence gates but does not name a complete command/schema or an explicit failure code for graph validation, changed-path authorization, and maintainer bootstrap review. A weak implementation can report those gates as passing while omitting the parent-cycle/non-reciprocal check or treating an unavailable remote as success. Existing issue-sync outage behavior cannot compensate for these missing seed-level acceptance controls."
+  ],
+  "evidence": [
+    {
+      "checkId": "HARDENER-GRAPH-RECIPROCITY",
+      "status": "failed",
+      "evidenceRef": ".scratch/role-assurance/PRD.md and .scratch/harness-integrity/issues/00-role-work-items.md",
+      "evidenceSha256": "3c376a5a9bba146826f6d58c360d26298e10247fe03073e527e3441230db41c4"
+    },
+    {
+      "checkId": "HARDENER-BOOTSTRAP-AUTHORITY",
+      "status": "failed",
+      "evidenceRef": ".scratch/harness-integrity/issues/00-role-work-items.md",
+      "evidenceSha256": "da7718a1a1deed6b7fa4e3abe149674b56042451f72788c115b57c36110eaadc"
+    },
+    {
+      "checkId": "HARDENER-PROJECTION-FRESHNESS",
+      "status": "failed",
+      "evidenceRef": ".scratch/harness-integrity/issues/00-role-work-items.evidence/projection-check.json",
+      "evidenceSha256": "5fb894f8a2189bc561aa244eb28cc0f988451a27fb7bd7881feef8f5ab9877cb"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "role": "hardener",
+  "taskId": ".scratch/harness-integrity/issues/00-role-work-items.md",
+  "baseRevision": "c51f9979a8e82ce9b60ac5b66f0b60185e376097",
+  "candidateRevision": "sha256:773d3af8160970d32adbec6d42c2c83a9ade18d441476c7242f37a7703575e5f",
+  "producerId": "independent-hardener-9",
+  "status": "failed",
+  "scenarios": [
+    "Projection-check forgery and stale-evidence replay",
+    "Bootstrap-closeout confusion and post-merge self-authorization",
+    "Broad or overlapping ownership, dependency-cycle, and sibling-contract bypasses",
+    "Issue projection identity and relationship drift"
+  ],
+  "evidence": [
+    {
+      "checkId": "H-001",
+      "status": "failed",
+      "evidenceRef": ".scratch/harness-integrity/issues/00-role-work-items.md",
+      "evidenceSha256": "149138101c64cddc58ebaefca24145927f5ee1ba6575fc5757ea3b4e7227a48b"
+    },
+    {
+      "checkId": "H-002",
+      "status": "failed",
+      "evidenceRef": "scripts/verify-role-evidence.mjs",
+      "evidenceSha256": "35700567f1f2a71b992f9f8aef4163f0809e3c5b1533ad5ed0e1bf1a227e3c92"
+    },
+    {
+      "checkId": "H-003",
+      "status": "passed",
+      "evidenceRef": "scripts/issue-sync",
+      "evidenceSha256": "c6361a523bf9185f3913286ebefccc0c5afa9cd9a4b06c7d62ac093228d0971f"
+    },
+    {
+      "checkId": "H-004",
+      "status": "failed",
+      "evidenceRef": "spec/schemas/quality-stage-report.schema.json",
+      "evidenceSha256": "03edcfe4a48b6547401e5db8d8344eee5757c2b590c68840fbe7196c56560194"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "sourcePacket": ".scratch/harness-integrity/issues/00-role-work-items.md",
+  "candidateHead": "dded797",
+  "decisions": [
+    {
+      "findingIds": ["AXIOM-001", "AXIOM-002", "AXIOM-003"],
+      "disposition": "accepted",
+      "reason": "All packets now declare Conflict Domains, the seed follows ready-for-human before maintainer-owned post-merge completion, and the exact changed planning path set is explicit."
+    },
+    {
+      "findingIds": ["SPEC-01", "SPEC-03", "SPEC-04", "SPEC-05", "SPEC-06", "SPEC-07", "SPEC-08"],
+      "disposition": "accepted",
+      "reason": "The seed now specifies exact completion actors/predicates, field-level payload and graph checks, Candidate-bound current role verification, same-revision projection checks, terminal dependency readiness, and complete invalidation scope."
+    },
+    {
+      "findingIds": ["SPEC-02", "SPEC-09"],
+      "disposition": "accepted-risk",
+      "reason": "A seed must author the sibling packets absent from its base, so base immutability is circularly impossible. The packet now states the bootstrap trust limit and requires exact path scope, frozen digest, independent Evidence, visible trusted-policy limitation, and maintainer-only merge. No portable repository check can authenticate the maintainer who owns that merge decision beyond the hosting platform boundary."
+    }
+  ]
+}

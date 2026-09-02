@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "role": "hardener",
+  "producerId": "independent-hardener-seed-7",
+  "status": "passed",
+  "scenarios": [
+    "H-01 bootstrap authority and self-certification bypass: checked exact changed-path allowlist, base-authority caveat, frozen Candidate digest, independent role requirement, maintainer-only merge, and post-merge closeout; no remaining blocker/high bypass found.",
+    "H-02 dependency, projection, and stale-evidence drift: checked unique packets/branches, reciprocal acyclic graph, ownership boundaries, six per-projection issue-sync checks, dependency terminal-status rule, and invalidation on contract/prompt/schema/policy/projection changes; no remaining blocker/high bypass found.",
+    "Attempted weak-agent gaming through ambiguous statuses, sibling edits, partial relationships, failed retries, unsupported hosts, and forged completion claims; the packet requires typed rejection, maintainer fallback, or explicit unresolved state."
+  ],
+  "evidence": [
+    {
+      "checkId": "hardener.H-01",
+      "status": "passed",
+      "evidenceRef": "AGENTS.md",
+      "evidenceSha256": "d6054254268af58bdff08faa95eb2775728ae09b057e193545d1ec2167d6b94a"
+    },
+    {
+      "checkId": "hardener.H-02",
+      "status": "passed",
+      "evidenceRef": "scripts/verify-role-evidence.mjs",
+      "evidenceSha256": "35700567f1f2a71b992af9f8aef4163f0809e3c5b1533ad5ed0e1bf1a227e3c92"
+    },
+    {
+      "checkId": "hardener.binding-contract",
+      "status": "passed",
+      "evidenceRef": "scripts/bind-role-evidence.mjs",
+      "evidenceSha256": "c64595bdc0869bdc499af6a9bce3899c175e369e69c1a77d7701b318b5cb8870"
+    },
+    {
+      "checkId": "hardener.report-schema",
+      "status": "passed",
+      "evidenceRef": "spec/schemas/quality-stage-report.schema.json",
+      "evidenceSha256": "03edcfe4a48b6547401e5db8d8344eee5757c2b590c68840fbe7196c56560194"
+    }
+  ]
+}

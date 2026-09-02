@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "sourcePacket": ".scratch/harness-integrity/issues/00-role-work-items.md",
+  "candidateHead": "5a8aa88",
+  "attempts": [
+    {
+      "role": "reviewer",
+      "producerId": "luna-seed-reviewer6",
+      "status": "failed",
+      "failureCode": "model-usage-limit",
+      "reportProduced": false
+    },
+    {
+      "role": "qa",
+      "producerId": "luna-seed-qa6",
+      "status": "failed",
+      "failureCode": "model-usage-limit",
+      "reportProduced": false
+    }
+  ]
+}

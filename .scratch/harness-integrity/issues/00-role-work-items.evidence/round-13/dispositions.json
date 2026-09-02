@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "sourcePacket": ".scratch/harness-integrity/issues/00-role-work-items.md",
+  "candidateRevision": "sha256:415081de25f2c5ca2a27175322052076c6f9dc785ba2476866defa988f91edb7",
+  "decisions": [
+    {
+      "findingIds": ["hardener-weak-agent-floor-bypass"],
+      "disposition": "accepted",
+      "reason": "Issue 06 now distinguishes the issue-owning Implementer floor from the independently escalated challenge-role floor, preserving cheap-role dogfooding without permitting weak evidence to erase stronger unresolved findings."
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "role": "hardener",
+  "taskId": ".scratch/harness-integrity/issues/00-role-work-items.md",
+  "baseRevision": "c51f9979a8e82ce9b60ac5b66f0b60185e376097",
+  "candidateRevision": "sha256:9381eb8d706f404af1112fd2e0922b3e0aaf68c2dc54899ee42757884d736d89",
+  "producerId": "independent-hardener-seed-11",
+  "status": "failed",
+  "sourceBlind": true,
+  "scenarios": [
+    "Attack stale or forged projection evidence and candidate identity binding.",
+    "Check dependency and hierarchy semantics, shared integration ownership, sibling-contract authority, bootstrap authorization, and weak-agent gaming.",
+    "Evaluate whether the explicit authenticated-maintainer merge boundary is honestly stated and contained."
+  ],
+  "evidence": [
+    {
+      "checkId": "hardener.projection-evidence-freshness",
+      "status": "failed",
+      "evidenceRef": ".scratch/harness-integrity/issues/00-role-work-items.evidence/projection-check.json",
+      "evidenceSha256": "6d6e41f42f89a07c90c647d4fb513e94d3a096fb55fa5f83c49c52e7ffe50724"
+    },
+    {
+      "checkId": "hardener.dependency-hierarchy-and-ownership",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/00-role-work-items.md",
+      "evidenceSha256": "d42e4ec526c8a2285553806368bfadca797d4a89e3ae2a292ecef62291713c6f"
+    },
+    {
+      "checkId": "hardener.bootstrap-boundary",
+      "status": "passed",
+      "evidenceRef": ".scratch/role-assurance/PRD.md",
+      "evidenceSha256": "88e92435fcd0f4f2f9b282447b9943e48913a6cc3361934997223b0232730c49"
+    },
+    {
+      "checkId": "hardener.projection-contract",
+      "status": "passed",
+      "evidenceRef": "scripts/issue-sync",
+      "evidenceSha256": "c6361a523bf9185f3913286ebefccc0c5afa9cd9a4b06c7d62ac093228d0971f"
+    }
+  ]
+}

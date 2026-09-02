@@ -1,0 +1,99 @@
+{
+  "role": "hardener",
+  "producerId": "luna-seed-hardener5",
+  "candidateHead": "dded797",
+  "baseHead": "c51f997",
+  "sourcePacket": ".scratch/harness-integrity/issues/00-role-work-items.md",
+  "status": "fail",
+  "attacks": [
+    {
+      "id": "SPEC-01",
+      "severity": "blocker",
+      "surface": "seed completion and bootstrap",
+      "attack": "The seed can be marked complete and issue #53 closed without a deterministic post-merge verification predicate proving the exact payload, projection closure, trusted-base SHA, and maintainer approval boundary.",
+      "requiredSpec": "Require explicit post-merge commands, actor, SHA-bound artifacts, and pass/fail predicates before complete/closeout."
+    },
+    {
+      "id": "SPEC-02",
+      "severity": "high",
+      "surface": "sibling contract authority",
+      "attack": "The seed Allowed paths authorize editing the PRD and all sibling packets, so the Candidate can rewrite the contracts it claims to release. The acceptance text does not provide a base-revision firewall or immutable sibling-content digest.",
+      "requiredSpec": "Constrain seed write authority to the seed packet/evidence, or require sibling packets and PRD to be validated against base-revision identities with explicit bootstrap exceptions."
+    },
+    {
+      "id": "SPEC-03",
+      "severity": "high",
+      "surface": "packet completeness and ownership",
+      "attack": "“Exactly ... issues 05–08 exist,” unique branches, non-overlap, conflict ownership, and deterministic acceptance are assertions without required field-level predicates, schemas, or named validation commands. Malformed or underspecified packets can satisfy the prose.",
+      "requiredSpec": "Define the authoritative completeness/ownership checks, including required fields, exact packet set, branch grammar, conflict-domain uniqueness, and acceptance artifact."
+    },
+    {
+      "id": "SPEC-04",
+      "severity": "high",
+      "surface": "dependency graph",
+      "attack": "Acyclic reciprocal dependencies are required but self-edges, missing reciprocal edges, parent mismatches, duplicate references, and status-transition races are not explicitly required to be rejected.",
+      "requiredSpec": "Require deterministic graph validation covering self-edge, cycle, reciprocity, parent consistency, duplicate/missing nodes, and status eligibility."
+    },
+    {
+      "id": "SPEC-05",
+      "severity": "high",
+      "surface": "role evidence",
+      "attack": "The seed requires separate role attempts and schema-conforming reports but does not define the seed-specific attempt identity, attestation, manifest, finding-disposition, or stale/replay checks it must invoke. A self-authored or replayed report could therefore be treated as completion evidence if existing validators are insufficient.",
+      "requiredSpec": "Bind seed role evidence to the frozen Candidate and require the existing role-evidence verifier/ledger predicates, including distinct identities, freshness, replay rejection, and exactly-once finding disposition."
+    },
+    {
+      "id": "SPEC-06",
+      "severity": "high",
+      "surface": "projection drift",
+      "attack": "“scripts/issue-sync check passes” does not specify that all five child projections and the parent are checked from the same local revision, nor how stale digests, partial reconciliation, remotely closed issues, or conflicting managed bodies block completion.",
+      "requiredSpec": "Reference the issue-sync contract with an explicit all-packets command and failure predicate requiring identity/status/relationship parity at one verified revision."
+    },
+    {
+      "id": "SPEC-07",
+      "severity": "medium",
+      "surface": "status ambiguity and readiness",
+      "attack": "The seed says future packets remain ready-for-agent and cannot be claimed while blocked, but does not define how status, retained blockers, terminal completion, and projection state are atomically evaluated. A stale or manually edited status can create false readiness.",
+      "requiredSpec": "Require canonical status validation and an atomic readiness check that resolves retained blockers only from terminal local packets plus synchronized projections."
+    },
+    {
+      "id": "SPEC-08",
+      "severity": "medium",
+      "surface": "cache/invalidation boundary",
+      "attack": "The seed mentions frozen Candidate evidence but does not state which planning, PRD, packet, schema, prompt, or projection changes invalidate role evidence and dependency checks for this planning Candidate.",
+      "requiredSpec": "Declare the seed Candidate digest scope and reuse/invalidation rules, including evidence-directory exclusions and all contract dependencies."
+    },
+    {
+      "id": "SPEC-09",
+      "severity": "medium",
+      "surface": "non-portable trust",
+      "attack": "The bootstrap note says maintainer confirmation is required, but does not require recording authenticated maintainer identity, changed-path review, and the exact trust limitation in a durable artifact. Host-dependent role claims can be mistaken for portable proof.",
+      "requiredSpec": "Require an explicit maintainer/bootstrap attestation artifact and report unsupported host or external trust limitations without claiming cryptographic certainty."
+    }
+  ],
+  "missingSpecCases": [
+    "Tampered sibling packet or PRD during the seed Candidate",
+    "Seed commit merged under a different SHA or without origin/main containing the seed",
+    "Duplicate, missing, malformed, or renamed packet paths",
+    "Cycle, self-dependency, non-reciprocal Blocks/Blocked by, and parent mismatch",
+    "Projection partially updated, remotely edited, remotely closed, or digest-stale",
+    "Role report replayed from another Candidate, expired, self-authored, or bound after manifest drift",
+    "Finding omitted, duplicated, rewritten, or dispositioned without immutable evidence",
+    "Status changed locally while GitHub projection remains stale",
+    "Evidence/cache reused after PRD, packet, schema, prompt, or policy changes"
+  ],
+  "residualRisks": [
+    "Existing issue-sync and role-evidence mechanisms may cover some negative cases, but the seed does not name the exact invocation and acceptance predicates that make those mechanisms completion-blocking.",
+    "The planning payload remains a privileged bootstrap boundary; allowing sibling rewrites in the same Candidate is materially unsafe without an explicit trusted-base restriction."
+  ],
+  "evidenceInspected": [
+    "git diff c51f997 dded797 -- .scratch/harness-integrity/issues/00-role-work-items.md",
+    ".scratch/harness-integrity/issues/00-role-work-items.md",
+    ".scratch/role-assurance/PRD.md",
+    ".scratch/harness-integrity/issues/05-independent-roles.md",
+    ".scratch/harness-integrity/issues/06-model-routing.md",
+    ".scratch/harness-integrity/issues/07-feature-postmortems.md",
+    ".scratch/harness-integrity/issues/08-feature-gauntlet.md",
+    "docs/agents/issue-tracker.md",
+    "scripts/verify-role-evidence.mjs"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "role": "reviewer",
+  "producerId": "luna-seed-reviewer4",
+  "candidateHead": "315acae",
+  "baseHead": "c51f997",
+  "sourcePacket": ".scratch/harness-integrity/issues/00-role-work-items.md",
+  "verdict": "pass",
+  "findings": [],
+  "residualRisks": [
+    "The packets specify future protocol behavior whose implementation and Host attestation strength remain unverified; this is appropriately deferred to issues 05–08.",
+    "The planning seed relies on trusted-base policy at its bootstrap boundary, as explicitly documented."
+  ],
+  "evidenceInspected": [
+    "Candidate 315acae4aebc15b9ffe61b20f4bd75c78284a11e",
+    "Base c51f997",
+    ".scratch/harness-integrity/issues/00-role-work-items.md",
+    ".scratch/harness-integrity/issues/05-independent-roles.md",
+    ".scratch/harness-integrity/issues/06-model-routing.md",
+    ".scratch/harness-integrity/issues/07-feature-postmortems.md",
+    ".scratch/harness-integrity/issues/08-feature-gauntlet.md",
+    ".scratch/role-assurance/PRD.md",
+    "docs/development/agent-operating-model.md",
+    "docs/development/tool-aware-execution.md",
+    "docs/development/code-quality-and-review.md",
+    "git diff --check"
+  ]
+}
