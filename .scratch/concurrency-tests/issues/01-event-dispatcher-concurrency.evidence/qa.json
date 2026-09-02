@@ -3,7 +3,7 @@
   "role": "qa",
   "taskId": ".scratch/concurrency-tests/issues/01-event-dispatcher-concurrency.md",
   "baseRevision": "2a7576366f8eb140a39820749b9e22569b1765e3",
-  "candidateRevision": "sha256:e0244ae45be966fa1c4a807accbb4a6276f89a010f475eca43e8f8f709327b71",
+  "candidateRevision": "sha256:1e93e9527445b607bf1946f7aa498fac8c5bb29a9c49aee3ee4bcbb922c2d720",
   "producerId": "buffy",
   "sourceBlind": true,
   "status": "passed",
