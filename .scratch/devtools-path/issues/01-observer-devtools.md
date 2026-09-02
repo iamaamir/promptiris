@@ -1,6 +1,6 @@
 # Observer devtools and support bundles
 
-Status: ready-for-agent
+Status: complete
 
 GitHub issue: <https://github.com/iamaamir/promptiris/issues/8>
 Branch: `observer-devtools`

@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "producerId": "observer-devtools-independent-hardener",
+  "evidence": [
+    {
+      "checkId": "hardener.raw-log-fields",
+      "status": "passed",
+      "evidenceRef": "packages/observer-devtools/src/sinks.ts",
+      "evidenceSha256": "ad2fbe66d116cedb16c87dcecd95a145b9d72c3d8b597139a66ec31cc8fa5312"
+    },
+    {
+      "checkId": "hardener.redaction",
+      "status": "passed",
+      "evidenceRef": "packages/observer-devtools/src/support-bundle.ts",
+      "evidenceSha256": "33203110ead851ab158747fa170889ab3ad7e1ab456817bf7c0b351d556ab70e"
+    },
+    {
+      "checkId": "hardener.cap-drops",
+      "status": "passed",
+      "evidenceRef": "packages/observer-devtools/src/observer.ts",
+      "evidenceSha256": "86fa8b802850847a93d50291c83608962c8c752e9baef1c9496282096b1d4398"
+    }
+  ],
+  "taskId": ".scratch/devtools-path/issues/01-observer-devtools.md",
+  "baseRevision": "2a7576366f8eb140a39820749b9e22569b1765e3",
+  "candidateRevision": "sha256:feeec4d53347c996cbc0287043a4077cc5128ed20d418e01b1fec77e7fd9393f",
+  "role": "hardener",
+  "status": "passed",
+  "scenarios": [
+    "mutation-boundary hardening",
+    "redaction and bounded sinks"
+  ],
+  "sourceBlind": false
+}

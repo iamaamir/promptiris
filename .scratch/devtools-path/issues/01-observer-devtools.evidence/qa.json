@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "producerId": "observer-devtools-source-blind-qa",
+  "evidence": [
+    {
+      "checkId": "qa.package-tests",
+      "status": "passed",
+      "evidenceRef": "packages/observer-devtools/src/observer.test.ts",
+      "evidenceSha256": "695bcfd89e33009078d694c62304b0a0c205d31ebf75a2881cd92c9206a0bcc2"
+    }
+  ],
+  "taskId": ".scratch/devtools-path/issues/01-observer-devtools.md",
+  "baseRevision": "2a7576366f8eb140a39820749b9e22569b1765e3",
+  "candidateRevision": "sha256:feeec4d53347c996cbc0287043a4077cc5128ed20d418e01b1fec77e7fd9393f",
+  "role": "qa",
+  "status": "passed",
+  "scenarios": [
+    "observer-devtools package tests",
+    "public API and lifecycle behavior"
+  ],
+  "sourceBlind": true
+}
