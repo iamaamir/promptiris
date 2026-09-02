@@ -26,7 +26,7 @@ The result was a long sequence of force-pushes, stale SHA-bound evidence, CI-onl
 ## Timeline highlights
 
 | Phase | Failure pattern | Why it cost turns |
-|---|---|---|
+| --- | --- | --- |
 | Initial implementation | Multiple production files added before governance was settled | Mutation registration and integrity policy had to be retrofitted |
 | Mutation work | Scoped config changes, restoration, then registration conflicts | Protected config semantics were not modeled before editing |
 | Evidence | Reports were manually refreshed across rebases and force-pushes | Base/candidate revisions and file digests repeatedly became stale |
