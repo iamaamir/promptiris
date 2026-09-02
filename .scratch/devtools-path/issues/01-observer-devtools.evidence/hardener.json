@@ -6,24 +6,24 @@
       "checkId": "hardener.raw-log-fields",
       "status": "passed",
       "evidenceRef": "packages/observer-devtools/src/sinks.ts",
-      "evidenceSha256": "e989fa12ddc2d740ad50a64d550a01a013f5d5d74631f3852b3e88da60f57a0c"
+      "evidenceSha256": "ad2fbe66d116cedb16c87dcecd95a145b9d72c3d8b597139a66ec31cc8fa5312"
     },
     {
       "checkId": "hardener.redaction",
       "status": "passed",
       "evidenceRef": "packages/observer-devtools/src/support-bundle.ts",
-      "evidenceSha256": "e39e0450b035aed18fda93a6bf58cf9b83db301d9e63e911b44b162337049ac0"
+      "evidenceSha256": "d2ff4f4df1fefae8fd79f67065b603f504358976dc7e4d09656f14744bba79b5"
     },
     {
       "checkId": "hardener.cap-drops",
       "status": "passed",
       "evidenceRef": "packages/observer-devtools/src/observer.ts",
-      "evidenceSha256": "4e665f24b885d7669893ba2cc51ebe20dcb2d811de7fe0c3ba36e3f2e9180e1c"
+      "evidenceSha256": "246b4d82135726b1897c855983f2e85b203d75a15abad9ed30e90af50dbc9021"
     }
   ],
   "taskId": ".scratch/devtools-path/issues/01-observer-devtools.md",
   "baseRevision": "2a7576366f8eb140a39820749b9e22569b1765e3",
-  "candidateRevision": "sha256:45d766d558091f96b82c6f5d951be4e0a9412a09205acf4cd477eccdc7b519ef",
+  "candidateRevision": "sha256:1945db70bf66fe13853ec7850597dbfbb2cd6e2a743cc79b0ef06e636ef1d89c",
   "role": "hardener",
   "status": "passed",
   "scenarios": [
