@@ -256,7 +256,7 @@ const failureValidator = ajv.compile(providerFailureSchema);
 
 /** @public */
 export function validateProviderConfiguration(value: unknown): value is ProviderConfiguration {
-  return configurationValidator(value) && hasValidEvidenceDigests(value as ProviderConfiguration);
+  return configurationValidator(value) && hasValidEvidenceDigests(value);
 }
 
 /** @public */

@@ -91,6 +91,9 @@ export class FakeProvider implements Provider {
     await new Promise<void>((resolve) => setTimeout(resolve, 0));
     if (context.signal?.aborted)
       throw new ProviderFailureError(providerFailure('cancelled', 'generation cancelled'));
+    return this.#consumeResponse(request);
+  }
+  #consumeResponse(request: ProviderGenerateRequest): ProviderGenerateResult {
     const response = this.#nextResponse(request.id);
     if (response.kind === 'failure') {
       if (!validateProviderFailure(response.value))
@@ -131,13 +134,13 @@ export class FakeProvider implements Provider {
     }
   }
   #nextResponse(requestId: string): FakeProviderResponse {
-    const responses = this.#scenarios.get(requestId);
-    if (!responses || responses.length === 0)
+    const responses = this.#scenarios.get(requestId) ?? [];
+    const index = this.#cursors.get(requestId) ?? 0;
+    const response = responses[index % responses.length];
+    if (response === undefined)
       throw new ProviderFailureError(
         providerFailure('unknown', `no scenario for request: ${requestId}`),
       );
-    const index = this.#cursors.get(requestId) ?? 0;
-    const response = responses[index % responses.length]!;
     this.#cursors.set(requestId, index + 1);
     return response;
   }

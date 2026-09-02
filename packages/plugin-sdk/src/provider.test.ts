@@ -1,28 +1,28 @@
 import { describe, expect, it } from 'vitest';
 import type {
+  CapabilityEvidence,
   ProviderConfiguration,
   ProviderGenerateRequest,
   ProviderGenerateResult,
 } from '@promptiris/protocol';
 import {
   FakeProvider,
-  ProviderFailureError,
   type Provider,
   type ProviderGenerateRequest as PublicRequest,
 } from './index.js';
 
+const textEvidence: CapabilityEvidence = {
+  evidenceId: 'text',
+  capability: 'provider/text',
+  bindingFingerprint: 'binding-a',
+  state: 'supported',
+  source: { kind: 'configuration', id: 'test' },
+};
+
 const configuration: ProviderConfiguration = {
   schemaVersion: '1',
   binding: { provider: 'example/provider', model: 'test', fingerprint: 'binding-a' },
-  evidence: [
-    {
-      evidenceId: 'text',
-      capability: 'provider/text',
-      bindingFingerprint: 'binding-a',
-      state: 'supported',
-      source: { kind: 'configuration', id: 'test' },
-    },
-  ],
+  evidence: [textEvidence],
 };
 
 const request: ProviderGenerateRequest = {
@@ -130,7 +130,7 @@ describe('FakeProvider', () => {
             state: 'unsupported',
             source: { kind: 'configuration', id: 'test' },
           },
-          configuration.evidence[0]!,
+          textEvidence,
         ],
       },
       [{ requestId: request.id, responses: [{ kind: 'success', value: result('accepted') }] }],
@@ -176,17 +176,13 @@ describe('FakeProvider', () => {
 
   it('rejects an invalid provider request with its precise failure', async () => {
     const provider = new FakeProvider(configuration, []);
-    await expect(
-      provider.generate({ ...request, id: '' } as ProviderGenerateRequest),
-    ).rejects.toEqual(
-      expect.objectContaining({
-        failure: expect.objectContaining({
-          kind: 'malformed-output',
-          message: 'invalid provider request',
-          retryable: false,
-        }),
-      }),
-    );
+    await expect(provider.generate({ ...request, id: '' })).rejects.toMatchObject({
+      failure: {
+        kind: 'malformed-output',
+        message: 'invalid provider request',
+        retryable: false,
+      },
+    });
   });
 
   it('rejects an invalid portable failure', async () => {
@@ -240,12 +236,10 @@ describe('FakeProvider', () => {
       },
     ]);
 
-    await expect(provider.generate(request)).rejects.toEqual(
-      expect.objectContaining({
-        name: 'ProviderFailureError',
-        failure: expect.objectContaining({ kind: 'rate-limit', retryable: true }),
-      }),
-    );
+    await expect(provider.generate(request)).rejects.toMatchObject({
+      name: 'ProviderFailureError',
+      failure: { kind: 'rate-limit', retryable: true },
+    });
   });
 
   it('rejects calls after close', async () => {
