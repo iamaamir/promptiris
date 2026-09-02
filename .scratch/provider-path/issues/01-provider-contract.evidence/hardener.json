@@ -4,21 +4,27 @@
   "producerId": "luna-hardener",
   "status": "passed",
   "scenarios": [
-    "Focused FakeProvider conformance tests exercise successful replay, capability evidence binding and state, cancellation before and during the scheduling boundary, malformed requests/failures/results, request and binding identity mismatches, classified retryability, close behavior, and missing or empty scenarios.",
-    "The governed provider implementation has explicit checks for lifecycle, request/result/failure validation, capability evidence, cancellation, response identity, and scenario boundaries; the mutation policy requires at least 90 percent with zero ignored, survived, or uncovered mutants for both provider targets."
+    "Focused FakeProvider tests pass 20/20 and cover success replay, malformed request/failure/result inputs, classified retryability, request and binding identity, capability evidence binding/state, cancellation at both timing boundaries, close, and missing/empty scenarios.",
+    "Current mutation evidence reports 100% effective mutation strength with zero surviving, ignored, or no-coverage mutants for packages/plugin-sdk/src/provider.ts (89 mutants) and packages/protocol/src/provider-contract.ts (20 mutants); compile errors are statically rejected mutants, not debt."
   ],
   "evidence": [
     {
-      "checkId": "hardener.provider-conformance",
+      "checkId": "hardener.focused-provider-tests",
       "status": "passed",
       "evidenceRef": "packages/plugin-sdk/src/provider.test.ts",
-      "evidenceSha256": "5ac4d73c75c3f0a47cb60a2e45008da8f1b422c1371b973bc5450f65b91d9801"
+      "evidenceSha256": "ebce95d172a714b388572df197577043899f0fbeb18f9879767b82111481b98d"
     },
     {
       "checkId": "hardener.provider-boundaries",
       "status": "passed",
       "evidenceRef": "packages/plugin-sdk/src/provider.ts",
-      "evidenceSha256": "371f432f9638ab0ce3d4f4b8274414c10f74d1409d6fd54ae6a03ccc5914649d"
+      "evidenceSha256": "1ba08f2365ea95b98459a5d904e5c4b789b04f0968e098cef1b7faaeb84762a8"
+    },
+    {
+      "checkId": "hardener.protocol-contract",
+      "status": "passed",
+      "evidenceRef": "packages/protocol/src/provider-contract.ts",
+      "evidenceSha256": "c031db3f28ade34b520a29fb2fe6ed3684bf927bac3d21b425f0d148f71371c3"
     },
     {
       "checkId": "hardener.zero-debt-policy",
@@ -35,5 +41,5 @@
   ],
   "taskId": ".scratch/provider-path/issues/01-provider-contract.md",
   "baseRevision": "881eb412de65e4e6a0465a6ec9819b2fec87f12e",
-  "candidateRevision": "sha256:28a95d76e539f7a20dd30203a0a0fd09b92af03cb1abd3fd3611675b581e49ef"
+  "candidateRevision": "sha256:7671508c72619ce4b1d070da0524b06c8da6aa629101d91418dddefe264a27e1"
 }

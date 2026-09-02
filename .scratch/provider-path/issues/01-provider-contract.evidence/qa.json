@@ -17,7 +17,7 @@
       "checkId": "provider-contract-acceptance",
       "status": "passed",
       "evidenceRef": "packages/plugin-sdk/src/provider.test.ts",
-      "evidenceSha256": "5ac4d73c75c3f0a47cb60a2e45008da8f1b422c1371b973bc5450f65b91d9801"
+      "evidenceSha256": "ebce95d172a714b388572df197577043899f0fbeb18f9879767b82111481b98d"
     },
     {
       "checkId": "portable-protocol-validation",
@@ -40,5 +40,5 @@
   ],
   "taskId": ".scratch/provider-path/issues/01-provider-contract.md",
   "baseRevision": "881eb412de65e4e6a0465a6ec9819b2fec87f12e",
-  "candidateRevision": "sha256:28a95d76e539f7a20dd30203a0a0fd09b92af03cb1abd3fd3611675b581e49ef"
+  "candidateRevision": "sha256:7671508c72619ce4b1d070da0524b06c8da6aa629101d91418dddefe264a27e1"
 }
