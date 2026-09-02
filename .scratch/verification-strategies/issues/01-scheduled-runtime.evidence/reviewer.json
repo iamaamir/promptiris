@@ -19,6 +19,6 @@
     "8 surviving Stryker mutants in native-plugin.ts are equivalent-to-context (waitForExit/timer cleanup and error-listener no-ops with no observable public-result side effects); uncovered 5 are defensive branches on already-settled paths."
   ],
   "taskId": ".scratch/verification-strategies/issues/01-scheduled-runtime.md",
-  "baseRevision": "881eb412de65e4e6a0465a6ec9819b2fec87f12e",
+  "baseRevision": "2a7576366f8eb140a39820749b9e22569b1765e3",
   "candidateRevision": "sha256:4860a771155225391295ff179d2a280fafc32a753eb571ef00ad7ae5b2bff495"
 }
