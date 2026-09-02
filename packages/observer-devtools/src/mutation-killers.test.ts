@@ -10,6 +10,25 @@ import { createObserverDevtools } from './observer.js';
 import type { Event } from '@promptiris/protocol';
 import type { DebugRecord } from '@promptiris/core';
 
+function capData(): Record<string, string> {
+  return Object.fromEntries(
+    ['phase', 'status', 'pluginId', 'contributionId', 'reason', 'digest'].map((key) => [
+      key,
+      'x'.repeat(256),
+    ]),
+  );
+}
+
+function capDebugRecords(count: number): DebugRecord[] {
+  return Array.from({ length: count }, (_, i) => ({
+    id: String(i),
+    runId: 'r',
+    traceId: 't',
+    operation: 'o'.repeat(256),
+    exception: { type: 'E', message: 'm' },
+  }));
+}
+
 function ev(data: unknown, overrides: Partial<Event> = {}): Event {
   return {
     schemaVersion: '1',
@@ -564,6 +583,38 @@ describe('support-bundle killers', () => {
       MAX_BUNDLE_BYTES,
     );
     expect(bundle.events).toHaveLength(1);
+  });
+
+  it('accepts bundle exactly at byte cap', () => {
+    const critical = Array.from({ length: 123 }, (_, i) =>
+      ev(capData(), { id: `e-${String(i)}`, sequence: i }),
+    );
+    const progress = ev(capData(), { id: 'p', sequence: 999, delivery: 'progress' });
+    const bundle = createSupportBundle({
+      observerId: 'o',
+      events: [progress, ...critical],
+      debugRecords: capDebugRecords(99),
+      manifestIds: ['x'.repeat(310)],
+    });
+    expect(new TextEncoder().encode(JSON.stringify(bundle)).length).toBe(MAX_BUNDLE_BYTES);
+    expect(bundle.events).toHaveLength(124);
+    expect(bundle.events.some((event) => event.delivery === 'progress')).toBe(true);
+  });
+
+  it('accepts critical events exactly at cap after dropping progress', () => {
+    const critical = Array.from({ length: 124 }, (_, i) =>
+      ev(capData(), { id: `e-${String(i)}`, sequence: i }),
+    );
+    const progress = ev(capData(), { id: 'p', sequence: 999, delivery: 'progress' });
+    const bundle = createSupportBundle({
+      observerId: 'o',
+      events: [progress, ...critical],
+      debugRecords: capDebugRecords(99),
+      manifestIds: ['x'.repeat(306)],
+    });
+    expect(new TextEncoder().encode(JSON.stringify(bundle)).length).toBe(MAX_BUNDLE_BYTES);
+    expect(bundle.events).toHaveLength(124);
+    expect(bundle.events.some((event) => event.delivery === 'progress')).toBe(false);
   });
 
   it('exports exact byte-cap constant and slices events before byte-cap processing', () => {
