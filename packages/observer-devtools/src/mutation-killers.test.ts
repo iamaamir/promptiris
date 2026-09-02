@@ -380,8 +380,32 @@ describe('support-bundle killers', () => {
     );
   });
 
+  it('drops progress while retaining critical events when critical set fits', () => {
+    const progress = Array.from({ length: 255 }, (_, i) =>
+      ev(
+        {
+          phase: 'p'.repeat(256),
+          status: 's'.repeat(256),
+          pluginId: 'i'.repeat(256),
+          contributionId: 'c'.repeat(256),
+          reason: 'r'.repeat(256),
+          digest: 'd'.repeat(256),
+        },
+        { id: `p-${i}`, sequence: i, delivery: 'progress' },
+      ),
+    );
+    const critical = ev({ phase: 'critical' }, { id: 'critical', sequence: 1000 });
+    const bundle = createSupportBundle({
+      observerId: 'o',
+      events: [...progress, critical],
+      debugRecords: [],
+    });
+    expect(bundle.events).toHaveLength(1);
+    expect(bundle.events[0]?.id).toBe('critical');
+  });
+
   it('handles huge bundle by clearing events and debugRecords', () => {
-    const hugeDebug: DebugRecord[] = Array.from({ length: 10 }, (_, i) => ({
+    const hugeDebug: DebugRecord[] = Array.from({ length: 128 }, (_, i) => ({
       id: String(i),
       runId: 'r',
       traceId: 't',
@@ -389,7 +413,7 @@ describe('support-bundle killers', () => {
       pluginId: 'p',
       exception: { type: 'E', message: 'm'.repeat(5000) },
     }));
-    const hugeEvents = Array.from({ length: 50 }, (_, i) =>
+    const hugeEvents = Array.from({ length: 256 }, (_, i) =>
       ev({ phase: 'x'.repeat(5000) }, { id: `e-${String(i)}`, sequence: i }),
     );
     const b = createSupportBundle({
@@ -678,7 +702,47 @@ describe('observer killers', () => {
     sink.write(ev({ reason: 'SECRET' }, { classification: 'sensitive' }));
     sink.write(ev({ reason: 'SECRET' }, { classification: 'content' }));
     expect(writer.mock.calls.flat().join(' ')).not.toContain('SECRET');
+    expect(writer.mock.calls[0]?.[0]).toBe('[0] t source=s [redacted] delivery=critical');
     expect(writer).toHaveBeenCalledTimes(2);
+  });
+
+  it('retains later critical event when progress is not first retained entry', async () => {
+    const dev = createObserverDevtools({ maxEvents: 2, consoleSink: false });
+    const events = [
+      ev({ phase: 'first' }, { sequence: 1 }),
+      ev({ phase: 'progress' }, { sequence: 2, delivery: 'progress' }),
+      ev({ phase: 'second' }, { sequence: 3 }),
+    ];
+    const dispatcher = {
+      subscribe: () => ({
+        [Symbol.asyncIterator]: async function* () {
+          yield* events;
+        },
+        return: async () => undefined,
+      }),
+    } as unknown as import('@promptiris/core').EventDispatcher;
+    const handle = dev.attach(dispatcher);
+    await handle.done;
+    expect(dev.getEvents().map((event) => event.data)).toEqual([
+      { phase: 'first' },
+      { phase: 'second' },
+    ]);
+  });
+
+  it('does not replace full critical buffer with ordinary critical event', async () => {
+    const dev = createObserverDevtools({ maxEvents: 1, consoleSink: false });
+    const dispatcher = {
+      subscribe: () => ({
+        [Symbol.asyncIterator]: async function* () {
+          yield ev({ phase: 'first' });
+          yield ev({ phase: 'second' });
+        },
+        return: async () => undefined,
+      }),
+    } as unknown as import('@promptiris/core').EventDispatcher;
+    const handle = dev.attach(dispatcher);
+    await handle.done;
+    expect(dev.getEvents()[0]?.data).toEqual({ phase: 'first' });
   });
 
   it('retains failure after progress reaches maxEvents', async () => {
@@ -698,6 +762,22 @@ describe('observer killers', () => {
     const handle = dev.attach(dispatcher);
     await handle.done;
     expect(dev.getEvents().map((event) => event.data)).toEqual([{ phase: 'failed' }]);
+  });
+
+  it('retains terminal event after a full critical buffer', async () => {
+    const dev = createObserverDevtools({ maxEvents: 1, consoleSink: false });
+    const dispatcher = {
+      subscribe: () => ({
+        [Symbol.asyncIterator]: async function* () {
+          yield ev({ phase: 'started' }, { type: 'promptiris.run.started' });
+          yield ev({ phase: 'done' }, { type: 'promptiris.run.completed' });
+        },
+        return: async () => undefined,
+      }),
+    } as unknown as import('@promptiris/core').EventDispatcher;
+    const handle = dev.attach(dispatcher);
+    await handle.done;
+    expect(dev.getEvents()[0]?.type).toBe('promptiris.run.completed');
   });
 
   it('awaits pump completion through done', async () => {

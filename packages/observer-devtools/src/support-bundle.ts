@@ -199,11 +199,7 @@ function enforceByteCap(
     debugRecords: Object.freeze([]),
     manifestRefs: Object.freeze([]),
   });
-  if (utf8ByteLength(stableStringify(minimal)) <= MAX_BUNDLE_BYTES) return minimal;
-  return Object.freeze({
-    ...minimal,
-    observerId: boundedString(bundle.observerId).slice(0, 64),
-  });
+  return minimal;
 }
 
 /** @public */

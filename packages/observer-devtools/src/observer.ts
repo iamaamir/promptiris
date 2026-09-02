@@ -90,6 +90,10 @@ function forwardToSinks(
   }
 }
 
+function isTerminalEvent(event: Event): boolean {
+  return /\.(?:failed|completed|cancelled)$/.test(event.type);
+}
+
 function onEvent(
   event: Event,
   state: DevtoolsState,
@@ -101,6 +105,7 @@ function onEvent(
     const retained = state.events.length < maxEvents;
     const progressIndex = state.events.findIndex((item) => item.delivery === 'progress');
     if (retained) state.events.push(event);
+    else if (isTerminalEvent(event)) state.events[0] = event;
     else if (event.delivery !== 'progress' && progressIndex >= 0)
       state.events[progressIndex] = event;
     forwardToSinks(event, consoleSink, jsonSink);
