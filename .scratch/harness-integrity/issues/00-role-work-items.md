@@ -1,6 +1,6 @@
 # Seed independent-role workflow slices
 
-Status: ready-for-human
+Status: complete
 GitHub issue: <https://github.com/iamaamir/promptiris/issues/53>
 Branch: `role-work-items`
 Parent: .scratch/role-assurance/PRD.md

@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "taskId": ".scratch/harness-integrity/issues/00-role-work-items.md",
+  "observedAt": "2026-09-02T21:20:13Z",
+  "maintainer": {
+    "login": "iamaamir",
+    "name": "Aamir khan",
+    "nodeId": "MDQ6VXNlcjg0MjAzODY=",
+    "authenticationSource": "github-merge-event"
+  },
+  "merge": {
+    "pullRequest": "https://github.com/iamaamir/promptiris/pull/55",
+    "mergedAt": "2026-09-02T21:12:56Z",
+    "baseRevision": "c51f9979a8e82ce9b60ac5b66f0b60185e376097",
+    "candidateCommit": "3cccb9b543bb85a584036675511e4e5c5341d28e",
+    "integrationRevision": "4f433a14dbfcc8b35d466094e75b3d54feae6e2a",
+    "originMainRevision": "4f433a14dbfcc8b35d466094e75b3d54feae6e2a"
+  },
+  "candidateRevision": "sha256:15cf4bc153815a2a2664584b19f13551aaee59d61b6f86bb47260a2bd0e32c6b",
+  "changedPaths": {
+    "command": "git diff --name-only c51f9979a8e82ce9b60ac5b66f0b60185e376097 4f433a14dbfcc8b35d466094e75b3d54feae6e2a",
+    "count": 55,
+    "sha256": "fdb76605e0f94ea2169add3c34346180e99bccc12049d3d45f7731455b638dcf",
+    "result": "all paths match the seed Work Item allowlist"
+  },
+  "projections": [
+    {
+      "path": ".scratch/role-assurance/PRD.md",
+      "issue": 54,
+      "command": "scripts/issue-sync check .scratch/role-assurance/PRD.md",
+      "exitCode": 0,
+      "managedBodySha256": "88e92435fcd0f4f2f9b282447b9943e48913a6cc3361934997223b0232730c49",
+      "remoteStatus": "open",
+      "relationshipSha256": "50a3422f0688d345219d859f2042e35dae6356f8fd908fc95b40151e1d95b584"
+    },
+    {
+      "path": ".scratch/harness-integrity/issues/00-role-work-items.md",
+      "issue": 53,
+      "command": "scripts/issue-sync check .scratch/harness-integrity/issues/00-role-work-items.md",
+      "exitCode": 0,
+      "managedBodySha256": "1f4c5e302e95b04c6f48b018ee3bb66ceebc05f2ea80fe3108fdc9ee24d322bb",
+      "remoteStatus": "closed-completed",
+      "relationshipSha256": "3451d93b7c88920fca37ae6b6fbea160df62d9635fcfacae2f9cbfbc88afe949"
+    },
+    {
+      "path": ".scratch/harness-integrity/issues/05-independent-roles.md",
+      "issue": 49,
+      "command": "scripts/issue-sync check .scratch/harness-integrity/issues/05-independent-roles.md",
+      "exitCode": 0,
+      "managedBodySha256": "abfaf4372b86999d8e90175820242fa6fd076371a5da9aa77563a407eaa42021",
+      "remoteStatus": "open",
+      "relationshipSha256": "535ad78ae18f1e005d2c7f98cf11b4573feb6b1e48462ef0051309b861300205"
+    },
+    {
+      "path": ".scratch/harness-integrity/issues/06-model-routing.md",
+      "issue": 50,
+      "command": "scripts/issue-sync check .scratch/harness-integrity/issues/06-model-routing.md",
+      "exitCode": 0,
+      "managedBodySha256": "36a84121e0a5e946aa4e0c0db7b8e439e374cc756a21c1b9802e4ad77bd4b577",
+      "remoteStatus": "open",
+      "relationshipSha256": "5dd6e2d10f086a267eaaa4b6cec4d7045329db4bbd4be8509c62880bd9624c69"
+    },
+    {
+      "path": ".scratch/harness-integrity/issues/07-feature-postmortems.md",
+      "issue": 51,
+      "command": "scripts/issue-sync check .scratch/harness-integrity/issues/07-feature-postmortems.md",
+      "exitCode": 0,
+      "managedBodySha256": "05aeec13ad3da2f241b609fcd0f0bbb387fa6f119153d400984f846f608e5e97",
+      "remoteStatus": "open",
+      "relationshipSha256": "5dd6e2d10f086a267eaaa4b6cec4d7045329db4bbd4be8509c62880bd9624c69"
+    },
+    {
+      "path": ".scratch/harness-integrity/issues/08-feature-gauntlet.md",
+      "issue": 52,
+      "command": "scripts/issue-sync check .scratch/harness-integrity/issues/08-feature-gauntlet.md",
+      "exitCode": 0,
+      "managedBodySha256": "487591665e0eaa6dfdbc05bf2e782ddb810239ff28b0161c20898c8a031666b5",
+      "remoteStatus": "open",
+      "relationshipSha256": "af97c8af7fa4bbcab3f0aaa79be16883c2025ae68cb06273f453f1a2aec302af"
+    }
+  ],
+  "result": "complete"
+}
