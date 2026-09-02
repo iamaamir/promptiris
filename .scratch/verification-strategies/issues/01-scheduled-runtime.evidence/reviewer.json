@@ -10,7 +10,7 @@
       "checkId": "test-suite-pass",
       "status": "passed",
       "evidenceRef": ".scratch/verification-strategies/issues/01-scheduled-runtime.evidence/test-results.txt",
-      "evidenceSha256": "421954cc05b16f936fb98ea999e5fbd23cd78b102bb4864d39effe9b690df282"
+      "evidenceSha256": "bfe411fc9efb87d940490160dc2ecda8671d836ee5612b4910c53c21df7a1a77"
     }
   ],
   "residualRisks": [
@@ -20,5 +20,5 @@
   ],
   "taskId": ".scratch/verification-strategies/issues/01-scheduled-runtime.md",
   "baseRevision": "2a7576366f8eb140a39820749b9e22569b1765e3",
-  "candidateRevision": "sha256:f17417391900ea124bd09d763c27bb623331d649056c9abe1b4789291947b0f1"
+  "candidateRevision": "sha256:2ce3e6b20212d255c022233b0f5c3583348008a64fa215264f4b5898ec439951"
 }
