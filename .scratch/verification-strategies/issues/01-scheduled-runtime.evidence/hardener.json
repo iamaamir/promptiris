@@ -5,7 +5,7 @@
   "sourceBlind": false,
   "status": "passed",
   "scenarios": [
-    "Mutation testing on apps/runtime-node/src/native-plugin.ts: 92.57% (survived 8, uncovered 5, ignored 80); overall 94.72% against break threshold 90%",
+    "Mutation testing on apps/runtime-node/src/native-plugin.ts: 92.57% (survived 8, uncovered 5, ignored 80); overall 95.39% against break threshold 90%",
     "In-memory fake transport smoke test proves NativeTransport injection without spawning a real process",
     "Real-child-process integration tests (27) remain intact and exercise the full process-boundary contract including duplicate-invoke denial and cancellation",
     "Typecheck clean, ESLint clean, API Extractor completed, CRAP 0 violations, structural scan passed"
@@ -15,16 +15,16 @@
       "checkId": "mutation-testing",
       "status": "passed",
       "evidenceRef": ".scratch/verification-strategies/issues/01-scheduled-runtime.evidence/test-results.txt",
-      "evidenceSha256": "bfe411fc9efb87d940490160dc2ecda8671d836ee5612b4910c53c21df7a1a77"
+      "evidenceSha256": "15f5de182d43d653b67bbeaad5c7f6c1b147fc30ad5fae6f101c6b093c4d6884"
     },
     {
       "checkId": "integration-containment",
       "status": "passed",
       "evidenceRef": ".scratch/verification-strategies/issues/01-scheduled-runtime.evidence/test-results.txt",
-      "evidenceSha256": "bfe411fc9efb87d940490160dc2ecda8671d836ee5612b4910c53c21df7a1a77"
+      "evidenceSha256": "15f5de182d43d653b67bbeaad5c7f6c1b147fc30ad5fae6f101c6b093c4d6884"
     }
   ],
   "taskId": ".scratch/verification-strategies/issues/01-scheduled-runtime.md",
-  "baseRevision": "2a7576366f8eb140a39820749b9e22569b1765e3",
+  "baseRevision": "7beebfbd680835c2db6b04cf4b07f4006ab48853",
   "candidateRevision": "sha256:6a3938fb2e1e7b946f142f7f8196c97e98d158ebdf91f49b480462893cc81d8a"
 }
