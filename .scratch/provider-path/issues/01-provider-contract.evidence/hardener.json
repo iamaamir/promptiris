@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "role": "hardener",
+  "producerId": "luna-hardener",
+  "status": "passed",
+  "scenarios": [
+    "Focused FakeProvider conformance tests exercise successful replay, capability evidence binding and state, cancellation before and during the scheduling boundary, malformed requests/failures/results, request and binding identity mismatches, classified retryability, close behavior, and missing or empty scenarios.",
+    "The governed provider implementation has explicit checks for lifecycle, request/result/failure validation, capability evidence, cancellation, response identity, and scenario boundaries; the mutation policy requires at least 90 percent with zero ignored, survived, or uncovered mutants for both provider targets."
+  ],
+  "evidence": [
+    {
+      "checkId": "hardener.provider-conformance",
+      "status": "passed",
+      "evidenceRef": "packages/plugin-sdk/src/provider.test.ts",
+      "evidenceSha256": "5ac4d73c75c3f0a47cb60a2e45008da8f1b422c1371b973bc5450f65b91d9801"
+    },
+    {
+      "checkId": "hardener.provider-boundaries",
+      "status": "passed",
+      "evidenceRef": "packages/plugin-sdk/src/provider.ts",
+      "evidenceSha256": "371f432f9638ab0ce3d4f4b8274414c10f74d1409d6fd54ae6a03ccc5914649d"
+    },
+    {
+      "checkId": "hardener.zero-debt-policy",
+      "status": "passed",
+      "evidenceRef": "tooling/quality/mutation-policy.json",
+      "evidenceSha256": "201badd0a16d06b42b8bca1557002514a57e6d439687f2fd13340f2eb86d60b8"
+    },
+    {
+      "checkId": "hardener.acceptance",
+      "status": "passed",
+      "evidenceRef": ".scratch/provider-path/issues/01-provider-contract.md",
+      "evidenceSha256": "f9b3711fbd26b8c9f8bed989ef65db533d8d2213c48b676f2b87a8d72e60f3b2"
+    }
+  ],
+  "taskId": ".scratch/provider-path/issues/01-provider-contract.md",
+  "baseRevision": "881eb412de65e4e6a0465a6ec9819b2fec87f12e",
+  "candidateRevision": "sha256:28a95d76e539f7a20dd30203a0a0fd09b92af03cb1abd3fd3611675b581e49ef"
+}
