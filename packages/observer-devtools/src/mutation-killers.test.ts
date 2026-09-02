@@ -414,7 +414,17 @@ describe('support-bundle killers', () => {
       exception: { type: 'E', message: 'm'.repeat(5000) },
     }));
     const hugeEvents = Array.from({ length: 256 }, (_, i) =>
-      ev({ phase: 'x'.repeat(5000) }, { id: `e-${String(i)}`, sequence: i }),
+      ev(
+        {
+          phase: 'x'.repeat(5000),
+          status: 's'.repeat(5000),
+          pluginId: 'p'.repeat(5000),
+          contributionId: 'c'.repeat(5000),
+          reason: 'r'.repeat(5000),
+          digest: 'd'.repeat(5000),
+        },
+        { id: `e-${String(i)}`, sequence: i },
+      ),
     );
     const b = createSupportBundle({
       observerId: 'o',
@@ -425,8 +435,9 @@ describe('support-bundle killers', () => {
     });
     const bytes = new TextEncoder().encode(JSON.stringify(b)).length;
     expect(bytes).toBeLessThanOrEqual(MAX_BUNDLE_BYTES);
-    // when still over after dropping progress, it clears both
-    if (b.events.length === 0) expect(b.debugRecords.length).toBe(0);
+    expect(b.events).toEqual([]);
+    expect(b.debugRecords).toEqual([]);
+    expect(b.manifestRefs).toEqual([]);
   });
 
   it('minimal byte-cap fallback clears manifest refs', () => {
@@ -727,6 +738,22 @@ describe('observer killers', () => {
       { phase: 'first' },
       { phase: 'second' },
     ]);
+  });
+
+  it('does not treat suffixed event type as terminal', async () => {
+    const dev = createObserverDevtools({ maxEvents: 1, consoleSink: false });
+    const dispatcher = {
+      subscribe: () => ({
+        [Symbol.asyncIterator]: async function* () {
+          yield ev({ phase: 'first' });
+          yield ev({ phase: 'extra' }, { type: 'promptiris.run.completed.extra' });
+        },
+        return: async () => undefined,
+      }),
+    } as unknown as import('@promptiris/core').EventDispatcher;
+    const handle = dev.attach(dispatcher);
+    await handle.done;
+    expect(dev.getEvents()[0]?.data).toEqual({ phase: 'first' });
   });
 
   it('does not replace full critical buffer with ordinary critical event', async () => {

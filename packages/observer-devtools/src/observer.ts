@@ -102,12 +102,12 @@ function onEvent(
   jsonSink: JsonLinesSink,
 ): void {
   try {
-    const retained = state.events.length < maxEvents;
-    const progressIndex = state.events.findIndex((item) => item.delivery === 'progress');
-    if (retained) state.events.push(event);
+    if (state.events.length < maxEvents) state.events.push(event);
     else if (isTerminalEvent(event)) state.events[0] = event;
-    else if (event.delivery !== 'progress' && progressIndex >= 0)
-      state.events[progressIndex] = event;
+    else {
+      const progressIndex = state.events.findIndex((item) => item.delivery === 'progress');
+      if (event.delivery !== 'progress' && progressIndex >= 0) state.events[progressIndex] = event;
+    }
     forwardToSinks(event, consoleSink, jsonSink);
     state.runId ??= event.runId;
     state.traceId ??= event.traceId;
