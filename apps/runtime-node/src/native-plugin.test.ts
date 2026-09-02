@@ -786,10 +786,7 @@ function makeDeferredInvokeTransport(): {
   return { transport, emitInvokeResponse, invokePending: () => invokeReady };
 }
 
-function scheduledHarness(
-  s: fc.Scheduler,
-  opts: { invokeResult?: unknown } = {},
-): SchedulerFake {
+function scheduledHarness(s: fc.Scheduler, opts: { invokeResult?: unknown } = {}): SchedulerFake {
   const { transport, emitInvokeResponse, invokePending } = makeDeferredInvokeTransport();
   const controller = new AbortController();
   // Both the response delivery and the abort are gated on the scheduler body
@@ -944,12 +941,10 @@ describe('defineNativePlugin deterministic scheduler replay', () => {
 
         const first = implementation.invoke(invokeSigs(harness.controller));
         // Second invoke while `first` has not yet resolved => concurrent denial.
-        const second = await implementation
-          .invoke(invokeSigs(new AbortController()))
-          .then(
-            () => 'accepted',
-            (e: unknown) => classifyOutcome(e, 'concurrent'),
-          );
+        const second = await implementation.invoke(invokeSigs(new AbortController())).then(
+          () => 'accepted',
+          (e: unknown) => classifyOutcome(e, 'concurrent'),
+        );
 
         // Release the first response via the scheduler so `first` settles.
         harness.scheduleDeliver();
