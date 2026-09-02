@@ -1,0 +1,44 @@
+{
+  "metadata": {
+    "role": "hardener",
+    "producerId": "luna-seed-hardener6",
+    "candidateHead": "5a8aa88",
+    "baseHead": "c51f997",
+    "sourcePacket": ".scratch/harness-integrity/issues/00-role-work-items.md"
+  },
+  "status": "fail",
+  "attacks": [
+    {
+      "id": "H-01",
+      "severity": "high",
+      "finding": "Post-merge bootstrap completion is not independently verifiable. The seed requires a maintainer to record local terminal completion and synchronized closure, but does not require a SHA-bound artifact containing the integration revision, candidate digest, exact changed-path validation result, and post-merge issue-sync check result. A maintainer could assert completion without leaving deterministic evidence linking those facts.",
+      "resolution": "Add a maintainer closeout record/schema requiring the integration SHA, frozen Candidate digest, exact-path predicate result, all six projection digests/statuses, and successful post-merge issue-sync verification."
+    },
+    {
+      "id": "H-02",
+      "severity": "medium",
+      "finding": "Candidate invalidation is specified for semantic role reports but not explicitly for append-only dispositions, readiness state, or any bootstrap closeout artifact derived from the Candidate. A changed planning contract could leave apparently valid bookkeeping that no longer corresponds to the frozen Candidate.",
+      "resolution": "State that any Candidate, contract, prompt, schema, policy, or planning change invalidates all derived role dispositions, readiness/closeout artifacts, and their dependent projection claims; require regeneration against the new Candidate."
+    }
+  ],
+  "missingSpecCases": [
+    "Maintainer merge followed by verification that the merged tree contains exactly the frozen six-contract payload and no evidence outside the seed evidence directory.",
+    "Post-merge projection drift or unexpected GitHub closure detected and recorded as a blocking condition.",
+    "Tampered, stale, or missing bootstrap maintainer-closeout artifact.",
+    "Disposition/readiness artifacts surviving Candidate invalidation."
+  ],
+  "residualRisks": [
+    "The explicit one-time maintainer-reviewed bootstrap appropriately handles base-revision self-authorization; no custom PKI is required.",
+    "Future role replay, self-review, host attestation, and dependency-graph enforcement are delegated to the existing role-evidence contracts and future implementation slices.",
+    "Several packets have broad overlapping allowed paths, but all declare Parallel-safe: no; the contract-domain ownership remains distinct."
+  ],
+  "evidenceInspected": [
+    "git diff c51f997..5a8aa88",
+    ".scratch/role-assurance/PRD.md",
+    ".scratch/harness-integrity/issues/00-role-work-items.md",
+    ".scratch/harness-integrity/issues/05-independent-roles.md",
+    ".scratch/harness-integrity/issues/06-model-routing.md",
+    ".scratch/harness-integrity/issues/07-feature-postmortems.md",
+    ".scratch/harness-integrity/issues/08-feature-gauntlet.md"
+  ]
+}

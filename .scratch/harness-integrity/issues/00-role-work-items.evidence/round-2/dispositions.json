@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "sourcePacket": ".scratch/harness-integrity/issues/00-role-work-items.md",
+  "candidateHead": "a3e02a8",
+  "decisions": [
+    {
+      "findingIds": ["IR-003", "IR-004", "IR-005"],
+      "disposition": "accepted",
+      "reason": "The role contract now defines a normalized Host trust boundary, append-only attempt and supersession semantics, and a narrower ownership split that leaves invalidation and consolidation orchestration to the gauntlet slice."
+    },
+    {
+      "findingIds": ["ALL-01", "IR-03", "IR-04", "MR-01", "PM-01", "FG-01"],
+      "disposition": "rejected-for-current-scope",
+      "reason": "This Candidate seeds implementation Work Items and explicitly adds no executable role verifier, sandbox, routing policy, postmortem generator, or gauntlet. Those artifacts and tests are acceptance criteria of issues 05 through 08; their absence cannot make the planning seed falsely claim those features are complete."
+    },
+    {
+      "findingIds": ["IR-07"],
+      "disposition": "accepted",
+      "reason": "Issue 05 now requires a normalized attestation envelope, registered issuer and verifier, proof reference, expiry and replay validation, and an authenticated maintainer fallback through trusted CI review identity."
+    },
+    {
+      "findingIds": ["F3", "F4"],
+      "disposition": "rejected-for-current-scope",
+      "reason": "The public commands, schemas, and artifact locations do not exist in this planning-only Candidate. Issues 05 and 08 require them as executable acceptance before either implementation can complete; inventing command names in advance would create a stale public contract."
+    }
+  ]
+}

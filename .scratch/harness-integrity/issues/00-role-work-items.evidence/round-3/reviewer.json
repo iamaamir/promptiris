@@ -1,0 +1,64 @@
+{
+  "verdict": "fail",
+  "findings": [
+    {
+      "id": "IR-003",
+      "severity": "high",
+      "file": ".scratch/harness-integrity/issues/05-independent-roles.md",
+      "line": 43,
+      "summary": "The claimed attestation-contract resolution is not present in the seed-owned packet.",
+      "rationale": "Round-two disposition says Issue 05 defines a normalized attestation envelope, registered issuer/verifier, proof reference, expiry/replay validation, and authenticated-maintainer fallback. The actual amended Issue 05 still only requires a Host-issued or authenticated external attestation and names validation concepts; it defines no envelope/schema, issuer registry, verifier, proof-reference format, or fallback trust boundary. The disposition therefore records resolution without a corresponding packet change.",
+      "direction": "Add the concrete normalized attestation contract and trust-boundary references to Issue 05, or change the disposition to unresolved."
+    },
+    {
+      "id": "IR-004",
+      "severity": "high",
+      "file": ".scratch/harness-integrity/issues/05-independent-roles.md",
+      "line": 43,
+      "summary": "Retry and supersession semantics remain absent despite the recorded acceptance disposition.",
+      "rationale": "The packet still says uniqueness is scoped to `(Work Item, Candidate, role)` and that retries remain visible, but defines no attempt identifier, ordering, supersession state, or deterministic rule for which attempt satisfies role completeness. Round-two's accepted disposition claims an append-only attempt/supersession model that is not specified in the source packet.",
+      "direction": "Specify the attempt/index model and completion-selection rules in the Work Item, or mark IR-004 unresolved."
+    },
+    {
+      "id": "IR-005",
+      "severity": "high",
+      "file": ".scratch/harness-integrity/issues/05-independent-roles.md",
+      "line": 9,
+      "summary": "The ownership split is still broad and the prior scope finding is not actually resolved.",
+      "rationale": "Issue 05 continues to own final-candidate transitions, invalidation mapping, QA bundle isolation, Hardener surface derivation, finding consolidation, unsupported-host recovery, orientation, and workflow documentation, while Issue 08 separately owns the stage controller and consolidated repair loop. The round-two disposition says orchestration and consolidation moved to 08, but the packet text still assigns those responsibilities to 05. This violates the seed Goal's requirement for four narrow, independently pickable Work Items.",
+      "direction": "Move orchestration/consolidation/invalidation/closeout responsibilities into 08 and leave 05 with role contracts, manifests, attestation binding, and role-evidence verification; update the disposition accordingly."
+    },
+    {
+      "id": "IR-006",
+      "severity": "medium",
+      "file": ".scratch/harness-integrity/issues/05-independent-roles.md",
+      "line": 3,
+      "summary": "The implementation Work Item status contradicts the seed acceptance.",
+      "rationale": "The seed requires the implementation issue to remain `ready-for-agent` after this planning packet completes, but Issue 05 is committed as `Status: in-progress`. No transition rule or evidence explains this state, so the planning Candidate does not satisfy its own readiness/dependency contract.",
+      "direction": "Set Issue 05 to `ready-for-agent` in the planning Candidate, or explicitly define why it is already in progress and how that satisfies the seed acceptance."
+    }
+  ],
+  "residualRisks": [
+    "The seed correctly states that issues 05–08 are planning packets and does not falsely claim implementation completion.",
+    "The parent/dependency references are broadly coherent, but the stale status and disputed ownership text make agent pickability unsafe.",
+    "The repository cannot independently prove host identity; that limitation must remain explicit even after a concrete attestation contract is added."
+  ],
+  "evidenceInspected": [
+    "git diff c51f997..31776dc",
+    ".scratch/harness-integrity/issues/00-role-work-items.md",
+    ".scratch/harness-integrity/issues/00-role-work-items.evidence/round-2/dispositions.json",
+    ".scratch/harness-integrity/issues/05-independent-roles.md",
+    ".scratch/harness-integrity/issues/06-model-routing.md",
+    ".scratch/harness-integrity/issues/07-feature-postmortems.md",
+    ".scratch/harness-integrity/issues/08-feature-gauntlet.md",
+    ".scratch/role-assurance/PRD.md",
+    "docs/development/agent-operating-model.md",
+    "docs/development/tool-aware-execution.md",
+    "docs/development/code-quality-and-review.md"
+  ],
+  "role": "reviewer",
+  "producerId": "luna-scope-reviewer",
+  "candidateHead": "31776dc",
+  "baseHead": "c51f997",
+  "sourcePacket": ".scratch/harness-integrity/issues/00-role-work-items.md"
+}

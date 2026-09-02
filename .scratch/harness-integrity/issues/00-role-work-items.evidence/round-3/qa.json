@@ -1,0 +1,54 @@
+{
+  "status": "FAIL",
+  "scenarios": [
+    {
+      "id": "S1",
+      "steps": "Identify the active planning ticket and pick the next implementation ticket.",
+      "outcome": "Issue 00 is clearly active (in-progress), but issue 05 is simultaneously ready-for-agent while Blocked by issue 00; issue-tracker guidance says blocked issues must not start, creating contradictory scheduling signals."
+    },
+    {
+      "id": "S2",
+      "steps": "Determine the future implementation order.",
+      "outcome": "Dependencies clearly establish 00 → 05 → (06, 07) → 08, with 08 also depending on 06 and 07."
+    },
+    {
+      "id": "S3",
+      "steps": "Determine unsupported-host behavior and completion legality.",
+      "outcome": "Unsupported hosts enter needs-independent-roles; completion requires registered Host attestations or authenticated maintainer fallback for every missing role. Completion also requires role evidence, gates, postmortem, and unresolved-condition clearance."
+    },
+    {
+      "id": "S4",
+      "steps": "Determine whether future command names/interfaces must already exist.",
+      "outcome": "It is clear that implementation ticket 05 must document commands, schemas, artifact locations, fallback issuer, and exact transitions before completion; future command names need not exist in this planning seed."
+    }
+  ],
+  "findings": [
+    {
+      "id": "F1",
+      "severity": "medium",
+      "file": ".scratch/harness-integrity/issues/05-independent-roles.md",
+      "line": 3,
+      "summary": "Issue 05 is marked ready-for-agent even though line 7 declares it blocked by issue 00, while issue-tracker.md line 60 says blocked issues must not start. The seed should mark 05 blocked/not-ready until 00 reaches terminal complete, or explicitly define that readiness is prospective."
+    }
+  ],
+  "residualRisks": [
+    "An agent may claim issue 05 before the planning seed is merged, violating the stated dependency rule.",
+    "The dependency graph is clear, but the status vocabulary does not distinguish prospective readiness from currently pickable."
+  ],
+  "exactFilesRead": [
+    "/private/tmp/promptiris-independent-roles/.scratch/role-assurance/PRD.md",
+    "/private/tmp/promptiris-independent-roles/.scratch/harness-integrity/issues/00-role-work-items.md",
+    "/private/tmp/promptiris-independent-roles/.scratch/harness-integrity/issues/05-independent-roles.md",
+    "/private/tmp/promptiris-independent-roles/.scratch/harness-integrity/issues/06-model-routing.md",
+    "/private/tmp/promptiris-independent-roles/.scratch/harness-integrity/issues/07-feature-postmortems.md",
+    "/private/tmp/promptiris-independent-roles/.scratch/harness-integrity/issues/08-feature-gauntlet.md",
+    "/private/tmp/promptiris-independent-roles/AGENTS.md",
+    "/private/tmp/promptiris-independent-roles/docs/agents/issue-tracker.md"
+  ],
+  "role": "qa",
+  "producerId": "luna-scope-qa",
+  "candidateHead": "31776dc",
+  "baseHead": "c51f997",
+  "sourcePacket": ".scratch/harness-integrity/issues/00-role-work-items.md",
+  "sourceBlind": true
+}

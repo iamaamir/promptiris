@@ -1,0 +1,34 @@
+{
+  "status": "pass",
+  "scenarios": {
+    "planning_vs_implementation": "Seed packet explicitly limits scope to planning packets and states that implementation is not included or complete.",
+    "ready_but_blocked": "Packets may be ready-for-agent while an unresolved Blocked by dependency prevents claiming.",
+    "future_commands": "Exact contracts are specified for agent-role, feature-postmortem, and feature-gauntlet interfaces.",
+    "unsupported_host": "Unsupported isolation records needs-independent-roles with an explicit reason and requires external/maintainer binding before completion.",
+    "role_independence": "Reviewer, Hardener, and QA have distinct invocations, identities, manifests, attestations, and frozen Candidate binding.",
+    "model_routing": "Risk and model-floor taxonomy, precedence, escalation, and maintainer-only classification resolution are specified.",
+    "postmortem_binding": "Non-circular Candidate, role-artifact, and postmortem binding sequence is explicit.",
+    "legal_seed_completion": "Seed completion is reserved for maintainer-review preparation and must close through local projection with Closes #53.",
+    "issue_05_start": "Issue 05 may start only after the seed commit is in origin/main and its clean branch merge base equals that revision."
+  },
+  "findings": [],
+  "residualRisks": [],
+  "exactFilesRead": [
+    ".scratch/role-assurance/PRD.md",
+    ".scratch/harness-integrity/issues/00-role-work-items.md",
+    ".scratch/harness-integrity/issues/05-independent-roles.md",
+    ".scratch/harness-integrity/issues/06-model-routing.md",
+    ".scratch/harness-integrity/issues/07-feature-postmortems.md",
+    ".scratch/harness-integrity/issues/08-feature-gauntlet.md",
+    "AGENTS.md",
+    "docs/agents/issue-tracker.md"
+  ],
+  "metadata": {
+    "role": "qa",
+    "producerId": "luna-seed-qa5",
+    "candidateHead": "dded797",
+    "baseHead": "c51f997",
+    "sourcePacket": ".scratch/harness-integrity/issues/00-role-work-items.md",
+    "sourceBlind": true
+  }
+}

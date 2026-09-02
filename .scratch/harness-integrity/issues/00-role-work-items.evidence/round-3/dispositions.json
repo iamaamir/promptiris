@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "sourcePacket": ".scratch/harness-integrity/issues/00-role-work-items.md",
+  "candidateHead": "31776dc",
+  "decisions": [
+    {
+      "findingIds": ["IR-003", "IR-004", "IR-005", "IR-006"],
+      "disposition": "invalid-stale-observation",
+      "reason": "The frozen files already contained the normalized envelope, attempt model, narrowed issue-05 ownership, and ready-for-agent status before this reused Reviewer invocation ran. Its assertions conflict with directly inspectable Candidate bytes, demonstrating stale conversational context rather than Candidate defects. A fresh Reviewer invocation is required."
+    },
+    {
+      "findingIds": ["F1"],
+      "disposition": "accepted",
+      "reason": "All future implementation packets now remain non-claimable at needs-info while their blockers are active; the seed defines the terminal dependency rule and the first ready-for-agent transition after merge."
+    },
+    {
+      "findingIds": ["SPEC-01"],
+      "disposition": "partially-accepted",
+      "reason": "Issue 05 now defines the normalized attestation strengths and exact Host versus trusted-CI boundary. A custom cross-Host PKI, key rotation, revocation, and proof of model cognition are rejected as complexity that cannot honestly prove Host internals and is unnecessary for maintainer-governed merge authority."
+    },
+    {
+      "findingIds": ["SPEC-02", "SPEC-03", "SPEC-04", "SPEC-05", "SPEC-06", "SPEC-07", "SPEC-08", "SPEC-09", "SPEC-10"],
+      "disposition": "accepted",
+      "reason": "The packets now define atomic attempt sequencing and state selection, canonical Candidate/invalidation ownership, fail-closed QA isolation, an exact risk floor and taxonomy, non-circular postmortem binding, an explicit gauntlet state machine, classified role manifests, and a parent-level schema ownership matrix."
+    }
+  ]
+}

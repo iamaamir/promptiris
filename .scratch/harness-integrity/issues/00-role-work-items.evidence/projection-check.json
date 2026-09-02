@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "taskId": ".scratch/harness-integrity/issues/00-role-work-items.md",
+  "baseRevision": "c51f9979a8e82ce9b60ac5b66f0b60185e376097",
+  "candidateRevision": "sha256:15cf4bc153815a2a2664584b19f13551aaee59d61b6f86bb47260a2bd0e32c6b",
+  "observedAt": "2026-09-02T20:52:42Z",
+  "checks": [
+    {
+      "path": ".scratch/role-assurance/PRD.md",
+      "command": "scripts/issue-sync check .scratch/role-assurance/PRD.md",
+      "exitCode": 0,
+      "result": "in sync",
+      "localManagedBodySha256": "88e92435fcd0f4f2f9b282447b9943e48913a6cc3361934997223b0232730c49"
+    },
+    {
+      "path": ".scratch/harness-integrity/issues/00-role-work-items.md",
+      "command": "scripts/issue-sync check .scratch/harness-integrity/issues/00-role-work-items.md",
+      "exitCode": 0,
+      "result": "in sync",
+      "localManagedBodySha256": "10cac2f1c13b15083c56c929b1c86b8129efe457f0dfb69523573fff14779dc8"
+    },
+    {
+      "path": ".scratch/harness-integrity/issues/05-independent-roles.md",
+      "command": "scripts/issue-sync check .scratch/harness-integrity/issues/05-independent-roles.md",
+      "exitCode": 0,
+      "result": "in sync",
+      "localManagedBodySha256": "abfaf4372b86999d8e90175820242fa6fd076371a5da9aa77563a407eaa42021"
+    },
+    {
+      "path": ".scratch/harness-integrity/issues/06-model-routing.md",
+      "command": "scripts/issue-sync check .scratch/harness-integrity/issues/06-model-routing.md",
+      "exitCode": 0,
+      "result": "in sync",
+      "localManagedBodySha256": "36a84121e0a5e946aa4e0c0db7b8e439e374cc756a21c1b9802e4ad77bd4b577"
+    },
+    {
+      "path": ".scratch/harness-integrity/issues/07-feature-postmortems.md",
+      "command": "scripts/issue-sync check .scratch/harness-integrity/issues/07-feature-postmortems.md",
+      "exitCode": 0,
+      "result": "in sync",
+      "localManagedBodySha256": "05aeec13ad3da2f241b609fcd0f0bbb387fa6f119153d400984f846f608e5e97"
+    },
+    {
+      "path": ".scratch/harness-integrity/issues/08-feature-gauntlet.md",
+      "command": "scripts/issue-sync check .scratch/harness-integrity/issues/08-feature-gauntlet.md",
+      "exitCode": 0,
+      "result": "in sync",
+      "localManagedBodySha256": "487591665e0eaa6dfdbc05bf2e782ddb810239ff28b0161c20898c8a031666b5"
+    }
+  ]
+}

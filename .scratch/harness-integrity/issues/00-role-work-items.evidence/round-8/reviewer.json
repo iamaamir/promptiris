@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "producerId": "independent-seed-reviewer8",
+  "independent": true,
+  "verdict": "changes-required",
+  "findings": [
+    {
+      "id": "R8-001",
+      "severity": "blocker",
+      "file": ".scratch/harness-integrity/issues/05-independent-roles.md",
+      "line": 32,
+      "summary": "Implementation packets authorize overlapping shared schema and quality surfaces, allowing a packet to edit a sibling slice's contracts despite the seed's non-overlap and sibling-schema restrictions.",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.md"
+    },
+    {
+      "id": "R8-002",
+      "severity": "high",
+      "file": ".scratch/harness-integrity/issues/00-role-work-items.md",
+      "line": 36,
+      "summary": "The frozen planning Candidate contains no tracked artifact proving the required six independent issue-sync checks, managed-body/relationship agreement, or bootstrap closeout state, so acceptance and projection readiness are asserted but not verifiable from the Candidate.",
+      "evidenceRef": ".scratch/harness-integrity/issues/00-role-work-items.md"
+    }
+  ],
+  "commentDecisions": [],
+  "evidence": [
+    {
+      "checkId": "packet-ownership-review",
+      "status": "failed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.md",
+      "evidenceSha256": "36f3f300c419d601a5cb2c7fa21f3d51fe547db3609b5a7f51b08fc73f5f34b1"
+    },
+    {
+      "checkId": "candidate-acceptance-proof",
+      "status": "failed",
+      "evidenceRef": ".scratch/harness-integrity/issues/00-role-work-items.md",
+      "evidenceSha256": "34f028f449b2c455e37c84433cfb5557c79015cf988083b096d83369e3e14056"
+    },
+    {
+      "checkId": "candidate-finalization-contract",
+      "status": "passed",
+      "evidenceRef": "scripts/finalize-candidate.mjs",
+      "evidenceSha256": "2f5db2233ce7f489d4a5457bffd58f51af182965cc7eeef852443f3a80331cfc"
+    }
+  ],
+  "residualRisks": [
+    "Remote issue projections and post-merge bootstrap closeout remain unverified until maintainer-authenticated evidence is recorded."
+  ]
+}

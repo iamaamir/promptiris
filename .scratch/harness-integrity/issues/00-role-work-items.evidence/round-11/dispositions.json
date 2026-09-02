@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "sourcePacket": ".scratch/harness-integrity/issues/00-role-work-items.md",
+  "candidateRevision": "sha256:9381eb8d706f404af1112fd2e0922b3e0aaf68c2dc54899ee42757884d736d89",
+  "decisions": [
+    {
+      "findingIds": ["hardener.projection-evidence-freshness"],
+      "disposition": "accepted",
+      "reason": "The audit record no longer stores the commit that contains itself, which necessarily changed on every evidence-only amendment. The stable evidence-excluding Candidate digest remains the authoritative binding."
+    }
+  ]
+}

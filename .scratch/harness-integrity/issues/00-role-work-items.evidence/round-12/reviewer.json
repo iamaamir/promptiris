@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "producerId": "independent-reviewer-seed-reviewer12",
+  "independent": true,
+  "verdict": "pass",
+  "findings": [],
+  "commentDecisions": [],
+  "evidence": [
+    {
+      "checkId": "seed-contract",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/00-role-work-items.md",
+      "evidenceSha256": "d42e4ec526c8a2285553806368bfadca797d4a89e3ae2a292ecef62291713c6f"
+    },
+    {
+      "checkId": "implementation-contracts-and-graph",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.md",
+      "evidenceSha256": "abfaf4372b86999d8e90175820242fa6fd076371a5da9aa77563a407eaa42021"
+    },
+    {
+      "checkId": "implementation-contracts-model-routing",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/06-model-routing.md",
+      "evidenceSha256": "83eb60c736480151688d7b549c15c9feaac338319ca68357f55799b7199ea25e"
+    },
+    {
+      "checkId": "implementation-contracts-postmortems",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/07-feature-postmortems.md",
+      "evidenceSha256": "05aeec13ad3da2f241b609fcd0f0bbb387fa6f119153d400984f846f608e5e97"
+    },
+    {
+      "checkId": "implementation-contracts-gauntlet",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/08-feature-gauntlet.md",
+      "evidenceSha256": "487591665e0eaa6dfdbc05bf2e782ddb810239ff28b0161c20898c8a031666b5"
+    },
+    {
+      "checkId": "candidate-finalization",
+      "status": "passed",
+      "evidenceRef": "scripts/finalize-candidate.mjs",
+      "evidenceSha256": "2f5db2233ce7f489d4a5457bffd58f51af182965cc7eeef852443f3a80331cfc"
+    },
+    {
+      "checkId": "role-evidence-verification",
+      "status": "passed",
+      "evidenceRef": "scripts/verify-role-evidence.mjs",
+      "evidenceSha256": "35700567f1f2a71b992f9f8aef4163f0809e3c5b1533ad5ed0e1bf1a227e3c92"
+    },
+    {
+      "checkId": "projection-check-record",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/00-role-work-items.evidence/projection-check.json",
+      "evidenceSha256": "c52310c03a311d5559dcf375ed17b1cf29cd49bd7ce333617ee005c38c0b5bcc"
+    }
+  ],
+  "residualRisks": [
+    "Projection freshness and bootstrap maintainer identity remain external trust-boundary checks and must be rerun or recorded after integration as required by the seed contract."
+  ],
+  "taskId": ".scratch/harness-integrity/issues/00-role-work-items.md",
+  "baseRevision": "c51f9979a8e82ce9b60ac5b66f0b60185e376097",
+  "candidateRevision": "sha256:9381eb8d706f404af1112fd2e0922b3e0aaf68c2dc54899ee42757884d736d89"
+}

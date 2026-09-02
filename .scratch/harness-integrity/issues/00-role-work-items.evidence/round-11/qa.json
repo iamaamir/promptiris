@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "role": "qa",
+  "taskId": ".scratch/harness-integrity/issues/00-role-work-items.md",
+  "baseRevision": "c51f9979a8e82ce9b60ac5b66f0b60185e376097",
+  "candidateRevision": "sha256:9381eb8d706f404af1112fd2e0922b3e0aaf68c2dc54899ee42757884d736d89",
+  "producerId": "seed-qa11-source-blind",
+  "status": "passed",
+  "sourceBlind": true,
+  "scenarios": [
+    "Freshly reran scripts/issue-sync check for the parent PRD and all five child projections; all six returned exit code 0 and in-sync.",
+    "Verified hierarchy and dependency semantics, reciprocal acyclic edges, unique branches, non-overlapping conflict domains, explicit shared integration paths, exact allowed paths and commands, and canonical ready-for-agent statuses.",
+    "Verified the audit projection record is non-authoritative, readiness is capped at ready-for-human, and post-merge completion requires maintainer-authenticated bootstrap-closeout.json and integration rerun."
+  ],
+  "evidence": [
+    {
+      "checkId": "qa-issue-sync-six-projections",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/00-role-work-items.evidence/projection-check.json",
+      "evidenceSha256": "6d6e41f42f89a07c90c647d4fb513e94d3a096fb55fa5f83c49c52e7ffe50724"
+    }
+  ]
+}

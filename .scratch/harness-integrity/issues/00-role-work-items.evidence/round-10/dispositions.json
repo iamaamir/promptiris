@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "sourcePacket": ".scratch/harness-integrity/issues/00-role-work-items.md",
+  "candidateHead": "cba494b",
+  "decisions": [
+    {
+      "findingIds": ["R10-001"],
+      "disposition": "accepted",
+      "reason": "Every implementation packet now declares its shared integration paths separately from its exclusive contract paths and carries an explicit serialized no-weakening authority rule."
+    },
+    {
+      "findingIds": ["HARDENER-GRAPH-RECIPROCITY"],
+      "disposition": "accepted",
+      "reason": "The PRD no longer claims a dependency edge to its slices, and the seed explicitly distinguishes the hierarchical Parent/Slices relationship from reciprocal Blocks/Blocked-by edges between implementation packets."
+    },
+    {
+      "findingIds": ["HARDENER-BOOTSTRAP-AUTHORITY"],
+      "disposition": "accepted",
+      "reason": "The seed now states the irreducible trust boundary: no Candidate artifact can prove maintainer identity; only the authenticated GitHub merge event supplies that identity and integration revision, and pre-merge state cannot exceed ready-for-human."
+    },
+    {
+      "findingIds": ["HARDENER-PROJECTION-FRESHNESS"],
+      "disposition": "rejected",
+      "reason": "The checked-in projection record is explicitly non-authoritative. Fresh source-blind QA successfully reran all six network checks at this Candidate; a Hardener network outage cannot establish remote drift, and post-merge completion already requires a separate maintainer rerun and closeout."
+    }
+  ]
+}

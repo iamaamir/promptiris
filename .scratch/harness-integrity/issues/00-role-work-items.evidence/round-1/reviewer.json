@@ -1,0 +1,43 @@
+{
+  "verdict": "fail",
+  "findings": [
+    {
+      "id": "IR-001",
+      "severity": "high",
+      "file": ".scratch/harness-integrity/issues/05-independent-roles.md",
+      "line": 45,
+      "summary": "Mandatory distinct invocations contradict the governing role-separation policy.",
+      "rationale": "The existing operating model explicitly permits one worker to perform several responsibilities for small changes when deterministic gates preserve separation (docs/development/agent-operating-model.md:152). This Work Item unconditionally requires Reviewer, Hardener, and QA to run as distinct invocations, while only its packet metadata says risk is high. The intended override/scope is undefined, so implementations can either violate the existing contract or silently weaken this Work Item.",
+      "direction": "Explicitly scope distinct invocations to high-risk/protected Work Items, or amend the operating model as part of this Work Item and define the deterministic exception."
+    },
+    {
+      "id": "IR-002",
+      "severity": "medium",
+      "file": ".scratch/harness-integrity/issues/06-model-routing.md",
+      "line": 34,
+      "summary": "Model-floor enforcement lacks an authoritative classification and unknown-surface rule.",
+      "rationale": "The acceptance says policy computes a minimum floor from a broad list of affected surfaces, but defines neither the checked-in mapping/precedence nor behavior for unclassified, mixed, or newly introduced surfaces. Without those rules, a Candidate can game classification by avoiding or mislabeling a surface while still satisfying the stated tests.",
+      "direction": "Specify the authoritative risk-to-floor matrix, protected-surface matching/precedence, and fail-closed behavior for unknown or conflicting surface classifications."
+    }
+  ],
+  "residualRisks": [
+    "The repository can validate provenance metadata, but genuine host-issued identity/attestation remains externally trusted; the packet acknowledges this limitation.",
+    "The four Work Items are sequentially dependent as declared, but 05's host-dependent dogfood acceptance cannot be fully proven by repository tests alone."
+  ],
+  "evidenceInspected": [
+    "git diff c51f997..0787552",
+    ".scratch/harness-integrity/PRD.md",
+    ".scratch/harness-integrity/issues/05-independent-roles.md",
+    ".scratch/harness-integrity/issues/06-model-routing.md",
+    ".scratch/harness-integrity/issues/07-feature-postmortems.md",
+    ".scratch/harness-integrity/issues/08-feature-gauntlet.md",
+    "docs/development/agent-operating-model.md",
+    "docs/development/tool-aware-execution.md",
+    "docs/development/code-quality-and-review.md"
+  ],
+  "role": "reviewer",
+  "producerId": "luna-scope-reviewer",
+  "candidateHead": "0787552",
+  "baseHead": "c51f997",
+  "sourcePacket": ".scratch/harness-integrity/issues/00-role-work-items.md"
+}

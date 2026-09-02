@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "role": "hardener",
+  "producerId": "independent-hardener-final",
+  "status": "failed",
+  "sourceBlind": true,
+  "scenarios": [
+    "Attack guarded status transitions, terminal-state preservation, stale Candidate and projection bindings, and the bootstrap maintainer boundary.",
+    "Attack dependency and hierarchy closure for self-edges, cycles, duplicate or missing nodes, non-reciprocal edges, parent mismatch, duplicate branches, and overlapping concurrent ownership.",
+    "Attack projection-audit freshness, partial coverage, remote drift, and audit-record substitution across the parent and five child projections.",
+    "Attack model-floor and unsupported-host paths for weak-agent self-authored reports, missing role attestations, and bypass of independent execution."
+  ],
+  "evidence": [
+    {
+      "checkId": "hardener-weak-agent-floor-bypass",
+      "status": "failed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.md",
+      "evidenceSha256": "abfaf4372b86999d8e90175820242fa6fd076371a5da9aa77563a407eaa42021"
+    },
+    {
+      "checkId": "hardener-seed-contract",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/00-role-work-items.md",
+      "evidenceSha256": "10cac2f1c13b15083c56c929b1c86b8129efe457f0dfb69523573fff14779dc8"
+    },
+    {
+      "checkId": "hardener-projection-audit",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/00-role-work-items.evidence/projection-check.json",
+      "evidenceSha256": "e4604056e7fb8d99f7e5d746dbe0df212e6733df71ec9133259e49f3fa40986e"
+    }
+  ]
+}

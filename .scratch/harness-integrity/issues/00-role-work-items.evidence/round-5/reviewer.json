@@ -1,0 +1,46 @@
+{
+  "role": "reviewer",
+  "producerId": "luna-seed-reviewer5",
+  "candidateHead": "dded797",
+  "baseHead": "c51f997",
+  "sourcePacket": ".scratch/harness-integrity/issues/00-role-work-items.md",
+  "verdict": "fail",
+  "findings": [
+    {
+      "id": "AXIOM-001",
+      "severity": "high",
+      "summary": "The seed acceptance requires explicit conflict ownership, but the seed and implementation packets contain no `Conflict Domain` declaration or equivalent field. Existing issue-tracker policy explicitly treats Conflict Domain as a scheduling and overlap-control contract, so non-overlapping ownership cannot be deterministically verified from these packets.",
+      "evidenceRef": "docs/agents/issue-tracker.md:60; .scratch/harness-integrity/issues/05-independent-roles.md through .scratch/harness-integrity/issues/08-feature-gauntlet.md"
+    },
+    {
+      "id": "AXIOM-002",
+      "severity": "high",
+      "summary": "The completion predicate conflicts with the existing operating contract: the seed says the issue-owning agent releases it as `complete` immediately before maintainer review, while the issue-tracker contract says `agent-work release` moves a green packet to `ready-for-human`, and completion is recorded after merge. The required status transition and authority boundary are therefore not deterministic.",
+      "evidenceRef": ".scratch/harness-integrity/issues/00-role-work-items.md:Acceptance; docs/agents/issue-tracker.md:54-69"
+    },
+    {
+      "id": "AXIOM-003",
+      "severity": "medium",
+      "summary": "The phrase “Exactly the role-assurance PRD, this seed packet, and issues 05–08 exist as the planning payload” is not operationally precise: the repository already contains other harness-integrity packets and multiple evidence directories. The acceptance needs a scoped definition (for example, exact changed planning paths) to make deterministic validation possible.",
+      "evidenceRef": ".scratch/harness-integrity/issues/00-role-work-items.md:Acceptance; git tree at candidate dded797"
+    }
+  ],
+  "residualRisks": [
+    "Dependency and status synchronization may pass while concurrent-work conflict ownership remains unenforced.",
+    "Different agents may legitimately choose incompatible complete versus ready-for-human transitions.",
+    "A validator cannot distinguish intended planning-payload scope from an exact repository-file count."
+  ],
+  "evidenceInspected": [
+    "Candidate diff c51f997..dded797 for .scratch/harness-integrity/issues/00-role-work-items.md",
+    ".scratch/role-assurance/PRD.md",
+    ".scratch/harness-integrity/issues/05-independent-roles.md",
+    ".scratch/harness-integrity/issues/06-model-routing.md",
+    ".scratch/harness-integrity/issues/07-feature-postmortems.md",
+    ".scratch/harness-integrity/issues/08-feature-gauntlet.md",
+    "docs/agents/issue-tracker.md",
+    "docs/development/agent-operating-model.md",
+    "AGENTS.md",
+    "spec/schemas/reviewer-report.schema.json",
+    "spec/schemas/quality-stage-report.schema.json"
+  ]
+}

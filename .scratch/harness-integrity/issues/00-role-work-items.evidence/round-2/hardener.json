@@ -1,0 +1,20 @@
+{
+  "status":"blocked",
+  "role":"hardener",
+  "producerId":"luna-scope-hardener",
+  "candidateHead":"a3e02a8",
+  "baseHead":"c51f997",
+  "sourcePacket":".scratch/harness-integrity/issues/00-role-work-items.md",
+  "attacks":[
+    {"id":"ALL-01","severity":"blocker","surface":"implementation/verification coverage","scenario":"The revised Work Items describe controls but no executable artifacts or tests exist at HEAD a3e02a8. A Candidate can pass existing checks while merely claiming these controls.","expectedControl":"Implement named scripts, schemas, policies, and deterministic fixtures for forged identities, replay, leakage, stale manifests, unknown surfaces, contradictions, cache collisions, and tampered resume state."},
+    {"id":"IR-07","severity":"high","surface":"unsupported-host fallback","scenario":"Authorized fallback issuer and exact transitions are promised, but no issuer/key or authenticated external-attestation schema is defined or verifiable.","expectedControl":"Check in concrete issuer configuration, signature/expiry/replay validation, role coverage, and non-passable unsupported-state tests."},
+    {"id":"IR-03","severity":"blocker","surface":"source-blind QA","scenario":"Sandbox requirements are textual; no materialized bundle builder or isolation enforcement exists, so source access remains a report claim.","expectedControl":"Implement and test isolated allowlist bundle and all listed leakage channels."},
+    {"id":"IR-04","severity":"high","surface":"Hardener attack-surface derivation","scenario":"Dependency-closure classification is specified only textually; no classifier or omission-blocking test exists.","expectedControl":"Implement classifier and fail-closed unknown/omitted-surface tests."},
+    {"id":"MR-01","severity":"blocker","surface":"risk/model routing","scenario":"Matrix and fail-closed precedence are prose only; no checked-in policy or validator exists.","expectedControl":"Implement policy and direct/transitive/unknown/conflicting downgrade fixtures."},
+    {"id":"PM-01","severity":"high","surface":"postmortem closeout","scenario":"No postmortem schema/generator binds derived facts to artifact digests or enforces unavailable reasons.","expectedControl":"Implement generator/schema and complete/partial/stale fixtures."},
+    {"id":"FG-01","severity":"high","surface":"gauntlet caching","scenario":"Canonical cache-key inputs remain prose only; no controller or collision tests exist.","expectedControl":"Implement content-addressed keys including prompt, bundle, policy/schema/tool/controller, host, candidate, and base identities."}
+  ],
+  "missingTests":["All previously requested deterministic fixtures remain absent because no implementation/test files were added.","Add explicit tests for every prior attack, not just packet-text assertions.","Add a test that readiness verification rejects a candidate with planning claims but no role artifacts."],
+  "residualRisks":["Existing scripts/verify-role-evidence.mjs still validates old report shapes and does not enforce new provenance fields or independent identities.","Existing reviewer identity protection only checks Reviewer against local claim; Hardener and QA remain unprotected.","Dogfood acceptance cannot be demonstrated from this frozen candidate."],
+  "evidenceInspected":["git diff c51f997..a3e02a8",".scratch/harness-integrity/issues/05-independent-roles.md",".scratch/harness-integrity/issues/06-model-routing.md",".scratch/harness-integrity/issues/07-feature-postmortems.md",".scratch/harness-integrity/issues/08-feature-gauntlet.md","scripts/verify-role-evidence.mjs","spec/schemas/reviewer-report.schema.json","spec/schemas/quality-stage-report.schema.json","round-one Reviewer/QA/Hardener evidence files"]
+}

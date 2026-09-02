@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "role": "qa",
+  "taskId": ".scratch/harness-integrity/issues/00-role-work-items.md",
+  "baseRevision": "c51f9979a8e82ce9b60ac5b66f0b60185e376097",
+  "candidateRevision": "sha256:e3c5ef0ced4702f1f51fbfc79448fe3024ad202d7346473d70fe3951fedf9728",
+  "producerId": "seed-qa10-source-blind",
+  "status": "passed",
+  "sourceBlind": true,
+  "scenarios": [
+    "freshly rerun all six issue-sync checks for the parent and child projections",
+    "verified canonical statuses, parent and acyclic reciprocal dependency relationships across the four implementation packets",
+    "verified exact allowed paths and public commands, non-authoritative projection audit semantics, and pre-merge versus post-merge maintainer boundaries"
+  ],
+  "evidence": [
+    {
+      "checkId": "qa.issue-sync-six-projections",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/00-role-work-items.evidence/projection-check.json",
+      "evidenceSha256": "5fb894f8a2189bc561aa244eb28cc0f988451a27fb7bd7881feef8f5ab9877cb"
+    }
+  ]
+}

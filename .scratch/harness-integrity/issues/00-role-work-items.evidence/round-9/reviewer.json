@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "producerId": "seed-reviewer9",
+  "independent": true,
+  "verdict": "pass",
+  "findings": [],
+  "commentDecisions": [],
+  "evidence": [
+    {
+      "checkId": "candidate-identity",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/00-role-work-items.md",
+      "evidenceSha256": "149138101c64cddc58ebaefca24145927f5ee1ba6575fc5757ea3b4e7227a48b"
+    },
+    {
+      "checkId": "planning-contracts",
+      "status": "passed",
+      "evidenceRef": ".scratch/role-assurance/PRD.md",
+      "evidenceSha256": "3c376a5a9bba146826f6d58c360d26298e10247fe03073e527e3441230db41c4"
+    },
+    {
+      "checkId": "projection-semantics",
+      "status": "passed",
+      "evidenceRef": "scripts/issue-sync",
+      "evidenceSha256": "c6361a523bf9185f3913286ebefccc0c5afa9cd9a4b06c7d62ac093228d0971f"
+    },
+    {
+      "checkId": "candidate-freeze-and-evidence-binding",
+      "status": "passed",
+      "evidenceRef": "scripts/finalize-candidate.mjs",
+      "evidenceSha256": "2f5db2233ce7f489d4a5457bffd58f51af182965cc7eeef852443f3a80331cfc"
+    },
+    {
+      "checkId": "role-evidence-boundary",
+      "status": "passed",
+      "evidenceRef": "scripts/verify-role-evidence.mjs",
+      "evidenceSha256": "35700567f1f2a71b992f9f8aef4163f0809e3c5b1533ad5ed0e1bf1a227e3c92"
+    },
+    {
+      "checkId": "reviewer-schema-and-authority",
+      "status": "passed",
+      "evidenceRef": "spec/schemas/reviewer-report.schema.json",
+      "evidenceSha256": "4fce38a14e4af29adf414a6c58fc57942f5713fd594b92a9e6dcde7e4d756b34"
+    },
+    {
+      "checkId": "post-merge-boundary",
+      "status": "passed",
+      "evidenceRef": "docs/development/agent-operating-model.md",
+      "evidenceSha256": "435b6863e09ab05590eff86db48644ffca39540f9c0c7a1ab496290a8472fc2c"
+    }
+  ],
+  "residualRisks": [
+    "Bootstrap closeout and maintainer-only merge remain intentionally unverified until the planning payload is merged into origin/main."
+  ]
+}

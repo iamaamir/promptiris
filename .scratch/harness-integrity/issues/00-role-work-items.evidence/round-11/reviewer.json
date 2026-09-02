@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "taskId": ".scratch/harness-integrity/issues/00-role-work-items.md",
+  "baseRevision": "c51f9979a8e82ce9b60ac5b66f0b60185e376097",
+  "candidateRevision": "sha256:9381eb8d706f404af1112fd2e0922b3e0aaf68c2dc54899ee42757884d736d89",
+  "producerId": "independent-reviewer-seed-reviewer11",
+  "independent": true,
+  "verdict": "pass",
+  "findings": [],
+  "commentDecisions": [],
+  "evidence": [
+    {
+      "checkId": "dependency-hierarchy-and-reciprocity",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/00-role-work-items.md:Acceptance(1); .scratch/role-assurance/PRD.md:Slices; .scratch/harness-integrity/issues/{05-independent-roles,06-model-routing,07-feature-postmortems,08-feature-gauntlet}.md:Blocked by/Blocks",
+      "evidenceSha256": "9381eb8d706f404af1112fd2e0922b3e0aaf68c2dc54899ee42757884d736d89"
+    },
+    {
+      "checkId": "ownership-integration-and-acceptance-contract",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/00-role-work-items.md:Acceptance(1-6), Notes",
+      "evidenceSha256": "9381eb8d706f404af1112fd2e0922b3e0aaf68c2dc54899ee42757884d736d89"
+    },
+    {
+      "checkId": "maintainer-boundary-and-invalidation",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/00-role-work-items.md:Acceptance(6-9), Notes",
+      "evidenceSha256": "9381eb8d706f404af1112fd2e0922b3e0aaf68c2dc54899ee42757884d736d89"
+    },
+    {
+      "checkId": "projection-check-record",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/00-role-work-items.evidence/projection-check.json",
+      "evidenceSha256": "9381eb8d706f404af1112fd2e0922b3e0aaf68c2dc54899ee42757884d736d89"
+    }
+  ],
+  "residualRisks": [
+    "Post-merge maintainer identity and integration revision remain an external trust-boundary input; the Candidate explicitly cannot self-transition to complete or cryptographically prove that future action."
+  ]
+}

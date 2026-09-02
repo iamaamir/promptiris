@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "role": "qa",
+  "sourceBlind": true,
+  "producerId": "source-blind-qa-seed-qa7",
+  "status": "passed",
+  "scenarios": [
+    "Reviewed the seed acceptance contract, parent PRD, and packets 05-08 for status, branch, parent, dependency, ownership, and readiness consistency.",
+    "Checked the changed-path set between the specified base and candidate revisions.",
+    "Ran scripts/issue-sync check for the parent and all five child projections.",
+    "Inspected the public candidate-finalization and role-report schemas for the promised binder interface."
+  ],
+  "evidence": [
+    {
+      "checkId": "qa-changed-paths",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/00-role-work-items.md",
+      "evidenceSha256": "34f028f449b2c455e37c84433cfb5557c79015cf988083b096d83369e3e14056"
+    },
+    {
+      "checkId": "qa-issue-sync-projections",
+      "status": "passed",
+      "evidenceRef": "scripts/issue-sync",
+      "evidenceSha256": "c6361a523bf9185f3913286ebefccc0c5afa9cd9a4b06c7d62ac093228d0971f"
+    },
+    {
+      "checkId": "qa-candidate-contract",
+      "status": "passed",
+      "evidenceRef": "scripts/finalize-candidate.mjs",
+      "evidenceSha256": "2f5db2233ce7f489d4a5457bffd58f51af182965cc7eeef852443f3a80331cfc"
+    },
+    {
+      "checkId": "qa-report-schema",
+      "status": "passed",
+      "evidenceRef": "spec/schemas/quality-stage-report.schema.json",
+      "evidenceSha256": "03edcfe4a48b6547401e5db8d8344eee5757c2b590c68840fbe7196c56560194"
+    }
+  ]
+}

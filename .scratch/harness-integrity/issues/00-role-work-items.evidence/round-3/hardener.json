@@ -1,0 +1,23 @@
+{
+  "status":"blocked",
+  "role":"hardener",
+  "producerId":"luna-scope-hardener",
+  "candidateHead":"31776dc",
+  "baseHead":"c51f997",
+  "sourcePacket":".scratch/harness-integrity/issues/00-role-work-items.md",
+  "attacks":[
+    {"id":"SPEC-01","severity":"blocker","surface":"attestation trust boundary","scenario":"Envelope requirements omit cryptographic proof format, canonical serialization, key root/discovery, revocation/rotation, and concrete maintainer fallback authorization.","expectedControl":"Specify versioned signed envelope, canonical bytes, trusted issuer keys, rotation/revocation, proof retention, and fallback authorization."},
+    {"id":"SPEC-02","severity":"high","surface":"attempt index","scenario":"Append-only index has no authoritative storage or atomic cross-branch reservation/merge protocol.","expectedControl":"Define durable registry, transactional append/reservation, conflict handling, and replay tests."},
+    {"id":"SPEC-03","severity":"high","surface":"Candidate/invalidation identity","scenario":"Canonical Candidate digest, dependency closure, and non-evidence classification algorithms are unspecified.","expectedControl":"Specify path ordering, hash inputs, rename/delete behavior, dependency resolution, and one invalidation classifier."},
+    {"id":"SPEC-04","severity":"high","surface":"QA isolation","scenario":"Reject-versus-dereference symlink policy and sandbox/environment/executable limits are ambiguous.","expectedControl":"Choose fail-closed policy, define sandbox limits and capabilities, and attest bundle construction/execution."},
+    {"id":"SPEC-05","severity":"high","surface":"role completion selection","scenario":"Latest attempt ordering and interaction of failed attempts with supersession are undefined.","expectedControl":"Define monotonic sequence and explicit attempt state machine and selection rule."},
+    {"id":"SPEC-06","severity":"high","surface":"model routing","scenario":"Risk-to-floor matrix, protected taxonomy, dependency graph source, and unknown-surface adjudication remain unspecified.","expectedControl":"Check in matrix, taxonomy, graph algorithm, and fail-closed maintainer workflow."},
+    {"id":"SPEC-07","severity":"high","surface":"postmortem evidence boundary","scenario":"Evidence boundary path/commit rule and non-circular closeout digest are unspecified.","expectedControl":"Define immutable evidence root, finalization order, inclusion/exclusion, and closeout digest."},
+    {"id":"SPEC-08","severity":"high","surface":"gauntlet stage machine","scenario":"Transitions, idempotency, cancellation, locks, concurrent repairs, and escalation ownership are incomplete.","expectedControl":"Publish versioned state machine with guarded transitions and fixtures."},
+    {"id":"SPEC-09","severity":"medium","surface":"role bundle minimization","scenario":"Affected context and QA allowlists/redaction rules are not canonical, allowing indirect narrative/source leakage.","expectedControl":"Define per-role manifest schemas and reject unclassified inputs."},
+    {"id":"SPEC-10","severity":"medium","surface":"cross-Work-Item ownership","scenario":"Shared schemas/fields and compatibility/version migration between issues 05 and 08 have no ownership matrix.","expectedControl":"Assign every shared contract and pin versions with compatibility tests."}
+  ],
+  "missingSpecCases":["Envelope canonicalization, key lifecycle, issuer registry, fallback authorization","Concurrent attempt index and replay/supersession semantics","Candidate digest and dependency/invalidation algorithms","QA symlink policy and sandbox capability limits","Role bundle allowlists and indirect leakage","Postmortem evidence-root and non-circular closeout digest","Gauntlet cancellation, locking, idempotency, concurrent repair, transition guards","Shared schema ownership/version migration","Risk-floor matrix and unknown-surface adjudication"],
+  "residualRisks":["Round-two dispositions correctly reject implementation absence for this planning seed but do not resolve these specification gaps.","Host execution integrity remains externally trusted even with normalized attestations.","Human-only Candidate exception and maintainer policy remain potential bypasses outside machine-verifiable protocol."],
+  "evidenceInspected":["git diff c51f997..31776dc",".scratch/harness-integrity/issues/00-role-work-items.md",".scratch/harness-integrity/issues/05-independent-roles.md",".scratch/harness-integrity/issues/06-model-routing.md",".scratch/harness-integrity/issues/07-feature-postmortems.md",".scratch/harness-integrity/issues/08-feature-gauntlet.md",".scratch/harness-integrity/issues/00-role-work-items.evidence/round-2/dispositions.json","round-two Reviewer/QA/Hardener evidence files"]
+}

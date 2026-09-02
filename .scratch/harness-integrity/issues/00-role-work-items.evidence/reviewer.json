@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "producerId": "independent-seed-reviewer-14",
+  "independent": true,
+  "verdict": "pass",
+  "findings": [],
+  "commentDecisions": [],
+  "evidence": [
+    {
+      "checkId": "review.seed-contract",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/00-role-work-items.md",
+      "evidenceSha256": "10cac2f1c13b15083c56c929b1c86b8129efe457f0dfb69523573fff14779dc8"
+    },
+    {
+      "checkId": "review.hierarchy-and-graph",
+      "status": "passed",
+      "evidenceRef": ".scratch/role-assurance/PRD.md",
+      "evidenceSha256": "88e92435fcd0f4f2f9b282447b9943e48913a6cc3361934997223b0232730c49"
+    },
+    {
+      "checkId": "review.role-packet-boundaries",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.md",
+      "evidenceSha256": "abfaf4372b86999d8e90175820242fa6fd076371a5da9aa77563a407eaa42021"
+    },
+    {
+      "checkId": "review.model-floor-separation",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/06-model-routing.md",
+      "evidenceSha256": "36a84121e0a5e946aa4e0c0db7b8e439e374cc756a21c1b9802e4ad77bd4b577"
+    },
+    {
+      "checkId": "review.postmortem-contract",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/07-feature-postmortems.md",
+      "evidenceSha256": "05aeec13ad3da2f241b609fcd0f0bbb387fa6f119153d400984f846f608e5e97"
+    },
+    {
+      "checkId": "review.gauntlet-contract",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/08-feature-gauntlet.md",
+      "evidenceSha256": "487591665e0eaa6dfdbc05bf2e782ddb810239ff28b0161c20898c8a031666b5"
+    },
+    {
+      "checkId": "review.projection-audit",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/00-role-work-items.evidence/projection-check.json",
+      "evidenceSha256": "bc38284ba48888ac85531bb30d9e549f421c02eabf2beaf63f673fd4e1ecb4dd"
+    }
+  ],
+  "residualRisks": [
+    "Bootstrap readiness still requires maintainer review and post-merge authenticated closeout.",
+    "Independent challenge roles default to quick under the separate role policy; the implementer/orchestrator model floor remains governed by each Work Item and stronger unresolved findings cannot be erased."
+  ],
+  "taskId": ".scratch/harness-integrity/issues/00-role-work-items.md",
+  "baseRevision": "c51f9979a8e82ce9b60ac5b66f0b60185e376097",
+  "candidateRevision": "sha256:15cf4bc153815a2a2664584b19f13551aaee59d61b6f86bb47260a2bd0e32c6b"
+}
