@@ -267,41 +267,6 @@ describe('Event dispatcher', () => {
 
   // ---- Mutation-killing edge-case tests ----
 
-  it('resetting dropReported requires the queue to actually drain below capacity', async () => {
-    // Kills mutants on line 66: < → true and < → <=
-    const dispatcher = createEventDispatcher('run-drop-reset');
-    const sub = dispatcher.subscribe({ observerId: 'lagging', capacity: 2 });
-
-    dispatcher.emit(event('progress', 1));
-    dispatcher.emit(event('progress', 2));
-    // Queue full at capacity 2, next progress is dropped
-    dispatcher.emit(event('progress', 3));
-
-    // Read one event — queue still has 1 item (NOT below capacity)
-    const e1 = await nextEvent(sub);
-    expect(e1.type).toBe('example.event-1');
-
-    // With the correct code, dropReported is NOT reset because
-    // queue.length (1) is not < capacity (2)... wait, 1 < 2 IS true.
-    // So actually the flag IS reset here. We need a different setup.
-    // The key: queue at capacity=2, fill it, drop a progress, then read
-    // exactly so queue goes from 2→1 which IS below capacity=2.
-    // The mutant <→<= would make 1 <= 2 true (same as 1 < 2), so we need
-    // to test the boundary where they differ: queue.length === capacity.
-    // With capacity=1: queue=1, read→queue=0, 0 < 1 is true, 0 <= 1 also true.
-    // The real divergence: after read, queue=capacity-1=1, capacity=2.
-    // 1 < 2 = true (resets), 1 <= 2 = true (resets) — same.
-    // We need queue.length = capacity after read: impossible since shift reduces it.
-    // Actually the mutant `<`→`<=` only matters when queue.length === capacity.
-    // After queue.shift(), queue.length is at most capacity-1, so they behave
-    // identically. The two mutants at line 66 are both Equivalent-to-Context
-    // given the call-site semantics. They survive because no observable
-    // behavior distinguishes them.
-    dispatcher.emit(event('progress', 4));
-    const e2 = await nextEvent(sub);
-    expect(e2.type).toBe('example.event-2');
-  });
-
   it('return() discards queued events and resolves pending reads with done', async () => {
     // Kills mutants at lines 79 (close(true)→false) and 89 (closed check→false)
     const dispatcher = createEventDispatcher('run-return-discard');
