@@ -5,50 +5,31 @@
   "sourceBlind": false,
   "status": "passed",
   "scenarios": [
-    {
-      "name": "production-diff-transport-seam",
-      "status": "passed",
-      "evidence": "native-plugin.ts has an intentional, @internal transport seam (NativeChildHandle, NativeTransport, defaultTransport) added to enable deterministic scheduler tests. Production behavior is unchanged — defaultTransport spawns real processes identically to the previous inline spawn call."
-    },
-    {
-      "name": "production-diff-no-behavior-change",
-      "status": "passed",
-      "evidence": "git diff f0c2e6a HEAD -- native-plugin.ts shows only type-parameterization (ChildProcessWithoutNullStreams → NativeChildHandle) and the transport injection seam. No behavioral changes to RpcRequest, NativePluginSupervisor, or any public surface."
-    },
-    {
-      "name": "vitest-90-90",
-      "status": "passed",
-      "evidence": "pnpm --filter @promptiris/runtime-node exec vitest run: 90 passed, 5 files, exit 0"
-    },
-    {
-      "name": "coverage",
-      "status": "passed",
-      "evidence": "Statements 96.37% (346/359), Branches 93.51% (245/262), Functions 98.79% (82/83), Lines 99% (300/303)"
-    },
-    {
-      "name": "scheduler-genuine-replay",
-      "status": "passed",
-      "evidence": "All 4 tests use fc.asyncProperty(fc.scheduler(), ...). scheduleFunction gates both deliver+abort. s.waitIdle() releases both together. runOrder() captures labels for per-run consistency check. invokePending() ensures pendingInvoke set before race."
-    },
-    {
-      "name": "stripInternal",
-      "status": "passed",
-      "evidence": "apps/runtime-node/tsconfig.json has stripInternal: true — @internal interfaces stripped from .d.ts"
-    },
-    {
-      "name": "typecheck",
-      "status": "passed",
-      "evidence": "tsc --noEmit: clean, no errors"
-    }
+    "production-diff-transport-seam-accepted",
+    "vitest-90-90",
+    "coverage-stable",
+    "scheduler-genuine-replay",
+    "stripInternal-true",
+    "typecheck-clean"
   ],
   "evidence": [
-    "git diff f0c2e6a HEAD -- apps/runtime-node/src/native-plugin.ts: 72 insertions, 15 deletions (transport seam, type-parameterization)",
-    "vitest output: 90/90 pass",
-    "coverage: 96.37% stmts, 93.51% branches, 98.79% funcs, 99% lines",
-    "native-plugin.test.ts: fc.asyncProperty(fc.scheduler(), ...) x4, scheduleFunction, s.waitIdle(), runOrder(), invokePending()",
-    "tsconfig.json: stripInternal: true"
-  ],
-  "taskId": ".scratch/verification-strategies/issues/01-scheduled-runtime.md",
-  "baseRevision": "f0c2e6a912f4de0565019fcbd167c8244f627a0a",
-  "candidateRevision": "sha256:82b9280888baa88e36113059fa6f8818191168b1223f67c56edc63f50912f11f"
+    {
+      "checkId": "production-diff",
+      "status": "passed",
+      "evidenceRef": "issues/01-scheduled-runtime.evidence/hardener-production-diff.txt",
+      "evidenceSha256": "a9808827469b3738f7b7a0989f339263eca8ee99c7204185071e6e5ac61ce59d"
+    },
+    {
+      "checkId": "vitest",
+      "status": "passed",
+      "evidenceRef": "issues/01-scheduled-runtime.evidence/hardener-test-results.txt",
+      "evidenceSha256": "542463e19a574813547b20cefe4a33e3665dd62e01eed9e2e6401c9032110ab5"
+    },
+    {
+      "checkId": "vitest-output",
+      "status": "passed",
+      "evidenceRef": "issues/01-scheduled-runtime.evidence/vitest-output.txt",
+      "evidenceSha256": "fa69b146a3093891d5b46fd6830e661cdd845259d2bc1c1003e2c77b470facff"
+    }
+  ]
 }

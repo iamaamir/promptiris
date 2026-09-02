@@ -20,6 +20,3 @@ pnpm-debug.log*
 .agent/work/*/
 !.agent/work/.gitkeep
 .gitleaks-baseline.json
-.commandcode/
-.pi
-.agent/claims/
