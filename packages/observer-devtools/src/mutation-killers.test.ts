@@ -391,7 +391,7 @@ describe('support-bundle killers', () => {
           reason: 'r'.repeat(256),
           digest: 'd'.repeat(256),
         },
-        { id: `p-${i}`, sequence: i, delivery: 'progress' },
+        { id: `p-${String(i)}`, sequence: i, delivery: 'progress' },
       ),
     );
     const critical = ev({ phase: 'critical' }, { id: 'critical', sequence: 1000 });
