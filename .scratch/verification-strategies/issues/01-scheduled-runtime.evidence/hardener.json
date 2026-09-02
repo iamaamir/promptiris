@@ -6,7 +6,7 @@
   "status": "passed",
   "scenarios": [
     "Mutation testing on apps/runtime-node/src/native-plugin.ts: 92.57% (survived 8, uncovered 5, ignored 80)",
-    "Fast-check scheduler tests replay duplicate-invoke denial, late-response-after-cancellation interleavings",
+    "Deterministic fake-transport tests exercise duplicate-invoke denial and late-response-after-cancellation without real processes",
     "Fake in-memory transport smoke test proves native transport injection without spawning a real process",
     "Real-child-process integration tests (27) remain intact and exercise the full process-boundary contract"
   ],
@@ -26,5 +26,5 @@
   ],
   "taskId": ".scratch/verification-strategies/issues/01-scheduled-runtime.md",
   "baseRevision": "2a7576366f8eb140a39820749b9e22569b1765e3",
-  "candidateRevision": "sha256:4860a771155225391295ff179d2a280fafc32a753eb571ef00ad7ae5b2bff495"
+  "candidateRevision": "sha256:f17417391900ea124bd09d763c27bb623331d649056c9abe1b4789291947b0f1"
 }

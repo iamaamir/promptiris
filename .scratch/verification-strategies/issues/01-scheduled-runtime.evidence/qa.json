@@ -5,8 +5,8 @@
   "sourceBlind": true,
   "status": "passed",
   "scenarios": [
-    "Public API unchanged: NativePluginOptions gains an optional @internal transport field with no public surface change; API Extractor completed successfully",
-    "88 runtime-node tests pass across 5 files; deterministic fake-transport and scheduler tests exercise duplicate-invoke denial and late-response handling without real processes",
+    "Public API unchanged: NativePluginOptions gains an optional @internal transport field with no public surface change.",
+    "88 runtime-node tests pass across 5 files; deterministic fake-transport and scheduler tests exercise duplicate-invoke denial and late-response-after-cancellation.",
     "TypeScript typecheck clean, ESLint clean (max-warnings 0), Prettier clean",
     "Coverage 96.37% statements / 99% lines for apps/runtime-node"
   ],
@@ -20,5 +20,5 @@
   ],
   "taskId": ".scratch/verification-strategies/issues/01-scheduled-runtime.md",
   "baseRevision": "2a7576366f8eb140a39820749b9e22569b1765e3",
-  "candidateRevision": "sha256:4860a771155225391295ff179d2a280fafc32a753eb571ef00ad7ae5b2bff495"
+  "candidateRevision": "sha256:f17417391900ea124bd09d763c27bb623331d649056c9abe1b4789291947b0f1"
 }

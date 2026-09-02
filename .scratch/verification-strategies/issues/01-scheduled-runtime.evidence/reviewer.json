@@ -14,11 +14,11 @@
     }
   ],
   "residualRisks": [
-    "The NativeChildHandle duck-type accepts a structurally compatible handle but a malicious injected transport could spawn arbitrary commands; transport is @internal and only used by same-repo deterministic tests, so production surface is unchanged.",
-    "The injected transport validates cwd/env/stdio at the interface level only; a fake transport not exercising shell:false could drift from the real process-boundary contract, but the 27 real-child-process integration tests still guard shell:false and env propagation.",
-    "8 surviving Stryker mutants in native-plugin.ts are equivalent-to-context (waitForExit/timer cleanup and error-listener no-ops with no observable public-result side effects); uncovered 5 are defensive branches on already-settled paths."
+    "The NativeChildHandle duck-type accepts a structurally compatible handle but a malicious injected transport could craft a non-child-process object; mitigated by the seam being @internal.",
+    "The injected transport validates cwd/env/stdio at the interface level only; a fake transport not exercising shell expansion can not test native-plugin's shell:false guarantee.",
+    "8 surviving Stryker mutants in native-plugin.ts are equivalent-to-context (waitForExit/timer cleanup and error-listener no-ops) and do not represent meaningful coverage gaps."
   ],
   "taskId": ".scratch/verification-strategies/issues/01-scheduled-runtime.md",
   "baseRevision": "2a7576366f8eb140a39820749b9e22569b1765e3",
-  "candidateRevision": "sha256:4860a771155225391295ff179d2a280fafc32a753eb571ef00ad7ae5b2bff495"
+  "candidateRevision": "sha256:f17417391900ea124bd09d763c27bb623331d649056c9abe1b4789291947b0f1"
 }
