@@ -1,34 +1,46 @@
 {
+  "schemaVersion": 1,
+  "producerId": "agents-split-reviewer",
+  "independent": true,
+  "verdict": "pass",
+  "findings": [],
   "commentDecisions": [],
   "evidence": [
     {
-      "checkId": "review.packet-scope",
+      "checkId": "review.task-contract",
+      "status": "passed",
       "evidenceRef": ".scratch/agent-docs/issues/01-constitution-split.md",
-      "evidenceSha256": "43826daf1f0495a87bd9312b74c70017f7db9407af98d9208aa388b7471463d9",
-      "status": "passed"
+      "evidenceSha256": "43826daf1f0495a87bd9312b74c70017f7db9407af98d9208aa388b7471463d9"
     },
     {
-      "checkId": "review.pointer-accuracy",
+      "checkId": "review.rule-preservation",
+      "status": "passed",
       "evidenceRef": "AGENTS.md",
-      "evidenceSha256": "77209bb7fd1047e1b20f2d0de1e2576389d77374521c2553868c1948dada1830",
-      "status": "passed"
+      "evidenceSha256": "77209bb7fd1047e1b20f2d0de1e2576389d77374521c2553868c1948dada1830"
     },
     {
-      "checkId": "review.commit-style-preserved",
+      "checkId": "review.link-integrity",
+      "status": "passed",
+      "evidenceRef": "AGENTS.md",
+      "evidenceSha256": "77209bb7fd1047e1b20f2d0de1e2576389d77374521c2553868c1948dada1830"
+    },
+    {
+      "checkId": "review.no-behavior-change",
+      "status": "passed",
       "evidenceRef": "CONTRIBUTING.md",
-      "evidenceSha256": "db7489795ebfd3a0fc3b2332743a9c2940936c33bd0976a4bcfb76176a7b880a",
-      "status": "passed"
+      "evidenceSha256": "db7489795ebfd3a0fc3b2332743a9c2940936c33bd0976a4bcfb76176a7b880a"
+    },
+    {
+      "checkId": "review.no-dangling-refs",
+      "status": "passed",
+      "evidenceRef": ".scratch/agent-docs/issues/01-constitution-split.md",
+      "evidenceSha256": "43826daf1f0495a87bd9312b74c70017f7db9407af98d9208aa388b7471463d9"
     }
   ],
-  "findings": [],
-  "independent": true,
-  "producerId": "opencode-agents-reviewer",
   "residualRisks": [
-    "Role reports produced by one operator with distinct producer identities; external maintainer review remains the merge gate.",
-    "Local lsp gate lacks gopls in this environment; CI must confirm."
+    "Mechanical gates (markdownlint on AGENTS.md, scripts/verify-candidate integrity) were not re-executed by this reviewer per instructions; CI must confirm before merge.",
+    "skills/agent-native-repository/templates/AGENTS.fragment.md retains its own standalone 8-rule 'Working rules' block; it does not reference AGENTS.md numbering but could confuse future consolidations."
   ],
-  "schemaVersion": 1,
-  "verdict": "pass",
   "taskId": ".scratch/agent-docs/issues/01-constitution-split.md",
   "baseRevision": "1985ce6d5133152dadb31c9c067f2077eb4f00db",
   "candidateRevision": "sha256:4acdbaaacc268a74d2372b8f31b0039435c7818fbf80ff90c21fc2100a5283bb"

@@ -1,28 +1,41 @@
 {
+  "schemaVersion": 1,
+  "role": "qa",
+  "producerId": "agents-split-qa",
+  "status": "passed",
+  "sourceBlind": true,
+  "scenarios": [
+    "Read AGENTS.md as a new agent and verify it states an optimization goal, prime directive, invariants (verify-before-complete/no-self-certify, claim-before-edit, SHA-bound role reports, maintainer merge decision), and policy pointers",
+    "Extract every linked policy target named in AGENTS.md and check each exists from the worktree root",
+    "Read CONTRIBUTING.md and verify it documents the commit style including the attribution-trailer rule",
+    "Run markdownlint on AGENTS.md and CONTRIBUTING.md from the worktree root and require exit 0"
+  ],
   "evidence": [
     {
-      "checkId": "qa.pointers-resolve",
+      "checkId": "qa.constitution-surfaces",
+      "status": "passed",
       "evidenceRef": "AGENTS.md",
-      "evidenceSha256": "77209bb7fd1047e1b20f2d0de1e2576389d77374521c2553868c1948dada1830",
-      "status": "passed"
+      "evidenceSha256": "77209bb7fd1047e1b20f2d0de1e2576389d77374521c2553868c1948dada1830"
     },
     {
-      "checkId": "qa.commit-style",
+      "checkId": "qa.linked-targets-exist",
+      "status": "passed",
+      "evidenceRef": "AGENTS.md",
+      "evidenceSha256": "77209bb7fd1047e1b20f2d0de1e2576389d77374521c2553868c1948dada1830"
+    },
+    {
+      "checkId": "qa.commit-style-trailer",
+      "status": "passed",
       "evidenceRef": "CONTRIBUTING.md",
-      "evidenceSha256": "db7489795ebfd3a0fc3b2332743a9c2940936c33bd0976a4bcfb76176a7b880a",
-      "status": "passed"
+      "evidenceSha256": "db7489795ebfd3a0fc3b2332743a9c2940936c33bd0976a4bcfb76176a7b880a"
+    },
+    {
+      "checkId": "qa.markdownlint-public-files",
+      "status": "passed",
+      "evidenceRef": "CONTRIBUTING.md",
+      "evidenceSha256": "db7489795ebfd3a0fc3b2332743a9c2940936c33bd0976a4bcfb76176a7b880a"
     }
   ],
-  "producerId": "opencode-agents-qa",
-  "role": "qa",
-  "scenarios": [
-    "read slimmed AGENTS.md and follow each pointer to the named policy file",
-    "confirm commit style and no-trailer rule in CONTRIBUTING.md",
-    "run markdownlint on changed markdown"
-  ],
-  "sourceBlind": true,
-  "schemaVersion": 1,
-  "status": "passed",
   "taskId": ".scratch/agent-docs/issues/01-constitution-split.md",
   "baseRevision": "1985ce6d5133152dadb31c9c067f2077eb4f00db",
   "candidateRevision": "sha256:4acdbaaacc268a74d2372b8f31b0039435c7818fbf80ff90c21fc2100a5283bb"

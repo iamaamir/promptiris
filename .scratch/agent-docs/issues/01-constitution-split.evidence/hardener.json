@@ -1,32 +1,54 @@
 {
+  "schemaVersion": 1,
+  "role": "hardener",
+  "producerId": "agents-split-hardener",
+  "sourceBlind": false,
+  "status": "passed",
+  "scenarios": [
+    "link-target existence: every AGENTS.md policy-pointer path resolves in worktree (incl sgconfig.yml, .github/workflows/policy-integrity.yml, tooling/quality/mutation-policy.json, spec/schemas/reviewer-report.schema.json, spec/schemas/tool-trace.schema.json)",
+    "rule-loss: all 19 origin/main working rules map to a retained invariant or a genuine pointer target verified by content grep",
+    "dangling references: repo-wide grep for AGENTS.md working-rules / rule-number references shows no breakage (fragment block is standalone)",
+    "markdownlint on AGENTS.md, CONTRIBUTING.md, .scratch/agent-docs/issues/01-constitution-split.md exits 0",
+    "diff scope: origin/main...HEAD touches only AGENTS.md, CONTRIBUTING.md, .scratch/agent-docs/**; spec/tooling/scripts/.github/sgconfig unchanged"
+  ],
   "evidence": [
     {
-      "checkId": "hardener.pointer-targets-exist",
+      "checkId": "hardener.link-targets",
+      "status": "passed",
       "evidenceRef": "AGENTS.md",
-      "evidenceSha256": "77209bb7fd1047e1b20f2d0de1e2576389d77374521c2553868c1948dada1830",
-      "status": "passed"
+      "evidenceSha256": "77209bb7fd1047e1b20f2d0de1e2576389d77374521c2553868c1948dada1830"
     },
     {
-      "checkId": "hardener.no-behavior-change",
+      "checkId": "hardener.rule-retention",
+      "status": "passed",
+      "evidenceRef": "docs/agents/issue-tracker.md",
+      "evidenceSha256": "8f9cbfc84548f81580a23508e711862f1e039f8919db7efd27999204ad30e98d"
+    },
+    {
+      "checkId": "hardener.dangling-refs",
+      "status": "passed",
+      "evidenceRef": "skills/agent-native-repository/templates/AGENTS.fragment.md",
+      "evidenceSha256": "e865b8b8f7f368692eeb01905ad6effba95065074f869a1a2fd42c5c807b3bdd"
+    },
+    {
+      "checkId": "hardener.markdownlint",
+      "status": "passed",
       "evidenceRef": "CONTRIBUTING.md",
-      "evidenceSha256": "db7489795ebfd3a0fc3b2332743a9c2940936c33bd0976a4bcfb76176a7b880a",
-      "status": "passed"
+      "evidenceSha256": "db7489795ebfd3a0fc3b2332743a9c2940936c33bd0976a4bcfb76176a7b880a"
     },
     {
-      "checkId": "hardener.packet-bounds",
-      "evidenceRef": ".scratch/agent-docs/issues/01-constitution-split.md",
-      "evidenceSha256": "43826daf1f0495a87bd9312b74c70017f7db9407af98d9208aa388b7471463d9",
-      "status": "passed"
+      "checkId": "hardener.pointer-targets",
+      "status": "passed",
+      "evidenceRef": "docs/development/tool-aware-execution.md",
+      "evidenceSha256": "1e5ac5558d4e68bf5b1f3edb0c07e16f51e1ba85597d0649be8e9b209c0b4d99"
+    },
+    {
+      "checkId": "hardener.diff-scope",
+      "status": "passed",
+      "evidenceRef": ".github/workflows/policy-integrity.yml",
+      "evidenceSha256": "e179d69939e2c8682822082d8cd04015d19c242c7f63bbb093fb58373a2a8a99"
     }
   ],
-  "producerId": "opencode-agents-hardener",
-  "role": "hardener",
-  "scenarios": [
-    "constitution pointer accuracy against existing policy files",
-    "docs-only drift check: no source, schema, or threshold touched"
-  ],
-  "schemaVersion": 1,
-  "status": "passed",
   "taskId": ".scratch/agent-docs/issues/01-constitution-split.md",
   "baseRevision": "1985ce6d5133152dadb31c9c067f2077eb4f00db",
   "candidateRevision": "sha256:4acdbaaacc268a74d2372b8f31b0039435c7818fbf80ff90c21fc2100a5283bb"
