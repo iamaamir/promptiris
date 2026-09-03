@@ -1,0 +1,33 @@
+{
+  "evidence": [
+    {
+      "checkId": "hardener.pointer-targets-exist",
+      "evidenceRef": "AGENTS.md",
+      "evidenceSha256": "77209bb7fd1047e1b20f2d0de1e2576389d77374521c2553868c1948dada1830",
+      "status": "passed"
+    },
+    {
+      "checkId": "hardener.no-behavior-change",
+      "evidenceRef": "CONTRIBUTING.md",
+      "evidenceSha256": "db7489795ebfd3a0fc3b2332743a9c2940936c33bd0976a4bcfb76176a7b880a",
+      "status": "passed"
+    },
+    {
+      "checkId": "hardener.packet-bounds",
+      "evidenceRef": ".scratch/agent-docs/issues/01-constitution-split.md",
+      "evidenceSha256": "43826daf1f0495a87bd9312b74c70017f7db9407af98d9208aa388b7471463d9",
+      "status": "passed"
+    }
+  ],
+  "producerId": "opencode-agents-hardener",
+  "role": "hardener",
+  "scenarios": [
+    "constitution pointer accuracy against existing policy files",
+    "docs-only drift check: no source, schema, or threshold touched"
+  ],
+  "schemaVersion": 1,
+  "status": "passed",
+  "taskId": ".scratch/agent-docs/issues/01-constitution-split.md",
+  "baseRevision": "1985ce6d5133152dadb31c9c067f2077eb4f00db",
+  "candidateRevision": "sha256:4acdbaaacc268a74d2372b8f31b0039435c7818fbf80ff90c21fc2100a5283bb"
+}
