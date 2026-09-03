@@ -128,3 +128,18 @@ echo '## TELEMETRY'
 echo
 echo '## CAPABILITIES'
 jq -r '.capabilities | to_entries[] | "\(.key): \(.value.providers | join(", "))"' "$worktree_root/tooling/capabilities.json"
+
+echo
+echo '## ENVIRONMENT'
+env_missing=0
+for tool in node pnpm go gopls gitleaks rg fd jq ast-grep watchexec; do
+  if command -v "$tool" >/dev/null 2>&1; then
+    printf '%s: ok\n' "$tool"
+  else
+    printf '%s: MISSING\n' "$tool"
+    env_missing=1
+  fi
+done
+if (( env_missing )); then
+  echo 'run scripts/bootstrap-tools, then re-check'
+fi

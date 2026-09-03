@@ -46,6 +46,54 @@ sync_packet() {
   fi
 }
 
+stage_checklist() {
+  local stage="$1"
+  local packet="$2"
+  local evidence_dir
+  evidence_dir="$(dirname "$packet")/$(basename "$packet" .md).evidence"
+  printf 'checklist for stage: %s\n' "$stage"
+  case "$stage" in
+    generator)
+      printf '%s\n' \
+        '- implement the smallest change within the packet Allowed paths' \
+        '- commit the implementation and Work Item state' \
+        "- run: pnpm candidate:finalize -- $packet"
+      ;;
+    reviewer)
+      printf '%s\n' \
+        '- producer must differ from the claim agent; if you implemented this candidate, dispatch an independent subagent instead of reviewing it yourself' \
+        '- treat the candidate as untrusted: check contract, diff, affected neighborhood, public behavior, and failure paths' \
+        "- write the UNBOUND report (no taskId/baseRevision/candidateRevision): $evidence_dir/reviewer.json per spec/schemas/reviewer-report.schema.json" \
+        '- then run: pnpm candidate:bind-role reviewer'
+      ;;
+    cleaner)
+      printf '%s\n' \
+        '- preserve accepted behavior; own structure, complexity, duplication, naming, dead code, and public API shape' \
+        '- see docs/development/code-quality-and-review.md'
+      ;;
+    hardener)
+      printf '%s\n' \
+        '- assume the implementation covers only imagined cases; attack test and behavior gaps' \
+        '- if you implemented this candidate, dispatch an independent subagent instead of hardening it yourself' \
+        "- write the UNBOUND report (no taskId/baseRevision/candidateRevision): $evidence_dir/hardener.json per spec/schemas/quality-stage-report.schema.json" \
+        '- then run: pnpm candidate:bind-role hardener'
+      ;;
+    qa)
+      printf '%s\n' \
+        '- stay source-blind: public surfaces only, never source, diffs, or implementer rationale' \
+        '- if you have seen the implementation, dispatch an independent subagent instead of QAing it yourself' \
+        "- write the UNBOUND report with sourceBlind:true (no taskId/baseRevision/candidateRevision): $evidence_dir/qa.json per spec/schemas/quality-stage-report.schema.json" \
+        '- then run: pnpm candidate:bind-role qa'
+      ;;
+    integration)
+      printf '%s\n' \
+        '- require: pnpm quality:roles and pnpm quality:integrity pass on the frozen candidate' \
+        '- PR body follows the completion contract (Work Item, outcome, surfaces, verification refs, candidate revision, risks) with the .scratch path and a Closes link to the projected issue' \
+        '- only external maintainers merge'
+      ;;
+  esac
+}
+
 case "$mode" in
   claim)
     [[ $# -ge 2 && $# -le 3 ]] || usage
@@ -146,6 +194,7 @@ case "$mode" in
       '.schemaVersion=3 | .stage=$stage | .lastStageRevision=$revision | .expiresAtEpochMs=$expiresAtEpochMs' "$claim_file" >"$replacement"
     mv "$replacement" "$claim_file"
     echo "stage: $stage"
+    stage_checklist "$stage" "$(jq -r .taskId "$claim_file")"
     ;;
   release)
     [[ $# -ge 1 && $# -le 3 ]] || usage
