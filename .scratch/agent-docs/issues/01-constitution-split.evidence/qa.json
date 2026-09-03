@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "role": "qa",
+  "producerId": "agents-split-qa",
+  "status": "passed",
+  "sourceBlind": true,
+  "scenarios": [
+    "Read AGENTS.md as a new agent and verify it states an optimization goal, prime directive, invariants (verify-before-complete/no-self-certify, claim-before-edit, SHA-bound role reports, maintainer merge decision), and policy pointers",
+    "Extract every linked policy target named in AGENTS.md and check each exists from the worktree root",
+    "Read CONTRIBUTING.md and verify it documents the commit style including the attribution-trailer rule",
+    "Run markdownlint on AGENTS.md and CONTRIBUTING.md from the worktree root and require exit 0"
+  ],
+  "evidence": [
+    {
+      "checkId": "qa.constitution-surfaces",
+      "status": "passed",
+      "evidenceRef": "AGENTS.md",
+      "evidenceSha256": "77209bb7fd1047e1b20f2d0de1e2576389d77374521c2553868c1948dada1830"
+    },
+    {
+      "checkId": "qa.linked-targets-exist",
+      "status": "passed",
+      "evidenceRef": "AGENTS.md",
+      "evidenceSha256": "77209bb7fd1047e1b20f2d0de1e2576389d77374521c2553868c1948dada1830"
+    },
+    {
+      "checkId": "qa.commit-style-trailer",
+      "status": "passed",
+      "evidenceRef": "CONTRIBUTING.md",
+      "evidenceSha256": "db7489795ebfd3a0fc3b2332743a9c2940936c33bd0976a4bcfb76176a7b880a"
+    },
+    {
+      "checkId": "qa.markdownlint-public-files",
+      "status": "passed",
+      "evidenceRef": "CONTRIBUTING.md",
+      "evidenceSha256": "db7489795ebfd3a0fc3b2332743a9c2940936c33bd0976a4bcfb76176a7b880a"
+    }
+  ],
+  "taskId": ".scratch/agent-docs/issues/01-constitution-split.md",
+  "baseRevision": "1985ce6d5133152dadb31c9c067f2077eb4f00db",
+  "candidateRevision": "sha256:02a1d4ef179174d9c0ca5e75e82cead47961fde4903c4215dd86a2fb7b7f521a"
+}

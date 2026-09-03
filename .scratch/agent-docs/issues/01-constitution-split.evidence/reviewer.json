@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "producerId": "agents-split-reviewer",
+  "independent": true,
+  "verdict": "pass",
+  "findings": [],
+  "commentDecisions": [],
+  "evidence": [
+    {
+      "checkId": "review.task-contract",
+      "status": "passed",
+      "evidenceRef": ".scratch/agent-docs/issues/01-constitution-split.md",
+      "evidenceSha256": "2d8e204b310f21cb2630cb0e05fb6bec0b1714135c24f951c8f0889fd4577e47"
+    },
+    {
+      "checkId": "review.rule-preservation",
+      "status": "passed",
+      "evidenceRef": "AGENTS.md",
+      "evidenceSha256": "77209bb7fd1047e1b20f2d0de1e2576389d77374521c2553868c1948dada1830"
+    },
+    {
+      "checkId": "review.link-integrity",
+      "status": "passed",
+      "evidenceRef": "AGENTS.md",
+      "evidenceSha256": "77209bb7fd1047e1b20f2d0de1e2576389d77374521c2553868c1948dada1830"
+    },
+    {
+      "checkId": "review.no-behavior-change",
+      "status": "passed",
+      "evidenceRef": "CONTRIBUTING.md",
+      "evidenceSha256": "db7489795ebfd3a0fc3b2332743a9c2940936c33bd0976a4bcfb76176a7b880a"
+    },
+    {
+      "checkId": "review.no-dangling-refs",
+      "status": "passed",
+      "evidenceRef": ".scratch/agent-docs/issues/01-constitution-split.md",
+      "evidenceSha256": "2d8e204b310f21cb2630cb0e05fb6bec0b1714135c24f951c8f0889fd4577e47"
+    }
+  ],
+  "residualRisks": [
+    "Mechanical gates (markdownlint on AGENTS.md, scripts/verify-candidate integrity) were not re-executed by this reviewer per instructions; CI must confirm before merge.",
+    "skills/agent-native-repository/templates/AGENTS.fragment.md retains its own standalone 8-rule 'Working rules' block; it does not reference AGENTS.md numbering but could confuse future consolidations."
+  ],
+  "taskId": ".scratch/agent-docs/issues/01-constitution-split.md",
+  "baseRevision": "1985ce6d5133152dadb31c9c067f2077eb4f00db",
+  "candidateRevision": "sha256:02a1d4ef179174d9c0ca5e75e82cead47961fde4903c4215dd86a2fb7b7f521a"
+}
