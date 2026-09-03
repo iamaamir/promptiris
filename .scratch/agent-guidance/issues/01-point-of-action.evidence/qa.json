@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "role": "qa",
+  "producerId": "point-action-qa",
+  "status": "passed",
+  "sourceBlind": true,
+  "scenarios": [
+    "agent-context ENVIRONMENT with full toolchain exits 0 and reports node/pnpm/go plus soft deps as ok",
+    "agent-context with node present but soft deps hidden (gopls/gitleaks/fd/ast-grep/watchexec absent) exits 0 with per-tool MISSING lines plus bootstrap hint",
+    "node-absent stripped PATH (env -i PATH=/usr/bin:/bin) exits 127 at line 21 before ENVIRONMENT; evaluated as outside the supported envelope per engines/README/bootstrap-tools hard-prerequisite contract, not a black-box failure",
+    "CONTRIBUTING documents bootstrap-tools before agent-context and bootstrap-tools requires working node via corepack plus go",
+    "verify-candidate and agent-context require node on every invocation, confirming node as a hard prerequisite of the toolchain rather than a soft ENVIRONMENT capability"
+  ],
+  "evidence": [
+    {
+      "checkId": "qa.environment-full-ok",
+      "status": "passed",
+      "evidenceRef": "scripts/agent-context",
+      "evidenceSha256": "68590576afbf00773ca17efe1ae276b6369f604730c039b1234018ac982ffb2c"
+    },
+    {
+      "checkId": "qa.environment-soft-missing",
+      "status": "passed",
+      "evidenceRef": "tooling/quality/agent-context.test.sh",
+      "evidenceSha256": "503b05404856af8a295f5ff0fc4d373f18b29bd3a2992e7d6aa6de83a8678c71"
+    },
+    {
+      "checkId": "qa.hard-prereq-engines",
+      "status": "passed",
+      "evidenceRef": "package.json",
+      "evidenceSha256": "1cc34e45f041347722cf3d597c8254c7d705f9d28c19be8c72c998c204366668"
+    },
+    {
+      "checkId": "qa.hard-prereq-readme",
+      "status": "passed",
+      "evidenceRef": "README.md",
+      "evidenceSha256": "b020da0617d8323ff319df462c3aa4f21bf7f79a8bffd4ab2a17a2120134ca0d"
+    },
+    {
+      "checkId": "qa.bootstrap-requires-node-go",
+      "status": "passed",
+      "evidenceRef": "scripts/bootstrap-tools",
+      "evidenceSha256": "15309c341c61c2bcd161191c5532368dc0deacc739863bf3a5a5b7da8fce20a9"
+    },
+    {
+      "checkId": "qa.bootstrap-order",
+      "status": "passed",
+      "evidenceRef": "CONTRIBUTING.md",
+      "evidenceSha256": "84f4b59ba13110c41080b8a302cba1e1ba0453d207b5168268eb41b0d17dd15a"
+    },
+    {
+      "checkId": "qa.toolchain-requires-node",
+      "status": "passed",
+      "evidenceRef": "scripts/verify-candidate",
+      "evidenceSha256": "39bbf15d33c0d716055c5d3a8ee9982ff0ed52398dc6e07dcb28ee0074eda1bf"
+    }
+  ],
+  "taskId": ".scratch/agent-guidance/issues/01-point-of-action.md",
+  "baseRevision": "1985ce6d5133152dadb31c9c067f2077eb4f00db",
+  "candidateRevision": "sha256:ea2753d026eba8f0997bb063cf7194eabf31073b1f713fcb947ea314af7da055"
+}
