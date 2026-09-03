@@ -13,7 +13,6 @@ Allowed paths:
 
 - `apps/runtime-node/src/native-plugin.ts`
 - `apps/runtime-node/src/native-plugin.test.ts`
-- `apps/runtime-node/tsconfig.json`
 - `packages/testkit/**`
 - `.scratch/verification-strategies/issues/01-scheduled-runtime.md`
 - `.scratch/verification-strategies/issues/01-scheduled-runtime.evidence/**`
