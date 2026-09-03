@@ -10,7 +10,7 @@
       "checkId": "review.task-contract",
       "status": "passed",
       "evidenceRef": ".scratch/agent-docs/issues/01-constitution-split.md",
-      "evidenceSha256": "43826daf1f0495a87bd9312b74c70017f7db9407af98d9208aa388b7471463d9"
+      "evidenceSha256": "2d8e204b310f21cb2630cb0e05fb6bec0b1714135c24f951c8f0889fd4577e47"
     },
     {
       "checkId": "review.rule-preservation",
@@ -34,7 +34,7 @@
       "checkId": "review.no-dangling-refs",
       "status": "passed",
       "evidenceRef": ".scratch/agent-docs/issues/01-constitution-split.md",
-      "evidenceSha256": "43826daf1f0495a87bd9312b74c70017f7db9407af98d9208aa388b7471463d9"
+      "evidenceSha256": "2d8e204b310f21cb2630cb0e05fb6bec0b1714135c24f951c8f0889fd4577e47"
     }
   ],
   "residualRisks": [
@@ -43,5 +43,5 @@
   ],
   "taskId": ".scratch/agent-docs/issues/01-constitution-split.md",
   "baseRevision": "1985ce6d5133152dadb31c9c067f2077eb4f00db",
-  "candidateRevision": "sha256:4acdbaaacc268a74d2372b8f31b0039435c7818fbf80ff90c21fc2100a5283bb"
+  "candidateRevision": "sha256:02a1d4ef179174d9c0ca5e75e82cead47961fde4903c4215dd86a2fb7b7f521a"
 }

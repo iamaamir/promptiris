@@ -5,15 +5,16 @@
   "sourceBlind": false,
   "status": "passed",
   "scenarios": [
-    "link-target existence: every AGENTS.md policy-pointer path resolves in worktree (incl sgconfig.yml, .github/workflows/policy-integrity.yml, tooling/quality/mutation-policy.json, spec/schemas/reviewer-report.schema.json, spec/schemas/tool-trace.schema.json)",
-    "rule-loss: all 19 origin/main working rules map to a retained invariant or a genuine pointer target verified by content grep",
-    "dangling references: repo-wide grep for AGENTS.md working-rules / rule-number references shows no breakage (fragment block is standalone)",
+    "one-line delta confirm: git diff HEAD~1 on .scratch/agent-docs/issues/01-constitution-split.md shows only `GitHub issue: pending` -> issue-58 URL; no policy text touched",
+    "link-target existence: all 23 AGENTS.md policy-pointer paths resolve in worktree (docs/development/tool-aware-execution.md, agent-operating-model.md, code-quality-and-review.md, docs/agents/issue-tracker.md, triage-labels.md, domain.md, tooling/capabilities.json, tooling/tasks.json, scripts/tool-router, scripts/tool-trace, scripts/agent-context, scripts/verify-candidate, spec/schemas/tool-trace.schema.json, reviewer-report.schema.json, tooling/quality/mutation-policy.json, sgconfig.yml, .github/workflows/verify.yml, policy-integrity.yml, scripts/agent-work, scripts/finalize-candidate.mjs, CONTRIBUTING.md, ROADMAP.md, CONTEXT.md)",
+    "rule-loss: all 19 origin/main working rules map to a retained invariant or a genuine pointer target verified by content grep (R7/R16/R19 verbatim in Invariants; R13 verbatim in CONTRIBUTING.md; R4/R8/R10-R12/R18 via prime-directive retention plus operating-model/tool-aware-execution/code-quality/issue-tracker bodies; R5 via explicit not-large-logs pointer)",
+    "dangling references: repo-wide grep for working-rule/rule-number mentions shows no breakage outside node_modules and prior evidence; skills fragment keeps its own standalone 8-rule block with no AGENTS.md numbering dependency",
     "markdownlint on AGENTS.md, CONTRIBUTING.md, .scratch/agent-docs/issues/01-constitution-split.md exits 0",
     "diff scope: origin/main...HEAD touches only AGENTS.md, CONTRIBUTING.md, .scratch/agent-docs/**; spec/tooling/scripts/.github/sgconfig unchanged"
   ],
   "evidence": [
     {
-      "checkId": "hardener.link-targets",
+      "checkId": "hardener.one-line-delta",
       "status": "passed",
       "evidenceRef": "AGENTS.md",
       "evidenceSha256": "77209bb7fd1047e1b20f2d0de1e2576389d77374521c2553868c1948dada1830"
@@ -51,5 +52,5 @@
   ],
   "taskId": ".scratch/agent-docs/issues/01-constitution-split.md",
   "baseRevision": "1985ce6d5133152dadb31c9c067f2077eb4f00db",
-  "candidateRevision": "sha256:4acdbaaacc268a74d2372b8f31b0039435c7818fbf80ff90c21fc2100a5283bb"
+  "candidateRevision": "sha256:02a1d4ef179174d9c0ca5e75e82cead47961fde4903c4215dd86a2fb7b7f521a"
 }
