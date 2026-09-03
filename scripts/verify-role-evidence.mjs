@@ -19,7 +19,8 @@ if (branch === 'main') {
 const baseName =
   process.env.PROMPTIRIS_BASE_REVISION ??
   (process.env.GITHUB_BASE_REF ? `origin/${process.env.GITHUB_BASE_REF}` : 'origin/main');
-const baseRevision = git(['merge-base', 'HEAD', baseName], { encoding: 'utf8' }).trim();
+const branchRef = branch.startsWith('origin/') ? branch : `origin/${branch}`;
+const baseRevision = git(['merge-base', branchRef, baseName], { encoding: 'utf8' }).trim();
 const trustedMode = process.env.PROMPTIRIS_TRUSTED_MODE === 'true';
 
 const packetFiles = [];
