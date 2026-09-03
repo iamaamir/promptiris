@@ -11,7 +11,7 @@ started_ms="$(node -e 'process.stdout.write(String(Date.now()))')"
 gate_ids=()
 
 preflight_missing=0
-if ! command -v gopls >/dev/null 2>&1; then
+if [[ ! -x "$repo_root/.tools/bin/gopls" ]] && ! command -v gopls >/dev/null 2>&1; then
   printf 'FAIL preflight: gopls is missing (the lsp gate needs it); run scripts/bootstrap-tools\n' >&2
   preflight_missing=1
 fi
