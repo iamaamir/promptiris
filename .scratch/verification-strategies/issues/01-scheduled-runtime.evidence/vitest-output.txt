@@ -1,0 +1,99 @@
+
+ RUN  v4.1.11 /Users/mak/git/meta-prompt-scheduled-runtime/apps/runtime-node
+
+ ✓ src/execution-context.test.ts > operational execution context > flows immutable correlation through asynchronous work without retaining content 1ms
+ ✓ src/execution-context.test.ts > operational execution context > restores the parent context after a nested operation 0ms
+ ✓ src/execution-context.test.ts > operational execution context > preserves each optional operational identifier independently 0ms
+ ✓ src/lazy-plugin.test.ts > lazy Plugin loading > does not resolve or execute an entrypoint before authorized activation 6ms
+ ✓ src/lazy-plugin.test.ts > lazy Plugin loading > authorizes before module evaluation 1ms
+ ✓ src/lazy-plugin.test.ts > lazy Plugin loading > rejects traversal, absolute entrypoints, and mismatched registrations 3ms
+ ✓ src/lazy-plugin.test.ts > lazy Plugin loading > rejects every invalid entrypoint boundary with a safe causal Error 0ms
+ ✓ src/lazy-plugin.test.ts > lazy Plugin loading > rejects a realpath escape before authorization 1ms
+ ✓ src/lazy-plugin.test.ts > lazy Plugin loading > rejects an entrypoint resolving to the package parent itself 1ms
+ ✓ src/lazy-plugin.test.ts > lazy Plugin loading > rejects a malformed imported registration: missing default 2ms
+ ✓ src/lazy-plugin.test.ts > lazy Plugin loading > rejects a malformed imported registration: null default 3ms
+ ✓ src/lazy-plugin.test.ts > lazy Plugin loading > rejects a malformed imported registration: missing manifest 2ms
+ ✓ src/lazy-plugin.test.ts > lazy Plugin loading > rejects a malformed imported registration: null manifest 2ms
+ ✓ src/lazy-plugin.test.ts > lazy Plugin loading > rejects a malformed imported registration: non-callable activation 2ms
+ ✓ src/lazy-plugin.test.ts > lazy Plugin loading > freezes the authorization request and wraps authorization failure 1ms
+ ✓ src/server.test.ts > runtime server > requires initialization before running 1ms
+ ✓ src/server.test.ts > runtime server > requires initialization before inspect 0ms
+ ✓ src/server.test.ts > runtime server > requires initialization before doctor 0ms
+ ✓ src/server.test.ts > runtime server > runs identity with ordered lifecycle events followed by a result 1ms
+ ✓ src/server.test.ts > runtime server > rejects an unknown recipe 0ms
+ ✓ src/server.test.ts > runtime server > rejects an unsupported protocol version 0ms
+ ✓ src/server.test.ts > runtime server > advertises the exact initialized protocol surface 0ms
+ ✓ src/server.test.ts > runtime server > rejects malformed run input after initialization 0ms
+ ✓ src/server.test.ts > runtime server > supports shutdown and rejects unknown methods 0ms
+ ✓ src/server.test.ts > runtime server > inspects configuration and reports a local-only doctor result 3ms
+ ✓ src/server.test.ts > runtime server > inspects and diagnoses a missing required capability 1ms
+ ✓ src/server.test.ts > runtime server > returns only a generic error for invalid or missing configuration 1ms
+ ✓ src/server.test.ts > runtime server > rejects invalid inspect parameters without filesystem access: undefined 0ms
+ ✓ src/server.test.ts > runtime server > rejects invalid inspect parameters without filesystem access: {} 0ms
+ ✓ src/server.test.ts > runtime server > rejects invalid inspect parameters without filesystem access: {"configUri":""} 0ms
+ ✓ src/server.test.ts > runtime server > rejects invalid inspect parameters without filesystem access: {"configUri":42} 0ms
+ ✓ src/server.test.ts > runtime server > rejects invalid doctor parameters without reading configuration 0ms
+ ✓ src/server.test.ts > runtime server > keeps fallback and conflicts inspectable while doctor applies readiness rules 6ms
+ ✓ src/configuration.test.ts > runtime configuration loading > loads JSONC, preserves logical secrets, and evaluates capabilities 4ms
+ ✓ src/configuration.test.ts > runtime configuration loading > rejects duplicate key without returning source data 1ms
+ ✓ src/configuration.test.ts > runtime configuration loading > rejects unknown key without returning source data 1ms
+ ✓ src/configuration.test.ts > runtime configuration loading > rejects literal secret without returning source data 1ms
+ ✓ src/configuration.test.ts > runtime configuration loading > rejects invalid evidence enum without returning source data 1ms
+ ✓ src/configuration.test.ts > runtime configuration loading > retains conflicting evidence as an inspectable resolution 5ms
+ ✓ src/configuration.test.ts > runtime configuration loading > materializes empty capability defaults 1ms
+ ✓ src/configuration.test.ts > runtime configuration loading > rejects malformed typed capability data: capability without namespace 0ms
+ ✓ src/configuration.test.ts > runtime configuration loading > rejects malformed typed capability data: capability with extra slash 1ms
+ ✓ src/configuration.test.ts > runtime configuration loading > rejects malformed typed capability data: capability with whitespace 1ms
+ ✓ src/configuration.test.ts > runtime configuration loading > rejects malformed typed capability data: empty binding 1ms
+ ✓ src/configuration.test.ts > runtime configuration loading > rejects malformed typed capability data: invalid requirement 0ms
+ ✓ src/configuration.test.ts > runtime configuration loading > rejects malformed typed capability data: missing evidence id 0ms
+ ✓ src/configuration.test.ts > runtime configuration loading > rejects malformed typed capability data: empty evidence binding 0ms
+ ✓ src/configuration.test.ts > runtime configuration loading > rejects malformed typed capability data: invalid evidence source 0ms
+ ✓ src/configuration.test.ts > runtime configuration loading > rejects malformed typed capability data: missing evidence source 1ms
+ ✓ src/configuration.test.ts > runtime configuration loading > rejects malformed typed capability data: null evidence source 0ms
+ ✓ src/configuration.test.ts > runtime configuration loading > rejects malformed typed capability data: empty evidence source id 0ms
+ ✓ src/configuration.test.ts > runtime configuration loading > rejects malformed typed capability data: non-string digest 1ms
+ ✓ src/configuration.test.ts > runtime configuration loading > accepts file URLs and preserves optional evidence digests 0ms
+ ✓ src/configuration.test.ts > runtime configuration loading > accepts the declared evidence source kind policy 0ms
+ ✓ src/configuration.test.ts > runtime configuration loading > accepts the declared evidence source kind configuration 1ms
+ ✓ src/configuration.test.ts > runtime configuration loading > accepts the declared evidence source kind profile 0ms
+ ✓ src/configuration.test.ts > runtime configuration loading > accepts the declared evidence source kind observation 0ms
+ ✓ src/configuration.test.ts > runtime configuration loading > rejects missing and non-file resources safely 0ms
+ ✓ src/native-plugin.test.ts > defineNativePlugin > exposes idempotent explicit disposal for an activated native process 531ms
+ ✓ src/native-plugin.test.ts > defineNativePlugin > does not start a process until activation and invokes a framed plugin 41ms
+ ✓ src/native-plugin.test.ts > defineNativePlugin > rejects malformed framed output without exposing raw output 23ms
+ ✓ src/native-plugin.test.ts > defineNativePlugin > rejects an invalid initialization response and terminates the process 20ms
+ ✓ src/native-plugin.test.ts > defineNativePlugin > rejects wrong JSON-RPC versions during initialization and invocation 36ms
+ ✓ src/native-plugin.test.ts > defineNativePlugin > rejects initialization responses with malformed capabilities or limits 195ms
+ ✓ src/native-plugin.test.ts > defineNativePlugin > accepts the advertised protocol boundary limits 18ms
+ ✓ src/native-plugin.test.ts > defineNativePlugin > writes exact JSON-RPC request envelopes with monotonic ids 19ms
+ ✓ src/native-plugin.test.ts > defineNativePlugin > passes the configured environment to the native process 18ms
+ ✓ src/native-plugin.test.ts > defineNativePlugin > rejects JSON-RPC errors, mismatched ids, and responses without results 71ms
+ ✓ src/native-plugin.test.ts > defineNativePlugin > contains a missing executable error promptly 1ms
+ ✓ src/native-plugin.test.ts > defineNativePlugin > contains a stdin transport error while the native process remains alive 18ms
+ ✓ src/native-plugin.test.ts > defineNativePlugin > does not interpret command arguments through a shell 19ms
+ ✓ src/native-plugin.test.ts > defineNativePlugin > contains crashes, redacts stderr, and does not retry 19ms
+ ✓ src/native-plugin.test.ts > defineNativePlugin > drains high-volume stderr without exposing it or deadlocking the plugin 20ms
+ ✓ src/native-plugin.test.ts > defineNativePlugin > times out initialization with a normalized error 80ms
+ ✓ src/native-plugin.test.ts > defineNativePlugin > times out and terminates the child within a bounded interval 177ms
+ ✓ src/native-plugin.test.ts > defineNativePlugin > sends cancellation before terminating after the configured grace 131ms
+ ✓ src/native-plugin.test.ts > defineNativePlugin > emits an exact cancellation notification and applies zero-duration fallback 532ms
+ ✓ src/native-plugin.test.ts > defineNativePlugin > removes its abort listener after a successful request 33ms
+ ✓ src/native-plugin.test.ts > defineNativePlugin > does not accept a successful response after cancellation begins 124ms
+ ✓ src/native-plugin.test.ts > defineNativePlugin > rejects concurrent invocation without starting another process 78ms
+ ✓ src/native-plugin.test.ts > defineNativePlugin > starts a fresh initialized process for a second invocation 45ms
+ ✓ src/native-plugin.test.ts > defineNativePlugin > force-contains a process that ignores shutdown and SIGTERM 2128ms
+ ✓ src/native-plugin.test.ts > defineNativePlugin > rejects a malformed shutdown handshake after a valid invocation 33ms
+ ✓ src/native-plugin.test.ts > defineNativePlugin > contains a plugin that acknowledges shutdown but does not exit 2027ms
+ ✓ src/native-plugin.test.ts > defineNativePlugin > makes a native crash a degraded fail-open core result 33ms
+ ✓ src/native-plugin.test.ts > defineNativePlugin > accepts a fake in-memory transport without spawning a real process 1ms
+ ✓ src/native-plugin.test.ts > defineNativePlugin deterministic scheduler replay > completion: resolves when the response delivery wins the race 3ms
+ ✓ src/native-plugin.test.ts > defineNativePlugin deterministic scheduler replay > abort: cancels when the abort wins the race 1ms
+ ✓ src/native-plugin.test.ts > defineNativePlugin deterministic scheduler replay > late-result: a response frame delivered after an abort is ignored by the cancellation guard 1ms
+ ✓ src/native-plugin.test.ts > defineNativePlugin deterministic scheduler replay > duplicate: a concurrent invocation is denied while the first is in flight 1ms
+
+ Test Files  5 passed (5)
+      Tests  90 passed (90)
+   Start at  03:14:28
+   Duration  6.66s (transform 217ms, setup 0ms, import 483ms, tests 6.54s, environment 0ms)
+

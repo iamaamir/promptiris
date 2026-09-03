@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "role": "qa",
+  "producerId": "qa.scheduled-runtime.recheck",
+  "status": "passed",
+  "sourceBlind": true,
+  "scenarios": [
+    "dist build succeeds cleanly",
+    ".d.ts exports only defineNativePlugin and NativePluginOptions — no leaked transport symbols",
+    "all 90 unit tests pass",
+    "4 deterministic scheduler replay tests pass",
+    "tsc --noEmit typecheck is clean"
+  ],
+  "evidence": [
+    {
+      "checkId": "build",
+      "status": "passed",
+      "evidenceRef": ".scratch/verification-strategies/issues/01-scheduled-runtime.evidence/build-output.txt",
+      "evidenceSha256": "29c5ee0f6b0b20dbb259b99d01276198c3d28190090706394608d4deda6d2c0b"
+    },
+    {
+      "checkId": "dts-exports",
+      "status": "passed",
+      "evidenceRef": ".scratch/verification-strategies/issues/01-scheduled-runtime.evidence/dts-exports-check.txt",
+      "evidenceSha256": "0424d24aec4cff3d3e4f26b6237887c97223708eea913eedaa13f93c8d7576b7"
+    },
+    {
+      "checkId": "vitest",
+      "status": "passed",
+      "evidenceRef": ".scratch/verification-strategies/issues/01-scheduled-runtime.evidence/vitest-output.txt",
+      "evidenceSha256": "fa69b146a3093891d5b46fd6830e661cdd845259d2bc1c1003e2c77b470facff"
+    }
+  ],
+  "taskId": ".scratch/verification-strategies/issues/01-scheduled-runtime.md",
+  "baseRevision": "f0c2e6a912f4de0565019fcbd167c8244f627a0a",
+  "candidateRevision": "sha256:5399fa89ca8a4008620b2d4303888bf1ed33f1373add22501ff842a0bf9b5389"
+}

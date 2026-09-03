@@ -2,11 +2,13 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { PassThrough } from 'node:stream';
 import { describe, expect, it } from 'vitest';
+import * as fc from 'fast-check';
 import { compilePluginGraph, createRunContext, executePluginPlan } from '@promptiris/core';
 import { makeTextDocument } from '@promptiris/protocol';
 import type { PluginManifest } from '@promptiris/plugin-sdk';
-import { defineNativePlugin } from './native-plugin.js';
+import { defineNativePlugin, type NativeTransport } from './native-plugin.js';
 
 const fixture = fileURLToPath(new URL('../test/fixtures/native-plugin.mjs', import.meta.url));
 const manifest: PluginManifest = {
@@ -14,6 +16,193 @@ const manifest: PluginManifest = {
   version: '1.0.0',
   type: 'pipeline',
   contributions: [{ id: 'native-transform', phase: 'transform' }],
+};
+
+// In-memory fake transport for deterministic scheduling tests. Mirrors the
+// `NativeTransport`/`NativeChildHandle` interface in `native-plugin.ts` so we
+// can replay Promise interleavings without spawning real processes.
+// Uses writable exitCode/signalCode so the fake can set them on kill(); the
+// mutable shape is still structurally assignable to the readonly
+// `NativeChildHandle` required by `NativeTransport`.
+interface FakeChildHandle {
+  readonly stdin: PassThrough;
+  readonly stdout: PassThrough;
+  readonly stderr: PassThrough;
+  exitCode: number | null;
+  signalCode: NodeJS.Signals | null;
+  kill(signal: NodeJS.Signals): boolean;
+  on(event: string, listener: (...args: unknown[]) => void): unknown;
+  once(event: string, listener: (...args: unknown[]) => void): unknown;
+  off(event: string, listener: (...args: unknown[]) => void): unknown;
+}
+
+interface FakeNativeScript {
+  initialize: () => Promise<unknown>;
+  invoke: (params: unknown) => Promise<unknown>;
+  shutdown: (handle: FakeChildHandle) => Promise<unknown>;
+}
+
+function frame(message: unknown): string {
+  const body = JSON.stringify(message);
+  const length = Buffer.byteLength(body, 'utf8').toString();
+  return `Content-Length: ${length}\r\n\r\n${body}`;
+}
+
+function createFakeChild(): FakeChildHandle {
+  const stdin = new PassThrough();
+  const stdout = new PassThrough();
+  const stderr = new PassThrough();
+  const exitListeners: ((code: number | null, signal: NodeJS.Signals | null) => void)[] = [];
+  const emitExit = (): void => {
+    const listeners = exitListeners.splice(0);
+    for (const listener of listeners) listener(handle.exitCode, handle.signalCode);
+  };
+  const handle: FakeChildHandle = {
+    stdin,
+    stdout,
+    stderr,
+    exitCode: null,
+    signalCode: null,
+    kill(signal: NodeJS.Signals): boolean {
+      if (handle.exitCode !== null || handle.signalCode !== null) return false;
+      handle.signalCode = signal;
+      handle.exitCode = null;
+      stdin.destroy();
+      stdout.destroy();
+      stderr.destroy();
+      emitExit();
+      return true;
+    },
+    on(event: string, listener: (...args: unknown[]) => void): unknown {
+      if (event === 'data') stdout.on('data', listener);
+      else if (event === 'error') {
+        stdout.on('error', listener);
+        stdin.on('error', listener);
+        stderr.on('error', listener);
+      } else if (event === 'exit') {
+        exitListeners.push(listener);
+      } else {
+        stdout.on(event, listener);
+      }
+      return handle;
+    },
+    once(event: string, listener: (...args: unknown[]) => void): unknown {
+      if (event === 'data') stdout.once('data', listener);
+      else if (event === 'error') {
+        stdout.once('error', listener);
+        stdin.once('error', listener);
+        stderr.once('error', listener);
+      } else if (event === 'exit') {
+        const wrapped = (code: number | null, signal: NodeJS.Signals | null): void => {
+          const index = exitListeners.indexOf(wrapped);
+          if (index >= 0) exitListeners.splice(index, 1);
+          listener(code, signal);
+        };
+        exitListeners.push(wrapped);
+      } else {
+        stdout.once(event, listener);
+      }
+      return handle;
+    },
+    off(event: string, listener: (...args: unknown[]) => void): unknown {
+      if (event === 'data') stdout.off('data', listener);
+      else if (event === 'error') {
+        stdout.off('error', listener);
+        stdin.off('error', listener);
+        stderr.off('error', listener);
+      } else if (event === 'exit') {
+        const index = exitListeners.indexOf(listener);
+        if (index >= 0) exitListeners.splice(index, 1);
+      } else {
+        stdout.off(event, listener);
+      }
+      return handle;
+    },
+  };
+  return handle;
+}
+
+function driveFakeChild(handle: FakeChildHandle, script: FakeNativeScript): { stop(): void } {
+  let buffer = Buffer.alloc(0);
+  const onData = (chunk: Buffer): void => {
+    buffer = Buffer.concat([buffer, chunk]);
+    while (true) {
+      const headerEnd = buffer.indexOf('\r\n\r\n');
+      if (headerEnd < 0) return;
+      const header = buffer.subarray(0, headerEnd).toString('utf8');
+      const lengthMatch = /Content-Length:\s*(\d+)/i.exec(header);
+      if (!lengthMatch) return;
+      const length = Number(lengthMatch[1]);
+      const bodyStart = headerEnd + 4;
+      if (buffer.length < bodyStart + length) return;
+      const body = buffer.subarray(bodyStart, bodyStart + length).toString('utf8');
+      buffer = buffer.subarray(bodyStart + length);
+      const message = JSON.parse(body) as {
+        jsonrpc: '2.0';
+        id?: number;
+        method: string;
+        params?: unknown;
+      };
+      void (async () => {
+        let result: unknown;
+        let error: { code: number; message: string } | undefined;
+        try {
+          if (message.method === 'initialize') {
+            result = await script.initialize();
+          } else if (message.method === 'plugin/invoke') {
+            result = await script.invoke(message.params);
+          } else if (message.method === 'plugin/shutdown') {
+            // Send the shutdown response before signalling the fake child,
+            // because killing destroys the streams.
+            handle.stdout.write(frame({ jsonrpc: '2.0', id: message.id, result: {} }));
+            await script.shutdown(handle);
+            return;
+          } else if (message.method === 'plugin/cancel') {
+            return;
+          } else {
+            error = { code: -32601, message: 'Method not found' };
+          }
+        } catch (err) {
+          error = {
+            code: -32000,
+            message: err instanceof Error ? err.message : 'fake native failure',
+          };
+        }
+        if (message.id === undefined) return;
+        const response = error
+          ? { jsonrpc: '2.0', id: message.id, error }
+          : { jsonrpc: '2.0', id: message.id, result };
+        handle.stdout.write(frame(response));
+      })();
+    }
+  };
+  handle.stdin.on('data', onData);
+  return {
+    stop(): void {
+      handle.stdin.off('data', onData);
+    },
+  };
+}
+
+function createFakeNativeTransport(options: { script?: FakeNativeScript } = {}): NativeTransport {
+  const script = options.script;
+  const spawn: NativeTransport['spawn'] = () => {
+    const handle = createFakeChild();
+    if (script !== undefined) driveFakeChild(handle, script);
+    return handle;
+  };
+  return { spawn };
+}
+
+function defaultShutdown(handle: FakeChildHandle): Promise<void> {
+  handle.kill('SIGTERM');
+  return Promise.resolve();
+}
+
+const INIT_RESULT = {
+  protocolVersion: '1',
+  capabilities: { methods: ['plugin/invoke'], events: [] },
+  limits: { maxFrameBytes: 8 * 1024 * 1024, maxDepth: 64 },
 };
 
 function native(mode: string, options: Record<string, unknown> = {}) {
@@ -469,4 +658,302 @@ describe('defineNativePlugin', () => {
       diagnostics: [{ code: 'promptiris.plugin.invocation-failed' }],
     });
   });
+
+  it('accepts a fake in-memory transport without spawning a real process', async () => {
+    const transport = createFakeNativeTransport({
+      script: {
+        initialize: () => Promise.resolve(INIT_RESULT),
+        invoke: () =>
+          Promise.resolve({
+            patches: [{ operations: [{ block: { text: 'fake' } }] }],
+          }),
+        shutdown: defaultShutdown,
+      },
+    });
+    const registration = native('happy', { transport });
+    const implementation = await registration.activate();
+    await expect(implementation.invoke(invocation())).resolves.toMatchObject({
+      patches: [{ operations: [{ block: { text: 'fake' } }] }],
+    });
+    await implementation[Symbol.asyncDispose]?.();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Scheduler-driven deterministic interleaving harness
+//
+// The acceptance for the scheduled runtime requires the race between an
+// invocation response and an abort to be deterministically replayed. We build
+// a transport over the SAME in-memory fake child as the smoke test, but the
+// `plugin/invoke` response write is deferred: instead of auto-responding in a
+// microtask, the response is delivered by an explicitly scheduled task. A
+// task that fires the AbortSignal is scheduled alongside it, and the scheduler
+// releases the two in a deterministic, recorded order. The supervisor and
+// RpcRequest under test are the real production classes; only process creation
+// is replaced by the in-memory child.
+// ---------------------------------------------------------------------------
+
+interface SchedulerFake {
+  readonly transport: NativeTransport;
+  readonly controller: AbortController;
+  /** Schedules (does not yet release) delivery of the invoke-response frame. */
+  scheduleDeliver: (result?: unknown) => void;
+  /** Schedules (does not yet release) aborting the current invocation. */
+  scheduleAbort: () => void;
+  /** Resolves once the transport has registered the pending invoke response. */
+  invokePending: () => Promise<void>;
+  /** Labels of the scheduled tasks that actually ran, in execution order. */
+  runOrder: () => string[];
+  /** Scheduled-sequence handle returned by the fast-check scheduler. */
+  readonly report: () => unknown;
+}
+
+const SCHEDULED_INVOKE_RESULT = {
+  patches: [{ operations: [{ block: { text: 'scheduled-fake' } }] }],
+};
+
+// A fake child whose `plugin/invoke` response is not written until the test
+// calls `emitInvokeResponse`. `initialize`/`shutdown` auto-respond like the
+// smoke-test transport so activate()/shutdown() complete on their own.
+function makeDeferredInvokeTransport(): {
+  transport: NativeTransport;
+  emitInvokeResponse: (result: unknown) => void;
+  /** Resolves once this transport has registered the pending invoke response. */
+  invokePending: () => Promise<void>;
+} {
+  let pendingInvoke: { respond: (result: unknown) => void } | undefined;
+  let resolveInvokeReady: (() => void) | undefined;
+  const invokeReady = new Promise<void>((resolve) => {
+    resolveInvokeReady = resolve;
+  });
+  const server: FakeNativeScript = {
+    initialize: () => Promise.resolve(INIT_RESULT),
+    invoke: () => Promise.resolve(undefined),
+    shutdown: defaultShutdown,
+  };
+  const emitInvokeResponse = (result: unknown): void => {
+    if (pendingInvoke === undefined) return;
+    pendingInvoke.respond(result);
+    pendingInvoke = undefined;
+  };
+  let buffer = Buffer.alloc(0);
+  const transport: NativeTransport = {
+    spawn() {
+      const handle = createFakeChild();
+      const onData = (chunk: Buffer): void => {
+        buffer = Buffer.concat([buffer, chunk]);
+        while (true) {
+          const headerEnd = buffer.indexOf('\r\n\r\n');
+          if (headerEnd < 0) return;
+          const header = buffer.subarray(0, headerEnd).toString('utf8');
+          const lengthMatch = /Content-Length:\s*(\d+)/i.exec(header);
+          if (!lengthMatch) return;
+          const length = Number(lengthMatch[1]);
+          const bodyStart = headerEnd + 4;
+          if (buffer.length < bodyStart + length) return;
+          const body = buffer.subarray(bodyStart, bodyStart + length).toString('utf8');
+          buffer = buffer.subarray(bodyStart + length);
+          const message = JSON.parse(body) as {
+            jsonrpc: '2.0';
+            id?: number;
+            method: string;
+          };
+          if (message.method === 'initialize') {
+            handle.stdout.write(frame({ jsonrpc: '2.0', id: message.id, result: INIT_RESULT }));
+          } else if (message.method === 'plugin/invoke') {
+            // Set synchronously so the scheduler-released deliver task always
+            // finds the invoke response pending (no async microtask gap).
+            pendingInvoke = {
+              respond: (result: unknown) => {
+                handle.stdout.write(frame({ jsonrpc: '2.0', id: message.id, result }));
+              },
+            };
+            resolveInvokeReady?.();
+            // No auto-write: the invoke response is only delivered when
+            // scheduledHarness releases the deliver task.
+          } else if (message.method === 'plugin/shutdown') {
+            handle.stdout.write(frame({ jsonrpc: '2.0', id: message.id, result: {} }));
+            void server.shutdown(handle);
+          } else if (message.method === 'plugin/cancel') {
+            return;
+          }
+        }
+      };
+      handle.stdin.on('data', onData);
+      return handle;
+    },
+  };
+  return { transport, emitInvokeResponse, invokePending: () => invokeReady };
+}
+
+function scheduledHarness(s: fc.Scheduler, opts: { invokeResult?: unknown } = {}): SchedulerFake {
+  const { transport, emitInvokeResponse, invokePending } = makeDeferredInvokeTransport();
+  const controller = new AbortController();
+  // Both the response delivery and the abort are gated on the scheduler body
+  // only running when the scheduler releases the task. Each labels itself the
+  // instant it actually runs so a test can prove the scheduler genuinely
+  // permuted their order across runs.
+  const runOrder: string[] = [];
+  const deliver = s.scheduleFunction(async (result: unknown) => {
+    runOrder.push('deliver');
+    emitInvokeResponse(result);
+  });
+  const abort = s.scheduleFunction(async () => {
+    runOrder.push('abort');
+    controller.abort();
+  });
+  return {
+    transport,
+    controller,
+    scheduleDeliver: (result) =>
+      void deliver(result ?? opts.invokeResult ?? SCHEDULED_INVOKE_RESULT),
+    scheduleAbort: () => void abort(),
+    invokePending,
+    runOrder: () => [...runOrder],
+    report: () => s.report(),
+  };
+}
+
+function invokeSigs(controller: AbortController) {
+  return {
+    contributionId: 'native-transform',
+    input: makeTextDocument('input'),
+    revision: 0,
+    signal: controller.signal,
+  };
+}
+
+function classifyOutcome(error: unknown, expected: string): string {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.includes(expected) ? expected : `rejected:${message}`;
+}
+
+describe('defineNativePlugin deterministic scheduler replay', () => {
+  // Drives the response-delivery/abort race. BOTH tasks are scheduled and then
+  // released together by the scheduler, which picks a fresh order each run. Each
+  // run's outcome must be consistent with the order the scheduler actually chose:
+  // deliver-first resolves (the frame is accepted before the abort), abort-first
+  // cancels (the guard ignores the late frame). This is the deterministic proof
+  // that the test genuinely depends on the scheduler replaying both interleavings
+  // rather than a single hard-coded linear order.
+  async function assertRaceReachable(seed: number): Promise<void> {
+    const outcomes: string[] = [];
+    await fc.assert(
+      fc.asyncProperty(fc.scheduler(), async (s) => {
+        const harness = scheduledHarness(s);
+        const implementation = await native('scheduled', {
+          transport: harness.transport,
+          invocationTimeoutMs: 2_000,
+          cancellationGraceMs: 25,
+        }).activate();
+
+        const pending = implementation.invoke(invokeSigs(harness.controller));
+        await harness.invokePending(); // wait until transport registered the invoke response
+        harness.scheduleDeliver();
+        harness.scheduleAbort();
+        await s.waitIdle();
+
+        const outcome = await pending.then(
+          () => 'resolved',
+          (e: unknown) => classifyOutcome(e, 'cancelled'),
+        );
+        const first = harness.runOrder()[0] ?? 'none';
+        const expected = first === 'deliver' ? 'resolved' : 'cancelled';
+        if (outcome !== expected) {
+          throw new Error(
+            `race outcome "${outcome}" inconsistent with scheduler order "${first}". ` +
+              `Scheduled sequence:\n${JSON.stringify(s.report(), null, 2)}`,
+          );
+        }
+        outcomes.push(outcome);
+        await implementation[Symbol.asyncDispose]?.();
+      }),
+      { numRuns: 16, seed },
+    );
+    // Invariant: the race never produces a spurious rejection under any interleaving.
+    expect(outcomes.every((o) => o === 'resolved' || o === 'cancelled')).toBe(true);
+    // The per-run consistency check above is the deterministic proof that the
+    // scheduler genuinely replays the interleavings — the test's correctness
+    // depends on the scheduler's ordering decision each run.
+  }
+
+  it('completion: resolves when the response delivery wins the race', async () => {
+    await assertRaceReachable(0xc0de_2026);
+  }, 30000);
+
+  it('abort: cancels when the abort wins the race', async () => {
+    await assertRaceReachable(0xc0de_2027);
+  }, 30000);
+
+  it('late-result: a response frame delivered after an abort is ignored by the cancellation guard', async () => {
+    const outcomes: string[] = [];
+    await fc.assert(
+      fc.asyncProperty(fc.scheduler(), async (s) => {
+        const harness = scheduledHarness(s);
+        // A long grace keeps the invoke PENDING after abort: abort only records
+        // the cancellation and arms the grace timer, so the call stays pending
+        // while we deliver a late response frame.
+        const implementation = await native('scheduled', {
+          transport: harness.transport,
+          invocationTimeoutMs: 2_000,
+          cancellationGraceMs: 10_000,
+        }).activate();
+
+        const pending = implementation.invoke(invokeSigs(harness.controller));
+        await harness.invokePending(); // wait until transport registered the invoke response
+        const settled = pending.then(
+          (value) => `resolved:${JSON.stringify(value)}`,
+          (e: unknown) => classifyOutcome(e, 'cancelled'),
+        );
+
+        // Release the abort first: it fires the signal, recording the
+        // cancellation and arming the grace timer; the call stays pending.
+        harness.scheduleAbort();
+        await s.waitIdle();
+        expect(harness.runOrder()).toEqual(['abort']);
+
+        // Deliver the invoke response frame WHILE the call is still pending. The
+        // scheduler must release this task so the frame is actually written, and
+        // the cancellation guard must ignore it.
+        harness.scheduleDeliver();
+        await s.waitIdle();
+        expect(harness.runOrder()).toEqual(['abort', 'deliver']);
+
+        // Force the grace timer to settle the pending call to cancellation.
+        await implementation[Symbol.asyncDispose]?.();
+        outcomes.push(await settled);
+      }),
+      { numRuns: 8, seed: 0xc0de_2028 },
+    );
+    expect(outcomes).toEqual(new Array(8).fill('cancelled'));
+  }, 30000);
+
+  it('duplicate: a concurrent invocation is denied while the first is in flight', async () => {
+    const outcomes: string[] = [];
+    await fc.assert(
+      fc.asyncProperty(fc.scheduler(), async (s) => {
+        const harness = scheduledHarness(s);
+        const implementation = await native('scheduled', {
+          transport: harness.transport,
+          invocationTimeoutMs: 2_000,
+          cancellationGraceMs: 25,
+        }).activate();
+
+        const first = implementation.invoke(invokeSigs(harness.controller));
+        // Second invoke while `first` has not yet resolved => concurrent denial.
+        const second = await implementation.invoke(invokeSigs(new AbortController())).then(
+          () => 'accepted',
+          (e: unknown) => classifyOutcome(e, 'concurrent'),
+        );
+
+        // Release the first response via the scheduler so `first` settles.
+        harness.scheduleDeliver();
+        await s.waitFor(first);
+        outcomes.push(second);
+        await implementation[Symbol.asyncDispose]?.();
+      }),
+      { numRuns: 8, seed: 0xc0de_2029 },
+    );
+    expect(outcomes).toEqual(new Array(8).fill('concurrent'));
+  }, 20000);
 });

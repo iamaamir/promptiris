@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "role": "hardener",
+  "producerId": "hardener.scheduled-runtime.recheck.v3",
+  "sourceBlind": false,
+  "status": "passed",
+  "scenarios": [
+    "production-diff-transport-seam-accepted",
+    "vitest-90-90",
+    "coverage-stable",
+    "scheduler-genuine-replay",
+    "stripInternal-true",
+    "typecheck-clean"
+  ],
+  "evidence": [
+    {
+      "checkId": "production-diff",
+      "status": "passed",
+      "evidenceRef": ".scratch/verification-strategies/issues/01-scheduled-runtime.evidence/hardener-production-diff.txt",
+      "evidenceSha256": "a9808827469b3738f7b7a0989f339263eca8ee99c7204185071e6e5ac61ce59d"
+    },
+    {
+      "checkId": "vitest",
+      "status": "passed",
+      "evidenceRef": ".scratch/verification-strategies/issues/01-scheduled-runtime.evidence/hardener-test-results.txt",
+      "evidenceSha256": "542463e19a574813547b20cefe4a33e3665dd62e01eed9e2e6401c9032110ab5"
+    },
+    {
+      "checkId": "vitest-output",
+      "status": "passed",
+      "evidenceRef": ".scratch/verification-strategies/issues/01-scheduled-runtime.evidence/vitest-output.txt",
+      "evidenceSha256": "fa69b146a3093891d5b46fd6830e661cdd845259d2bc1c1003e2c77b470facff"
+    }
+  ],
+  "taskId": ".scratch/verification-strategies/issues/01-scheduled-runtime.md",
+  "baseRevision": "f0c2e6a912f4de0565019fcbd167c8244f627a0a",
+  "candidateRevision": "sha256:5399fa89ca8a4008620b2d4303888bf1ed33f1373add22501ff842a0bf9b5389"
+}
