@@ -46,7 +46,7 @@
       "checkId": "review.no-hosting-coupling",
       "status": "passed",
       "evidenceRef": "CONTRIBUTING.md",
-      "evidenceSha256": "84f4b59ba13110c41080b8a302cba1e1ba0453d207b5168268eb41b0d17dd15a"
+      "evidenceSha256": "4cc5bf411f62f677d121976ec917a435f18aedcf200d722be6312239121061d9"
     }
   ],
   "residualRisks": [
@@ -54,6 +54,6 @@
     "Review validated the stage-checklist success path in an isolated fixture; live claim transitions on this branch were deliberately not exercised to avoid mutating review state."
   ],
   "taskId": ".scratch/agent-guidance/issues/01-point-of-action.md",
-  "baseRevision": "1985ce6d5133152dadb31c9c067f2077eb4f00db",
-  "candidateRevision": "sha256:97a748f30fd4a123c6784711574c0d79281f688ffc8175b9cf1a057e1f86e2dc"
+  "baseRevision": "37c68536424773bee4e5d4b6d2e37e87d208f6f8",
+  "candidateRevision": "sha256:6e012e36620e47b3806e27b3576fd840dc193c4aa87429566cea4badbe51faed"
 }

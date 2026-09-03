@@ -5,11 +5,31 @@
   "sourceBlind": false,
   "status": "passed",
   "scenarios": [
-    "gopls preflight three-case matrix on new condition `[[ ! -x \"$repo_root/.tools/bin/gopls\" ]] && ! command -v gopls`: (1) PATH gopls present, no repo-local -> passes; (2) PATH gopls hidden + executable .tools/bin/gopls -> passes (file created then DELETED; .tools/ gitignored per .gitignore:6, git status clean afterwards); (3) neither present (PATH hidden + repo-local removed) -> fails fast",
-    "repo_root hygiene: set at scripts/verify-candidate:4 via git rev-parse fallback, quoted at cd (line 5) and in [[ ! -x \"$repo_root/.tools/bin/gopls\" ]] (line 14); [[ ]] suppresses glob, quotes suppress word-splitting; extra probe: non-executable .tools/bin/gopls does NOT satisfy (-x, not -e): non-exec + PATH passes via PATH, non-exec + no PATH fails",
-    "static gate shellcheck clean on scripts/verify-candidate; existing agent-work and agent-context suites still pass; git status clean after create/delete cycle"
+    "stage checklist isolated: all six scripts/agent-work stage branches (generator/reviewer/cleaner/hardener/qa/integration) print stage header plus checklist after transition; failure paths exit 64 usage for bogus/missing/invalid mode and 66 no-claim on other-branch; live claim untouched via PROMPTIRIS_AGENT_ROOT isolation",
+    "ENVIRONMENT stripped PATH: normal run lists all ten tools ok; minimal PATH (node/git/jq only) reports MISSING for pnpm/go/gopls/gitleaks/rg/fd/ast-grep/watchexec plus bootstrap hint with exit 0; fully-stripped PATH fails early at node (line 21) by design, not at ENVIRONMENT loop",
+    "gopls preflight three-case matrix on [[ ! -x \"$repo_root/.tools/bin/gopls\" ]] && ! command -v gopls: (1) PATH gopls present no shim passes to gates; (2) hidden PATH plus executable .tools/bin/gopls passes to gates; (3) neither fails fast with bootstrap message; .tools/ gitignored per .gitignore:6, shim created then DELETED with no git trace",
+    "repo_root hygiene plus -x semantics plus gitleaks: repo_root set line 4 via git rev-parse fallback, quoted at cd line 5 and -x test line 14; non-exec shim does NOT satisfy (-x not -e) both directions verified; gitleaks required only for --ci/--full (hidden gitleaks plus --ci fails fast, plus --candidate passes preflight)",
+    "static gates plus suites plus scope on restacked base: shellcheck clean on scripts/agent-work/agent-context/verify-candidate, pnpm lint:shell and markdownlint pass, existing agent-work/agent-context suites pass, git diff origin/main...HEAD is 8 files all within packet Allowed paths"
   ],
   "evidence": [
+    {
+      "checkId": "hardener.stage-all-branches",
+      "status": "passed",
+      "evidenceRef": "scripts/agent-work",
+      "evidenceSha256": "fd488a23f290b492edc8de95223b483d12d08872d96e822f19a1df9e5270f749"
+    },
+    {
+      "checkId": "hardener.stage-failure-paths",
+      "status": "passed",
+      "evidenceRef": "scripts/agent-work",
+      "evidenceSha256": "fd488a23f290b492edc8de95223b483d12d08872d96e822f19a1df9e5270f749"
+    },
+    {
+      "checkId": "hardener.environment-stripped",
+      "status": "passed",
+      "evidenceRef": "scripts/agent-context",
+      "evidenceSha256": "68590576afbf00773ca17efe1ae276b6369f604730c039b1234018ac982ffb2c"
+    },
     {
       "checkId": "hardener.gopls-path-present-passes",
       "status": "passed",
@@ -57,9 +77,15 @@
       "status": "passed",
       "evidenceRef": "tooling/quality/agent-context.test.sh",
       "evidenceSha256": "503b05404856af8a295f5ff0fc4d373f18b29bd3a2992e7d6aa6de83a8678c71"
+    },
+    {
+      "checkId": "hardener.contributing-order",
+      "status": "passed",
+      "evidenceRef": "CONTRIBUTING.md",
+      "evidenceSha256": "4cc5bf411f62f677d121976ec917a435f18aedcf200d722be6312239121061d9"
     }
   ],
   "taskId": ".scratch/agent-guidance/issues/01-point-of-action.md",
-  "baseRevision": "1985ce6d5133152dadb31c9c067f2077eb4f00db",
-  "candidateRevision": "sha256:97a748f30fd4a123c6784711574c0d79281f688ffc8175b9cf1a057e1f86e2dc"
+  "baseRevision": "37c68536424773bee4e5d4b6d2e37e87d208f6f8",
+  "candidateRevision": "sha256:6e012e36620e47b3806e27b3576fd840dc193c4aa87429566cea4badbe51faed"
 }
