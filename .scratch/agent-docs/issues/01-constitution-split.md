@@ -1,6 +1,6 @@
 # Slim agent constitution and point to policy
 
-Status: in-progress
+Status: complete
 
 GitHub issue: <https://github.com/iamaamir/promptiris/issues/58>
 Branch: `agents-policy-split`
@@ -31,3 +31,9 @@ Reduce always-loaded `AGENTS.md` to prime directive, three invariants, and point
 ## Comments
 
 - Destinations: R1/R4/R9/R10/R17 -> `docs/development/tool-aware-execution.md` + `tooling/capabilities.json` + `tooling/tasks.json` + `scripts/tool-router|tool-trace`; R2/R3 -> capability table + `agent-operating-model.md` context compiler + `scripts/agent-context`; R5 -> operating-model communication + `CONTRIBUTING.md`; R6/R7/R8 -> operating-model authority/evidence/loops + `scripts/verify-candidate`; R11/R12/R18 -> `code-quality-and-review.md` + `spec/schemas/reviewer-report.schema.json` + `tooling/quality/mutation-policy.json` + `sgconfig.yml`; R13 -> `CONTRIBUTING.md`; R14/R15/R16/R19 -> `docs/agents/issue-tracker.md` + `scripts/agent-work` + `scripts/finalize-candidate.mjs`.
+
+## Completion
+
+- Merged as PR #57 (squash `37c6853`); candidate/integrity/roles evidence recorded on the branch.
+- Trusted-policy stayed red by construction (packet introduced on-branch; precedent #55); merged on maintainer judgment.
+- Follow-ups: point-of-action guidance (#59/#60), PR-body-as-code packet.
