@@ -19,8 +19,7 @@ if (branch === 'main') {
 const baseName =
   process.env.PROMPTIRIS_BASE_REVISION ??
   (process.env.GITHUB_BASE_REF ? `origin/${process.env.GITHUB_BASE_REF}` : 'origin/main');
-const branchRef = branch.startsWith('origin/') ? branch : `origin/${branch}`;
-const baseRevision = git(['merge-base', branchRef, baseName], { encoding: 'utf8' }).trim();
+const baseRevision = git(['merge-base', 'HEAD', baseName], { encoding: 'utf8' }).trim();
 const trustedMode = process.env.PROMPTIRIS_TRUSTED_MODE === 'true';
 
 const packetFiles = [];
@@ -193,10 +192,6 @@ for (const [role, report] of Object.entries({ reviewer, hardener, qa })) {
 if (failures.length > 0) {
   for (const failure of failures) process.stderr.write(`FAIL ${failure}\n`);
   process.stderr.write(`Expected candidate revision: ${candidateRevision}\n`);
-  process.stderr.write(`Expected base revision: ${baseRevision}\n`);
-  process.stderr.write(`baseName: ${baseName}\n`);
-  process.stderr.write(`GITHUB_BASE_REF: ${process.env.GITHUB_BASE_REF}\n`);
-  process.stderr.write(`GITHUB_HEAD_REF: ${process.env.GITHUB_HEAD_REF}\n`);
   process.exit(1);
 }
 process.stdout.write(`Role evidence passed for ${packet} at ${candidateRevision}.\n`);
