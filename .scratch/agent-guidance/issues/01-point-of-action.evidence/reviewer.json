@@ -40,7 +40,7 @@
       "checkId": "review.preflight-semantics",
       "status": "passed",
       "evidenceRef": "scripts/verify-candidate",
-      "evidenceSha256": "39bbf15d33c0d716055c5d3a8ee9982ff0ed52398dc6e07dcb28ee0074eda1bf"
+      "evidenceSha256": "5520194bc1c724e66848740b7e09c93e823999aef780094cf273699033e9ffbf"
     },
     {
       "checkId": "review.no-hosting-coupling",
@@ -55,5 +55,5 @@
   ],
   "taskId": ".scratch/agent-guidance/issues/01-point-of-action.md",
   "baseRevision": "1985ce6d5133152dadb31c9c067f2077eb4f00db",
-  "candidateRevision": "sha256:ea2753d026eba8f0997bb063cf7194eabf31073b1f713fcb947ea314af7da055"
+  "candidateRevision": "sha256:97a748f30fd4a123c6784711574c0d79281f688ffc8175b9cf1a057e1f86e2dc"
 }

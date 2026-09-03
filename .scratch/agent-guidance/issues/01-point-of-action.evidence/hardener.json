@@ -5,56 +5,61 @@
   "sourceBlind": false,
   "status": "passed",
   "scenarios": [
-    "stage-checklist matrix: all six stage branches emit a checklist; no-claim, duplicate-claim, unfinalized-candidate, expired-claim (reviewer-path and generator-path) and bogus-stage rejections print NO checklist",
-    "agent-context ENVIRONMENT adversarial: fixed quoted tool list cannot glob-expand; partial PATH exits 0 with per-tool MISSING lines plus bootstrap hint",
-    "verify-candidate preflight precision: 4-case matrix proves it fires only for genuinely missing hard requirements and the suite proceeds otherwise",
-    "static gates and scope: shellcheck/lint:shell, markdownlint, existing tooling tests, diff confined to packet Allowed paths"
+    "gopls preflight three-case matrix on new condition `[[ ! -x \"$repo_root/.tools/bin/gopls\" ]] && ! command -v gopls`: (1) PATH gopls present, no repo-local -> passes; (2) PATH gopls hidden + executable .tools/bin/gopls -> passes (file created then DELETED; .tools/ gitignored per .gitignore:6, git status clean afterwards); (3) neither present (PATH hidden + repo-local removed) -> fails fast",
+    "repo_root hygiene: set at scripts/verify-candidate:4 via git rev-parse fallback, quoted at cd (line 5) and in [[ ! -x \"$repo_root/.tools/bin/gopls\" ]] (line 14); [[ ]] suppresses glob, quotes suppress word-splitting; extra probe: non-executable .tools/bin/gopls does NOT satisfy (-x, not -e): non-exec + PATH passes via PATH, non-exec + no PATH fails",
+    "static gate shellcheck clean on scripts/verify-candidate; existing agent-work and agent-context suites still pass; git status clean after create/delete cycle"
   ],
   "evidence": [
     {
-      "checkId": "hardener.stage-checklists",
+      "checkId": "hardener.gopls-path-present-passes",
       "status": "passed",
-      "evidenceRef": "scripts/agent-work",
-      "evidenceSha256": "fd488a23f290b492edc8de95223b483d12d08872d96e822f19a1df9e5270f749"
+      "evidenceRef": "scripts/verify-candidate",
+      "evidenceSha256": "5520194bc1c724e66848740b7e09c93e823999aef780094cf273699033e9ffbf"
     },
     {
-      "checkId": "hardener.existing-agent-work-tests",
+      "checkId": "hardener.gopls-repolocal-exec-passes",
+      "status": "passed",
+      "evidenceRef": "scripts/verify-candidate",
+      "evidenceSha256": "5520194bc1c724e66848740b7e09c93e823999aef780094cf273699033e9ffbf"
+    },
+    {
+      "checkId": "hardener.gopls-neither-fails-fast",
+      "status": "passed",
+      "evidenceRef": "scripts/verify-candidate",
+      "evidenceSha256": "5520194bc1c724e66848740b7e09c93e823999aef780094cf273699033e9ffbf"
+    },
+    {
+      "checkId": "hardener.gopls-nonexec-fallthrough",
+      "status": "passed",
+      "evidenceRef": "scripts/verify-candidate",
+      "evidenceSha256": "5520194bc1c724e66848740b7e09c93e823999aef780094cf273699033e9ffbf"
+    },
+    {
+      "checkId": "hardener.repo-root-quoting",
+      "status": "passed",
+      "evidenceRef": "scripts/verify-candidate",
+      "evidenceSha256": "5520194bc1c724e66848740b7e09c93e823999aef780094cf273699033e9ffbf"
+    },
+    {
+      "checkId": "hardener.shellcheck-clean",
+      "status": "passed",
+      "evidenceRef": "scripts/verify-candidate",
+      "evidenceSha256": "5520194bc1c724e66848740b7e09c93e823999aef780094cf273699033e9ffbf"
+    },
+    {
+      "checkId": "hardener.existing-agent-work-suite",
       "status": "passed",
       "evidenceRef": "tooling/quality/agent-work.test.sh",
       "evidenceSha256": "f01c341b93f8a9cb23872ff2efa0aef8a9e0d7e842eabddc97b09475391c922f"
     },
     {
-      "checkId": "hardener.environment-loop",
-      "status": "passed",
-      "evidenceRef": "scripts/agent-context",
-      "evidenceSha256": "68590576afbf00773ca17efe1ae276b6369f604730c039b1234018ac982ffb2c"
-    },
-    {
-      "checkId": "hardener.existing-agent-context-tests",
+      "checkId": "hardener.existing-agent-context-suite",
       "status": "passed",
       "evidenceRef": "tooling/quality/agent-context.test.sh",
       "evidenceSha256": "503b05404856af8a295f5ff0fc4d373f18b29bd3a2992e7d6aa6de83a8678c71"
-    },
-    {
-      "checkId": "hardener.preflight-precision",
-      "status": "passed",
-      "evidenceRef": "scripts/verify-candidate",
-      "evidenceSha256": "39bbf15d33c0d716055c5d3a8ee9982ff0ed52398dc6e07dcb28ee0074eda1bf"
-    },
-    {
-      "checkId": "hardener.markdownlint",
-      "status": "passed",
-      "evidenceRef": "CONTRIBUTING.md",
-      "evidenceSha256": "84f4b59ba13110c41080b8a302cba1e1ba0453d207b5168268eb41b0d17dd15a"
-    },
-    {
-      "checkId": "hardener.diff-scope",
-      "status": "passed",
-      "evidenceRef": ".scratch/agent-guidance/issues/01-point-of-action.md",
-      "evidenceSha256": "35f471fa27410a259d96d630e5876cc8fae956184b4ec2c86be523f041768ff6"
     }
   ],
   "taskId": ".scratch/agent-guidance/issues/01-point-of-action.md",
   "baseRevision": "1985ce6d5133152dadb31c9c067f2077eb4f00db",
-  "candidateRevision": "sha256:ea2753d026eba8f0997bb063cf7194eabf31073b1f713fcb947ea314af7da055"
+  "candidateRevision": "sha256:97a748f30fd4a123c6784711574c0d79281f688ffc8175b9cf1a057e1f86e2dc"
 }
