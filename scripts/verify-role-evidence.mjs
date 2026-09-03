@@ -192,6 +192,10 @@ for (const [role, report] of Object.entries({ reviewer, hardener, qa })) {
 if (failures.length > 0) {
   for (const failure of failures) process.stderr.write(`FAIL ${failure}\n`);
   process.stderr.write(`Expected candidate revision: ${candidateRevision}\n`);
+  process.stderr.write(`Expected base revision: ${baseRevision}\n`);
+  process.stderr.write(`baseName: ${baseName}\n`);
+  process.stderr.write(`GITHUB_BASE_REF: ${process.env.GITHUB_BASE_REF}\n`);
+  process.stderr.write(`GITHUB_HEAD_REF: ${process.env.GITHUB_HEAD_REF}\n`);
   process.exit(1);
 }
 process.stdout.write(`Role evidence passed for ${packet} at ${candidateRevision}.\n`);
