@@ -2,7 +2,7 @@
 
 Status: in-progress
 
-GitHub issue: pending
+GitHub issue: <https://github.com/iamaamir/promptiris/issues/58>
 Branch: `agents-policy-split`
 Parent: none
 Blocked by: none
