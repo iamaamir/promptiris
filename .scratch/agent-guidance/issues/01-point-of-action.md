@@ -1,6 +1,6 @@
 # Point-of-action guidance for agent workflow
 
-Status: in-progress
+Status: complete
 
 GitHub issue: <https://github.com/iamaamir/promptiris/issues/59>
 Branch: `point-of-action`
@@ -37,3 +37,10 @@ Move workflow guidance from prose documents to the moment of action, so agents m
 ## Non-goals
 
 PR-body rendering and readiness gates (follow-up packet), schema changes, any `gh`/hosting-platform calls in gates, changing gate semantics or thresholds.
+
+## Completion
+
+- Merged as PR #60 (squash `431b8e5`); candidate/integrity/roles evidence recorded on the branch, including a restack re-verification after #57 merged.
+- Notable: preflight initially broke CI (bare `command -v gopls` vs repo-local `.tools/bin`); fixed to mirror `lsp-query` resolution and re-verified by all three roles.
+- Trusted-policy stayed red by construction (packet introduced on-branch; precedent #55); merged on maintainer judgment.
+- Follow-up: PR-body-as-code packet (`render-pr-body` + `pr-ready` + thin template + override policy).
