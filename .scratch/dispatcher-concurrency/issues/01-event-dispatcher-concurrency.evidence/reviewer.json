@@ -1,0 +1,97 @@
+{
+  "commentDecisions": [],
+  "evidence": [
+    {
+      "checkId": "tsc-bare-lint-config",
+      "evidenceRef": "packages/core/src/event-dispatcher.concurrency.test.ts",
+      "evidenceSha256": "3ed6d1cd979875fd22229325e1ec2c786f644eb444c061a6e2ca8f3bad458f34",
+      "status": "passed"
+    },
+    {
+      "checkId": "eslint-concurrency-test-file",
+      "evidenceRef": "packages/core/src/event-dispatcher.concurrency.test.ts",
+      "evidenceSha256": "3ed6d1cd979875fd22229325e1ec2c786f644eb444c061a6e2ca8f3bad458f34",
+      "status": "passed"
+    },
+    {
+      "checkId": "markdownlint-audit-doc",
+      "evidenceRef": "docs/analysis/testing-techniques-audit.md",
+      "evidenceSha256": "2368b9e70ed2ccd3c52c30183164e9de0b1ce650f40560476ef638a6333ed5ba",
+      "status": "passed"
+    },
+    {
+      "checkId": "vitest-concurrency-8-tests",
+      "evidenceRef": "packages/core/src/event-dispatcher.concurrency.test.ts",
+      "evidenceSha256": "3ed6d1cd979875fd22229325e1ec2c786f644eb444c061a6e2ca8f3bad458f34",
+      "status": "passed"
+    },
+    {
+      "checkId": "mutation-scores-match-doc",
+      "evidenceRef": ".scratch/dispatcher-concurrency/issues/01-event-dispatcher-concurrency.evidence/mutation-with-tests.json",
+      "evidenceSha256": "f7ec58521fee32a49299f01d857455da325a19955f2354c95b79ee848cf6c7fb",
+      "status": "passed"
+    },
+    {
+      "checkId": "five-claimed-kills",
+      "evidenceRef": ".scratch/dispatcher-concurrency/issues/01-event-dispatcher-concurrency.evidence/mutation-with-tests.json",
+      "evidenceSha256": "f7ec58521fee32a49299f01d857455da325a19955f2354c95b79ee848cf6c7fb",
+      "status": "passed"
+    },
+    {
+      "checkId": "six-survivors-equivalent",
+      "evidenceRef": "packages/core/src/event-dispatcher.ts",
+      "evidenceSha256": "bcf802ca4dfcaa409198090bc029fc452ea751ed26d0ee570738cdb30e919f83",
+      "status": "passed"
+    },
+    {
+      "checkId": "generations-archive-symmetry",
+      "evidenceRef": "packages/core/src/event-dispatcher.concurrency.test.ts",
+      "evidenceSha256": "3ed6d1cd979875fd22229325e1ec2c786f644eb444c061a6e2ca8f3bad458f34",
+      "status": "passed"
+    },
+    {
+      "checkId": "order-mirrors-dispatcher-set",
+      "evidenceRef": "packages/core/src/event-dispatcher.concurrency.test.ts",
+      "evidenceSha256": "3ed6d1cd979875fd22229325e1ec2c786f644eb444c061a6e2ca8f3bad458f34",
+      "status": "passed"
+    },
+    {
+      "checkId": "scheduler-sequence-genuine-and-permutations",
+      "evidenceRef": "packages/core/src/event-dispatcher.concurrency.test.ts",
+      "evidenceSha256": "3ed6d1cd979875fd22229325e1ec2c786f644eb444c061a6e2ca8f3bad458f34",
+      "status": "passed"
+    },
+    {
+      "checkId": "stryker-safe-indexing",
+      "evidenceRef": "packages/core/src/event-dispatcher.concurrency.test.ts",
+      "evidenceSha256": "3ed6d1cd979875fd22229325e1ec2c786f644eb444c061a6e2ca8f3bad458f34",
+      "status": "passed"
+    },
+    {
+      "checkId": "no-deadlock-settle-drain",
+      "evidenceRef": "packages/core/src/event-dispatcher.concurrency.test.ts",
+      "evidenceSha256": "3ed6d1cd979875fd22229325e1ec2c786f644eb444c061a6e2ca8f3bad458f34",
+      "status": "passed"
+    },
+    {
+      "checkId": "no-prod-change-and-no-dup-models",
+      "evidenceRef": "packages/core/src/event-dispatcher.test.ts",
+      "evidenceSha256": "462ce11f77cfef14fe1980c4d0c3e10b3567ff153a8502e0c6aa42e294c4ea8d",
+      "status": "passed"
+    }
+  ],
+  "findings": [],
+  "independent": true,
+  "producerId": "dispatcher-reviewer",
+  "residualRisks": [
+    "Audit doc concurrency paragraph still names `scheduleFunction` (line 25) while the suite uses `scheduleSequence` (test file lines ~750-754 explains scheduleFunction invokes eagerly in call order, sequences trigger at schedule time). Doc numbers (93.13->96.25, 5 kills, 6 survivors) and summary matrix are correct and markdownlint is clean; only the mechanism noun and the edge-test enumeration (omits the two explicit-permutation race tests E1/E3, attributing their paths to the scheduler run) are stale. Low documentation impact, no test impact.",
+    "Packet acceptance text still says operations ’wrapped in scheduleFunction’; implementation correctly uses per-op scheduleSequence per the eager-invocation proof (fast-check@4.9.0 source). Packet letter drifted, spirit (genuine scheduler permutation) fulfilled.",
+    "Stale round-1 artifacts remain in the evidence dir (checks.log, hardener-evidence.log @38bdf23 claiming 96.88/6 kills including L127->true). Superseded by mutation-baseline.json and mutation-with-tests.json @162233e (96.25/5 kills, L127 survived); consider archiving the stale logs to avoid confusion.",
+    "This worktree’s rtk tsc wrapper reports 97 pre-existing environment errors (node types/lib config); bare `npx tsc -p tsconfig.lint.json --noEmit` is RC=0. Wrapper-only issue, no production impact."
+  ],
+  "schemaVersion": 1,
+  "verdict": "pass",
+  "taskId": ".scratch/dispatcher-concurrency/issues/01-event-dispatcher-concurrency.md",
+  "baseRevision": "acd14fdbc125824ce838178cdea1a08e7103000f",
+  "candidateRevision": "sha256:af0399c6f02a515562f3e2687a72be54e8a00c94a813b1183f66d6e556e90274"
+}

@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "role": "hardener",
+  "producerId": "dispatcher-hardener",
+  "status": "passed",
+  "scenarios": [
+    "H1 detach/read/dispose/resubscribe/emit/complete/post-terminal-dispose fixed command list settles exactly",
+    "H2 double resubscribe with interim disposes settles exactly",
+    "H3 resubscribe-then-duplicateSubscribe throws without state pollution",
+    "H4 empty-generation archive equals [[]] on model and real sides",
+    "H5 detach-then-resubscribe with no interim read mirrors shared-id control-notice exclusion",
+    "H6 raw post-terminal dispose retains queued event plus terminal event then done",
+    "H7 scheduleSequence marker experiment shows varying builder trigger order over 30 runs",
+    "flakiness sample: 3/3 full-file runs pass 8/8 tests against 120s budgets",
+    "mutation JSON recomputation: 5 Survived->Killed, 6 equivalent survivors, score 93.13->96.25",
+    "scope check: diff shows only test file, audit doc, packet; no production/threshold/schema changes",
+    "deadlock audit: no builder await depends on an untriggered sequence; drainSettled bounded by resolved-tick race",
+    "E1/E3 determinism: fixed op lists, pure permutations, sequential awaits, no randomness",
+    "lint and typecheck clean with no suppressions; audit-doc matrix correct"
+  ],
+  "evidence": [
+    {
+      "checkId": "scope-diff-clean",
+      "evidenceRef": "packages/core/src/event-dispatcher.concurrency.test.ts",
+      "evidenceSha256": "3ed6d1cd979875fd22229325e1ec2c786f644eb444c061a6e2ca8f3bad458f34",
+      "status": "passed"
+    },
+    {
+      "checkId": "generations-attack-probes",
+      "evidenceRef": "packages/core/src/event-dispatcher.concurrency.test.ts",
+      "evidenceSha256": "3ed6d1cd979875fd22229325e1ec2c786f644eb444c061a6e2ca8f3bad458f34",
+      "status": "passed"
+    },
+    {
+      "checkId": "scheduleSequence-lazy-trigger-order",
+      "evidenceRef": "packages/core/src/event-dispatcher.concurrency.test.ts",
+      "evidenceSha256": "3ed6d1cd979875fd22229325e1ec2c786f644eb444c061a6e2ca8f3bad458f34",
+      "status": "passed"
+    },
+    {
+      "checkId": "deadlock-audit-no-blocking-builder-await",
+      "evidenceRef": "packages/core/src/event-dispatcher.concurrency.test.ts",
+      "evidenceSha256": "3ed6d1cd979875fd22229325e1ec2c786f644eb444c061a6e2ca8f3bad458f34",
+      "status": "passed"
+    },
+    {
+      "checkId": "settleSoon-fail-fast-adequacy",
+      "evidenceRef": "packages/core/src/event-dispatcher.concurrency.test.ts",
+      "evidenceSha256": "3ed6d1cd979875fd22229325e1ec2c786f644eb444c061a6e2ca8f3bad458f34",
+      "status": "passed"
+    },
+    {
+      "checkId": "mutation-5-kills-verified",
+      "evidenceRef": ".scratch/dispatcher-concurrency/issues/01-event-dispatcher-concurrency.evidence/mutation-with-tests.json",
+      "evidenceSha256": "f7ec58521fee32a49299f01d857455da325a19955f2354c95b79ee848cf6c7fb",
+      "status": "passed"
+    },
+    {
+      "checkId": "mutation-6-survivors-equivalent",
+      "evidenceRef": ".scratch/dispatcher-concurrency/issues/01-event-dispatcher-concurrency.evidence/mutation-with-tests.json",
+      "evidenceSha256": "f7ec58521fee32a49299f01d857455da325a19955f2354c95b79ee848cf6c7fb",
+      "status": "passed"
+    },
+    {
+      "checkId": "mutation-baseline-delta",
+      "evidenceRef": ".scratch/dispatcher-concurrency/issues/01-event-dispatcher-concurrency.evidence/mutation-baseline.json",
+      "evidenceSha256": "54d3259e8675576fe9bdbf806272f212f5127282f4da9ee45842fd0cda9e745a",
+      "status": "passed"
+    },
+    {
+      "checkId": "source-mapping-mutant-sites",
+      "evidenceRef": "packages/core/src/event-dispatcher.ts",
+      "evidenceSha256": "bcf802ca4dfcaa409198090bc029fc452ea751ed26d0ee570738cdb30e919f83",
+      "status": "passed"
+    },
+    {
+      "checkId": "flakiness-3x-full-file-pass",
+      "evidenceRef": "packages/core/src/event-dispatcher.concurrency.test.ts",
+      "evidenceSha256": "3ed6d1cd979875fd22229325e1ec2c786f644eb444c061a6e2ca8f3bad458f34",
+      "status": "passed"
+    },
+    {
+      "checkId": "lint-tsc-clean-no-suppressions",
+      "evidenceRef": "packages/core/src/event-dispatcher.concurrency.test.ts",
+      "evidenceSha256": "3ed6d1cd979875fd22229325e1ec2c786f644eb444c061a6e2ca8f3bad458f34",
+      "status": "passed"
+    },
+    {
+      "checkId": "e1-e3-deterministic-no-rng",
+      "evidenceRef": "packages/core/src/event-dispatcher.concurrency.test.ts",
+      "evidenceSha256": "3ed6d1cd979875fd22229325e1ec2c786f644eb444c061a6e2ca8f3bad458f34",
+      "status": "passed"
+    },
+    {
+      "checkId": "audit-doc-matrix-correct",
+      "evidenceRef": "docs/analysis/testing-techniques-audit.md",
+      "evidenceSha256": "2368b9e70ed2ccd3c52c30183164e9de0b1ce650f40560476ef638a6333ed5ba",
+      "status": "passed"
+    }
+  ],
+  "taskId": ".scratch/dispatcher-concurrency/issues/01-event-dispatcher-concurrency.md",
+  "baseRevision": "acd14fdbc125824ce838178cdea1a08e7103000f",
+  "candidateRevision": "sha256:af0399c6f02a515562f3e2687a72be54e8a00c94a813b1183f66d6e556e90274"
+}

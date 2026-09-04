@@ -1,0 +1,83 @@
+===== hardener evidence bundle =====
+producer: dispatcher-hardener
+collected: 2026-09-04T06:33:18Z
+
+===== 1. branch/commit =====
+dispatcher-concurrency
+38bdf2339390123204dceec5a3ef57512a7fee01
+?? .scratch/dispatcher-concurrency/issues/01-event-dispatcher-concurrency.evidence/
+
+===== 2. diff scope vs origin/main =====
+ .../issues/01-event-dispatcher-concurrency.md      |  51 ++
+ docs/analysis/testing-techniques-audit.md          | 215 +++++
+ .../core/src/event-dispatcher.concurrency.test.ts  | 959 +++++++++++++++++++++
+ 3 files changed, 1225 insertions(+)
+.scratch/dispatcher-concurrency/issues/01-event-dispatcher-concurrency.md
+docs/analysis/testing-techniques-audit.md
+packages/core/src/event-dispatcher.concurrency.test.ts
+
+===== 3. tsc + eslint =====
+TSC_EXIT:0
+ESLINT_EXIT:0
+eslint-disable grep (expect no match):
+no eslint-disable (grep exit 1)
+
+===== 4. mutation score (timeout-inclusive, Stryker convention) + kill mapping =====
+/tmp/mutation-baseline.json {'CompileError': 70, 'Killed': 147, 'Survived': 11, 'Timeout': 2} score=(K+T)/valid=93.12
+/tmp/mutation-with-new-tests.json {'CompileError': 70, 'Killed': 149, 'Survived': 5, 'Timeout': 6} score=(K+T)/valid=96.88
+6 claimed kills (old Survived -> new Killed):
+  id=40 L79 BooleanLiteral repl='false' new=Killed killedBy=['0'] old=Survived
+  id=44 L84 BlockStatement repl='{}' new=Killed killedBy=['0'] old=Survived
+  id=94 L122 ConditionalExpression repl='false' new=Killed killedBy=['0'] old=Survived
+  id=98 L127 ConditionalExpression repl='true' new=Killed killedBy=['0'] old=Survived
+  id=136 L162 ConditionalExpression repl='false' new=Killed killedBy=['0'] old=Survived
+  id=214 L260 ConditionalExpression repl='false' new=Killed killedBy=['0'] old=Survived
+scheduler-id (1-7) kills of old survivors: none (verified)
+5 remainers:
+  id=21 L66:11-46 ConditionalExpression repl='true' status=Survived
+  id=23 L66:11-46 EqualityOperator repl='this.#queue.length <= this.#capacity' status=Survived
+  id=47 L89:9-21 ConditionalExpression repl='false' status=Survived
+  id=84 L114:12-39 ConditionalExpression repl='false' status=Survived
+  id=207 L254:7-35 CallExpression repl=';' status=Survived
+new timeouts regressed from Killed: 52(L90) 92(L121) 95(L123) 189(L228); pre-existing: 147,177
+
+===== 5. branch counters (instrumented copy of suite DualWorld, 100+100 scheduler runs) =====
+A read-race branches: {"available":200,"rejection":0,"park":0}
+B invocation-order==array-order: 100/100 []
+B branches: {"available":301,"rejection":0,"park":0}
+C: sequential-equivalence argument is structural (see report); scheduler triggers only observe settled promises.
+
+===== 6. eager-execution proof (effect lands before waitIdle) =====
+eager check: sink size before waitIdle=1 model=1 (lazy=>0, eager=>1)
+MECHANISM CONFIRMED: scheduleFunction executes emit eagerly at schedule time; waitIdle observes settled promises.
+
+===== 7. deterministic resubscribe repro (seed -1897801663 counterexample, shrunk) =====
+pre-settle model.received = [{"kind":"done"}]
+pre-settle real.observed  = [{"kind":"done"}]
+settle FAILED as in CI flake: toBe mismatch: true vs false
+post-settle model.received = [{"kind":"done"},{"kind":"event","event":{"sequence":3,"type":"promptiris.run.completed","delivery":"critical","status":"success"}},{"kind":"done"}]
+post-settle real.observed  = [{"kind":"done"},{"kind":"event","event":{"sequence":3,"type":"promptiris.run.completed","delivery":"critical","status":"success"}},{"kind":"done"}]
+MODEL==REAL (production innocent): true
+
+===== 8. suite repeat runs (flakiness sample; each run = 200 model seqs + 300 scheduler cases) =====
+run 1: pass
+run 2: pass
+run 3: pass
+run 4: pass
+run 5: pass
+run 6: pass
+
+===== 9. captured flaky failure (seed -1897801663; run-to-run variance observed: fails ~1/4 runs) =====
+ FAIL  src/event-dispatcher.concurrency.test.ts > EventDispatcher concurrency > matches the observer model across generated command sequences
+Error: Property failed after 87 tests
+{ seed: -1897801663, path: "86:5:6:6:6:6:8:9:15:15:15", endOnFailure: true }
+Counterexample: [[subscribe(observer-c, capacity=1),emit(critical, 0),emit(critical, 0),read(observer-c),subscribe(observer-c, capacity=1)]]
+Shrunk 10 time(s)
+Caused by: AssertionError: expected true to be false // Object.is equality
+ ❯ assertObserverWellFormed src/event-dispatcher.concurrency.test.ts:487:22
+ ❯ DualWorld.settle src/event-dispatcher.concurrency.test.ts:469:57
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: vitest run src/event-dispatcher.concurrency.test.ts
+
+===== 10. fast-check scheduleFunction eager-invocation source (fast-check@4.9.0) =====
+scheduleFunction(asyncFunction, customAct) {
+		return (...args) => this.scheduleInternal("function", `${asyncFunction.name}(${args.map(stringify).join(",")})`, asyncFunction(...args), void 0, customAct || defaultSchedule

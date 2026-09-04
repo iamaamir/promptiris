@@ -1,0 +1,14 @@
+# Read-only verification results (all run, none modify the repo)
+# Workdir: /tmp/promptiris-dispatcher @ 38bdf23 (dispatcher-concurrency)
+
+- npx tsc -p tsconfig.lint.json --noEmit -> exit 0 (strict incl. noUncheckedIndexedAccess)
+- eslint packages/core/src/event-dispatcher.concurrency.test.ts --max-warnings 0 -> exit 0
+- markdownlint docs/analysis/testing-techniques-audit.md -> exit 0
+- fc.scheduler() usage genuine: scheduleFunction (line 684-685) + waitIdle (689)
+  + asyncProperty(fc.scheduler(), ...) (703) + count()==0 (691). No pre-filled-queue Promise.all.
+- .agent/reports/mutation.json (gitignored, dated 11:32, before the 11:35 test commit):
+  testFiles has event-dispatcher.test.ts but NO event-dispatcher.concurrency.test.ts;
+  status counts: Killed 147, Survived 11, CompileError 70, Timeout 2 (230 total).
+  Doc claims "96.88, 6 killed, 5 survivors" -> no supporting artifact; 11 != 5.
+- Indexed T|undefined into matchers: lines 796, 800, 863, 947
+  (healthyOutcomes[2], healthyOutcomes[4], outcomes[3], outcomes[2] -> toMatchObject).

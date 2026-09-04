@@ -1,0 +1,18 @@
+# Failing vitest run (observed; seed-dependent, ~1/15 runs fail)
+# Command: npx vitest run packages/core/src/event-dispatcher.concurrency.test.ts
+
+ FAIL  packages/core/src/event-dispatcher.concurrency.test.ts > EventDispatcher concurrency > matches the observer model across generated command sequences
+Error: Property failed after 148 tests
+{ seed: 1505378907, path: "147:3:6:8:11:13:16:16", endOnFailure: true }
+Counterexample: [[subscribe(observer-b, capacity=1),emit(critical, 0),emit(critical, 0),read(observer-b),subscribe(observer-b, capacity=1)]]
+Shrunk 7 time(s)
+
+Caused by: AssertionError: expected true to be false // Object.is equality
+ ❯ assertObserverWellFormed packages/core/src/event-dispatcher.concurrency.test.ts:487:22
+ ❯ DualWorld.settle packages/core/src/event-dispatcher.concurrency.test.ts:469:57
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 7 passed (8)
+
+# Full core suite with the new file is red when the seed hits:
+# pnpm --filter @promptiris/core test -> 1 failed | 203 passed (204)
