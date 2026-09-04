@@ -4,13 +4,13 @@
     {
       "checkId": "tsc-bare-lint-config",
       "evidenceRef": "packages/core/src/event-dispatcher.concurrency.test.ts",
-      "evidenceSha256": "670a4cdc80b05c62bed7b87dd4f4f40c65c47636b7199f0f46a7df730e05a305",
+      "evidenceSha256": "3ed6d1cd979875fd22229325e1ec2c786f644eb444c061a6e2ca8f3bad458f34",
       "status": "passed"
     },
     {
       "checkId": "eslint-concurrency-test-file",
       "evidenceRef": "packages/core/src/event-dispatcher.concurrency.test.ts",
-      "evidenceSha256": "670a4cdc80b05c62bed7b87dd4f4f40c65c47636b7199f0f46a7df730e05a305",
+      "evidenceSha256": "3ed6d1cd979875fd22229325e1ec2c786f644eb444c061a6e2ca8f3bad458f34",
       "status": "passed"
     },
     {
@@ -22,7 +22,7 @@
     {
       "checkId": "vitest-concurrency-8-tests",
       "evidenceRef": "packages/core/src/event-dispatcher.concurrency.test.ts",
-      "evidenceSha256": "670a4cdc80b05c62bed7b87dd4f4f40c65c47636b7199f0f46a7df730e05a305",
+      "evidenceSha256": "3ed6d1cd979875fd22229325e1ec2c786f644eb444c061a6e2ca8f3bad458f34",
       "status": "passed"
     },
     {
@@ -46,31 +46,31 @@
     {
       "checkId": "generations-archive-symmetry",
       "evidenceRef": "packages/core/src/event-dispatcher.concurrency.test.ts",
-      "evidenceSha256": "670a4cdc80b05c62bed7b87dd4f4f40c65c47636b7199f0f46a7df730e05a305",
+      "evidenceSha256": "3ed6d1cd979875fd22229325e1ec2c786f644eb444c061a6e2ca8f3bad458f34",
       "status": "passed"
     },
     {
       "checkId": "order-mirrors-dispatcher-set",
       "evidenceRef": "packages/core/src/event-dispatcher.concurrency.test.ts",
-      "evidenceSha256": "670a4cdc80b05c62bed7b87dd4f4f40c65c47636b7199f0f46a7df730e05a305",
+      "evidenceSha256": "3ed6d1cd979875fd22229325e1ec2c786f644eb444c061a6e2ca8f3bad458f34",
       "status": "passed"
     },
     {
       "checkId": "scheduler-sequence-genuine-and-permutations",
       "evidenceRef": "packages/core/src/event-dispatcher.concurrency.test.ts",
-      "evidenceSha256": "670a4cdc80b05c62bed7b87dd4f4f40c65c47636b7199f0f46a7df730e05a305",
+      "evidenceSha256": "3ed6d1cd979875fd22229325e1ec2c786f644eb444c061a6e2ca8f3bad458f34",
       "status": "passed"
     },
     {
       "checkId": "stryker-safe-indexing",
       "evidenceRef": "packages/core/src/event-dispatcher.concurrency.test.ts",
-      "evidenceSha256": "670a4cdc80b05c62bed7b87dd4f4f40c65c47636b7199f0f46a7df730e05a305",
+      "evidenceSha256": "3ed6d1cd979875fd22229325e1ec2c786f644eb444c061a6e2ca8f3bad458f34",
       "status": "passed"
     },
     {
       "checkId": "no-deadlock-settle-drain",
       "evidenceRef": "packages/core/src/event-dispatcher.concurrency.test.ts",
-      "evidenceSha256": "670a4cdc80b05c62bed7b87dd4f4f40c65c47636b7199f0f46a7df730e05a305",
+      "evidenceSha256": "3ed6d1cd979875fd22229325e1ec2c786f644eb444c061a6e2ca8f3bad458f34",
       "status": "passed"
     },
     {
@@ -93,5 +93,5 @@
   "verdict": "pass",
   "taskId": ".scratch/dispatcher-concurrency/issues/01-event-dispatcher-concurrency.md",
   "baseRevision": "acd14fdbc125824ce838178cdea1a08e7103000f",
-  "candidateRevision": "sha256:47c28d1db2d20dbcba5953f082f5ef5182d642ff237f516db56f95792ff4d43d"
+  "candidateRevision": "sha256:af0399c6f02a515562f3e2687a72be54e8a00c94a813b1183f66d6e556e90274"
 }

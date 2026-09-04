@@ -1,1 +1,80 @@
-{"baseRevision":"acd14fdbc125824ce838178cdea1a08e7103000f","candidateRevision":"sha256:47c28d1db2d20dbcba5953f082f5ef5182d642ff237f516db56f95792ff4d43d","evidence":[{"checkId":"packet-mapping-8-tests-1:1","evidenceRef":".scratch/dispatcher-concurrency/issues/01-event-dispatcher-concurrency.md","evidenceSha256":"1d17cad02b03eaef8da5eb9bf1946a771ae1a3a97d9156550f31bf128df3179b","status":"passed"},{"checkId":"concurrency-file-8/8-x3-runs","evidenceRef":"packages/core/src/event-dispatcher.concurrency.test.ts","evidenceSha256":"670a4cdc80b05c62bed7b87dd4f4f40c65c47636b7199f0f46a7df730e05a305","status":"passed"},{"checkId":"core-suite-13-files-204-tests","evidenceRef":"packages/core/src/event-dispatcher.concurrency.test.ts","evidenceSha256":"670a4cdc80b05c62bed7b87dd4f4f40c65c47636b7199f0f46a7df730e05a305","status":"passed"},{"checkId":"eslint-test-file-clean","evidenceRef":"packages/core/src/event-dispatcher.concurrency.test.ts","evidenceSha256":"670a4cdc80b05c62bed7b87dd4f4f40c65c47636b7199f0f46a7df730e05a305","status":"passed"},{"checkId":"bare-tsc-lint-config-exit-0","evidenceRef":"packages/core/src/event-dispatcher.concurrency.test.ts","evidenceSha256":"670a4cdc80b05c62bed7b87dd4f4f40c65c47636b7199f0f46a7df730e05a305","status":"passed"},{"checkId":"core-package-typecheck-exit-0","evidenceRef":"packages/core/src/event-dispatcher.concurrency.test.ts","evidenceSha256":"670a4cdc80b05c62bed7b87dd4f4f40c65c47636b7199f0f46a7df730e05a305","status":"passed"},{"checkId":"markdownlint-audit-doc-exit-0","evidenceRef":"docs/analysis/testing-techniques-audit.md","evidenceSha256":"2368b9e70ed2ccd3c52c30183164e9de0b1ce650f40560476ef638a6333ed5ba","status":"passed"},{"checkId":"mutation-96.25-5-new-kills-6-survivors","evidenceRef":".scratch/dispatcher-concurrency/issues/01-event-dispatcher-concurrency.evidence/mutation-with-tests.json","evidenceSha256":"f7ec58521fee32a49299f01d857455da325a19955f2354c95b79ee848cf6c7fb","status":"passed"},{"checkId":"mutation-baseline-93.13-11-survivors","evidenceRef":".scratch/dispatcher-concurrency/issues/01-event-dispatcher-concurrency.evidence/mutation-baseline.json","evidenceSha256":"54d3259e8675576fe9bdbf806272f212f5127282f4da9ee45842fd0cda9e745a","status":"passed"},{"checkId":"scheduler-scheduleSequence-permutes-6-of-6","evidenceRef":"packages/core/src/event-dispatcher.concurrency.test.ts","evidenceSha256":"670a4cdc80b05c62bed7b87dd4f4f40c65c47636b7199f0f46a7df730e05a305","status":"passed"}],"producerId":"dispatcher-qa","role":"qa","scenarios":["8-test mapping: each test maps 1:1 to packet requirements with honest names","scheduler mechanism check: scheduleSequence genuinely permutes (fast-check 4.9.0)","audit-number recomputation: 93.13 to 96.25, 5 new kills, 6 survivors vs mutation JSONs","fresh test runs: concurrency file 8/8 x3, full core suite 13 files / 204 tests","lint/typecheck/markdownlint: eslint clean, bare tsc exit 0, core typecheck exit 0, markdownlint exit 0","clarity pass: generations/archived, order array, drainSettled/flushFloating, settleSoon, paths tags, permutationsOf dedupe"],"schemaVersion":1,"sourceBlind":true,"status":"passed","taskId":".scratch/dispatcher-concurrency/issues/01-event-dispatcher-concurrency.md"}
+{
+  "evidence": [
+    {
+      "checkId": "packet-mapping-8-tests-1:1",
+      "evidenceRef": ".scratch/dispatcher-concurrency/issues/01-event-dispatcher-concurrency.md",
+      "evidenceSha256": "1d17cad02b03eaef8da5eb9bf1946a771ae1a3a97d9156550f31bf128df3179b",
+      "status": "passed"
+    },
+    {
+      "checkId": "concurrency-file-8/8-x3-runs",
+      "evidenceRef": "packages/core/src/event-dispatcher.concurrency.test.ts",
+      "evidenceSha256": "3ed6d1cd979875fd22229325e1ec2c786f644eb444c061a6e2ca8f3bad458f34",
+      "status": "passed"
+    },
+    {
+      "checkId": "core-suite-13-files-204-tests",
+      "evidenceRef": "packages/core/src/event-dispatcher.concurrency.test.ts",
+      "evidenceSha256": "3ed6d1cd979875fd22229325e1ec2c786f644eb444c061a6e2ca8f3bad458f34",
+      "status": "passed"
+    },
+    {
+      "checkId": "eslint-test-file-clean",
+      "evidenceRef": "packages/core/src/event-dispatcher.concurrency.test.ts",
+      "evidenceSha256": "3ed6d1cd979875fd22229325e1ec2c786f644eb444c061a6e2ca8f3bad458f34",
+      "status": "passed"
+    },
+    {
+      "checkId": "bare-tsc-lint-config-exit-0",
+      "evidenceRef": "packages/core/src/event-dispatcher.concurrency.test.ts",
+      "evidenceSha256": "3ed6d1cd979875fd22229325e1ec2c786f644eb444c061a6e2ca8f3bad458f34",
+      "status": "passed"
+    },
+    {
+      "checkId": "core-package-typecheck-exit-0",
+      "evidenceRef": "packages/core/src/event-dispatcher.concurrency.test.ts",
+      "evidenceSha256": "3ed6d1cd979875fd22229325e1ec2c786f644eb444c061a6e2ca8f3bad458f34",
+      "status": "passed"
+    },
+    {
+      "checkId": "markdownlint-audit-doc-exit-0",
+      "evidenceRef": "docs/analysis/testing-techniques-audit.md",
+      "evidenceSha256": "2368b9e70ed2ccd3c52c30183164e9de0b1ce650f40560476ef638a6333ed5ba",
+      "status": "passed"
+    },
+    {
+      "checkId": "mutation-96.25-5-new-kills-6-survivors",
+      "evidenceRef": ".scratch/dispatcher-concurrency/issues/01-event-dispatcher-concurrency.evidence/mutation-with-tests.json",
+      "evidenceSha256": "f7ec58521fee32a49299f01d857455da325a19955f2354c95b79ee848cf6c7fb",
+      "status": "passed"
+    },
+    {
+      "checkId": "mutation-baseline-93.13-11-survivors",
+      "evidenceRef": ".scratch/dispatcher-concurrency/issues/01-event-dispatcher-concurrency.evidence/mutation-baseline.json",
+      "evidenceSha256": "54d3259e8675576fe9bdbf806272f212f5127282f4da9ee45842fd0cda9e745a",
+      "status": "passed"
+    },
+    {
+      "checkId": "scheduler-scheduleSequence-permutes-6-of-6",
+      "evidenceRef": "packages/core/src/event-dispatcher.concurrency.test.ts",
+      "evidenceSha256": "3ed6d1cd979875fd22229325e1ec2c786f644eb444c061a6e2ca8f3bad458f34",
+      "status": "passed"
+    }
+  ],
+  "producerId": "dispatcher-qa",
+  "role": "qa",
+  "scenarios": [
+    "8-test mapping: each test maps 1:1 to packet requirements with honest names",
+    "scheduler mechanism check: scheduleSequence genuinely permutes (fast-check 4.9.0)",
+    "audit-number recomputation: 93.13 to 96.25, 5 new kills, 6 survivors vs mutation JSONs",
+    "fresh test runs: concurrency file 8/8 x3, full core suite 13 files / 204 tests",
+    "lint/typecheck/markdownlint: eslint clean, bare tsc exit 0, core typecheck exit 0, markdownlint exit 0",
+    "clarity pass: generations/archived, order array, drainSettled/flushFloating, settleSoon, paths tags, permutationsOf dedupe"
+  ],
+  "schemaVersion": 1,
+  "sourceBlind": true,
+  "status": "passed",
+  "taskId": ".scratch/dispatcher-concurrency/issues/01-event-dispatcher-concurrency.md",
+  "baseRevision": "acd14fdbc125824ce838178cdea1a08e7103000f",
+  "candidateRevision": "sha256:af0399c6f02a515562f3e2687a72be54e8a00c94a813b1183f66d6e556e90274"
+}
