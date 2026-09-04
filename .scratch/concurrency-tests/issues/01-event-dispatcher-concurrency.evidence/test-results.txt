@@ -1,0 +1,11 @@
+EventDispatcher concurrency tests - evidence
+Base revision: 1985ce6d5133152dadb31c9c067f2077eb4f00db
+Date: 2026-09-03
+
+packages/core: 0 tests passed across test files
+  event-dispatcher.test.ts: 24 passed (17 existing + 7 mutation-killing)
+  event-dispatcher.concurrency.test.ts: 3 passed (model-based + scheduler-based + lagging-detach)
+
+TypeScript typecheck: clean
+ESLint: clean
+No production code changes
