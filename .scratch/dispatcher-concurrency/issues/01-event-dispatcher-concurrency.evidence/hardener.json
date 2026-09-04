@@ -1,7 +1,26 @@
 {
+  "schemaVersion": 1,
   "role": "hardener",
+  "taskId": ".scratch/dispatcher-concurrency/issues/01-event-dispatcher-concurrency.md",
+  "baseRevision": "acd14fdbc125824ce838178cdea1a08e7103000f",
+  "candidateRevision": "sha256:47c28d1db2d20dbcba5953f082f5ef5182d642ff237f516db56f95792ff4d43d",
+  "producerId": "dispatcher-hardener",
   "status": "passed",
-  "commentDecisions": [],
+  "scenarios": [
+    "H1 detach/read/dispose/resubscribe/emit/complete/post-terminal-dispose fixed command list settles exactly",
+    "H2 double resubscribe with interim disposes settles exactly",
+    "H3 resubscribe-then-duplicateSubscribe throws without state pollution",
+    "H4 empty-generation archive equals [[]] on model and real sides",
+    "H5 detach-then-resubscribe with no interim read mirrors shared-id control-notice exclusion",
+    "H6 raw post-terminal dispose retains queued event plus terminal event then done",
+    "H7 scheduleSequence marker experiment shows varying builder trigger order over 30 runs",
+    "flakiness sample: 3/3 full-file runs pass 8/8 tests against 120s budgets",
+    "mutation JSON recomputation: 5 Survived->Killed, 6 equivalent survivors, score 93.13->96.25",
+    "scope check: diff shows only test file, audit doc, packet; no production/threshold/schema changes",
+    "deadlock audit: no builder await depends on an untriggered sequence; drainSettled bounded by resolved-tick race",
+    "E1/E3 determinism: fixed op lists, pure permutations, sequential awaits, no randomness",
+    "lint and typecheck clean with no suppressions; audit-doc matrix correct"
+  ],
   "evidence": [
     {
       "checkId": "scope-diff-clean",
@@ -78,25 +97,8 @@
     {
       "checkId": "audit-doc-matrix-correct",
       "evidenceRef": "docs/analysis/testing-techniques-audit.md",
-      "evidenceSha256": "fb4f388fe969bfa8f77419cbee11204cca56001339be56e80eb79cca0db4984d",
+      "evidenceSha256": "2368b9e70ed2ccd3c52c30183164e9de0b1ce650f40560476ef638a6333ed5ba",
       "status": "passed"
     }
-  ],
-  "findings": [],
-  "independent": true,
-  "producerId": "dispatcher-hardener",
-  "residualRisks": [
-    "Flakiness sample (this session): 3/3 full-file runs pass, 8/8 tests each, ~42-46ms in-test time against 120s budgets (A 200 runs, B 100 runs). No flakes observed; margins are 3 orders of magnitude, so timeouts are adequate and settleSoon (10s) cannot false-positive on microtask-only resolutions.",
-    "Adversarial probes (temporary copy of the exact harness + appended fixed-command tests, 7/7 pass, file removed afterwards, git status clean): H1 detach/read/dispose/resubscribe/emit/read/complete/post-terminal-dispose; H2 double resubscribe; H3 resubscribe-then-duplicateSubscribe (throw path, no state pollution); H4 empty-generation archive asserted [[]] on both sides; H5 detach-then-resubscribe with no interim read (shared-id exclusion of in-flight control notice mirrored); H6 raw post-terminal dispose retains [event, terminal, done] (kill premise for L122->false); H7 30 scheduler runs show >1 distinct builder execution order (lazy trigger-time execution, not call order).",
-    "Mutation delta baseline->with-tests: 5 Survived->Killed (ids 40 L79 return-discard, 44 L84 asyncDispose, 94 L122 close early-return, 136 L162 complete idempotency, 214 L260 report branch) = the claimed 5 kills; 6 survivors (21,23 L66 post-shift reset always-true since post-shift length <= capacity-1; 47 L89 closed-enqueue unreachable because detached/disposed/swept subs are removed from the set synchronously and deliver iterates the set; 84 L114:12-39 first-disjunct->false redundant because waiter implies empty queue implies 0 < capacity; 98 L127->true unreachable because waiter and non-empty queue cannot coexist as enqueue prioritizes waiters and every close path resolves empty-queue waiters; 207 L254 terminal-clear unobservable because post-terminal subscribe always throws via the accepting check first). 10 Killed->Timeout transitions (22,29,52,77,92,95,111,113,132,189) are hanging-mutant artifacts: settleSoon converts each hang into a ~10s failure and many such failures per file-run exceed the Stryker per-mutant timeout; Timeout counts as detected under Stryker score semantics, giving (142+12)/160 = 96.25 vs baseline (147+2)/160 = 93.13.",
-    "L122->false kill depends on DisposeCommand disposing swept subscriptions with retained queues (complete with capacity headroom, then dispose, then drain); model.close early-returns on closed exactly like production #close, so queue retention is mirrored. Confirmed by probe H6 on unmutated code and id94 Killed status.",
-    "E1 (read race, 3 orders, exactly 1 rejecting) and E3 (parked complete-vs-emit race, 2 orders, exact waiter outcomes) use no randomness: fixed op lists, pure permutationsOf, sequential awaits, no fc.scheduler. Deterministic by construction; re-verified in all 3 session runs.",
-    "Audit-doc polish (non-blocking, acceptance matrix itself is correct): line 25 still names scheduleFunction though the suite now uses scheduleSequence for scheduler interleavings (E-tests use explicit permutations, no scheduler); line 24 lists 5 of the 6 A-test command kinds, omitting duplicateSubscribe. Scores quoted (93.13 -> 96.25, 5 kills, 6 survivors) recomputed from the provided JSONs and match.",
-    "Coverage caveats: A-test command space has no park commands (parked-waiter paths come from B-test tryRead and E3); E-tests cover only 2-3-op races; killedBy test-id indices in the provided mutation JSONs cannot be mapped to test names (no test manifest included), so kill attribution rests on the baseline-vs-with delta, which isolates the new test file since production code is unchanged (git diff origin/main -- packages/core/src/event-dispatcher.ts is empty). No Stryker run was performed in this session per instructions."
-  ],
-  "schemaVersion": 1,
-  "verdict": "pass",
-  "taskId": ".scratch/dispatcher-concurrency/issues/01-event-dispatcher-concurrency.md",
-  "baseRevision": "acd14fdbc125824ce838178cdea1a08e7103000f",
-  "candidateRevision": "sha256:47c28d1db2d20dbcba5953f082f5ef5182d642ff237f516db56f95792ff4d43d"
+  ]
 }
