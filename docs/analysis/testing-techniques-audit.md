@@ -25,7 +25,7 @@ Status: **IN USE**
 - **Scheduler interleavings.** `fc.asyncProperty(fc.scheduler(), ...)` wraps competing emit/read/complete operations in `scheduleFunction`, drains them with `waitIdle`, and asserts the same lockstep exactness across generated schedules — including parked-waiter resolution, concurrent-read rejection, and emit-after-complete rejection, all order-dependent and all verified.
 - **Deterministic edges.** Exact-sequence tests for lagging-observer detachment, selective sink failure, mid-delivery disposal, and multi-observer reentrant publication.
 
-The suite is falsifiability-checked: a scoped Stryker run moves `event-dispatcher.ts` from the 93.13 baseline to 96.88 and kills 6 previously surviving mutants (asyncDispose delegation, return-discard flag, close guards, complete idempotency, report branching). The 5 remaining survivors are equivalent-by-invariant (unconditional post-shift reset, unreachable closed-enqueue, redundant waiter operand, unobservable terminal clear).
+The suite is falsifiability-checked: a scoped Stryker run moves `event-dispatcher.ts` from the 93.13 baseline to 96.25 and kills 5 previously surviving mutants (asyncDispose delegation, return-discard flag, close early-return, complete idempotency, report branching). The 6 remaining survivors are equivalent-by-invariant (unconditional post-shift reset, unreachable closed-enqueue, redundant waiter operands, unobservable terminal clear).
 
 ### Candidates for 1. concurrency testing
 

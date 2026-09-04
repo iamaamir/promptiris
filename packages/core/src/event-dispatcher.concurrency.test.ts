@@ -74,6 +74,7 @@ interface ModelObserver {
   readonly capacity: number;
   readonly queue: ObservedEvent[];
   readonly received: ObservedOutcome[];
+  readonly generations: ObservedOutcome[][];
   waiting: boolean;
   closed: boolean;
   dropReported: boolean;
@@ -89,6 +90,8 @@ class ModelWorld {
   completed = false;
   private completionStatus: CompletionStatus | undefined;
   private sequence = 0;
+  /** Dispatcher-set iteration order: subscribe appends, detach/dispose remove. */
+  private readonly order: string[] = [];
   private readonly pending: {
     event: ObservedEvent;
     excluded: string | undefined;
@@ -97,16 +100,23 @@ class ModelWorld {
 
   subscribe(id: string, capacity: number): void {
     const previous = this.observers.get(id);
+    // A resubscribed id starts a new generation: the dispatcher's set drops
+    // detached/disposed members and re-appends them, so prior history is
+    // archived rather than extended.
+    const generations =
+      previous === undefined ? [] : [...previous.generations, previous.received];
     this.observers.set(id, {
       id,
       capacity,
       queue: [],
-      received: previous === undefined ? [] : previous.received,
+      received: [],
+      generations,
       waiting: false,
       closed: false,
       dropReported: false,
     });
     this.live.add(id);
+    this.order.push(id);
   }
 
   emit(delivery: Delivery, value: number): void {
@@ -135,6 +145,7 @@ class ModelWorld {
   dispose(id: string): void {
     const observer = this.require(id);
     this.live.delete(id);
+    this.removeFromOrder(id);
     this.close(observer, true);
   }
 
@@ -160,14 +171,17 @@ class ModelWorld {
   }
 
   /**
-   * Whether the dispatcher still addresses the observer: subscribed, not
-   * disposed, not detached by the dispatcher, not swept by terminal delivery.
+   * Whether the dispatcher still addresses the observer: a member of the
+   * deliverable set (subscribed, not disposed, detached, or terminal-swept).
    * Detached observers stay readable (done) but no longer receive events.
    */
   isAddressed(id: string): boolean {
-    const observer = this.observers.get(id);
-    if (observer === undefined) return false;
-    return this.live.has(id) && !observer.closed;
+    return this.order.includes(id);
+  }
+
+  private removeFromOrder(id: string): void {
+    const index = this.order.indexOf(id);
+    if (index !== -1) this.order.splice(index, 1);
   }
 
   /** Mirror next() parking a waiter when no outcome is immediately available. */
@@ -237,23 +251,22 @@ class ModelWorld {
   private deliver(event: ObservedEvent, excluded: string | undefined, terminal: boolean): void {
     this.sink.push(event);
     const outcomes: { observer: ModelObserver; outcome: EnqueueOutcome }[] = [];
-    for (const id of this.live) {
+    for (const id of [...this.order]) {
       if (id === excluded) continue;
       const observer = this.require(id);
-      // Detached observers stay listed for later reads but leave the
-      // deliverable set, exactly like the dispatcher's subscription set.
-      if (observer.closed) continue;
       outcomes.push({ observer, outcome: this.enqueue(observer, event) });
     }
     for (const { observer, outcome } of outcomes) this.report(observer, outcome);
     if (terminal) {
-      for (const id of [...this.live]) this.close(this.require(id), false);
+      for (const id of [...this.order]) this.close(this.require(id), false);
+      this.order.length = 0;
       this.live.clear();
     }
   }
 
   private report(observer: ModelObserver, outcome: EnqueueOutcome): void {
     if (outcome === 'accepted') return;
+    if (outcome === 'detached') this.removeFromOrder(observer.id);
     this.pending.push({
       event: this.control(observer.id, outcome === 'detached'),
       excluded: observer.id,
@@ -266,6 +279,7 @@ class ModelWorld {
     while (lagging !== undefined) {
       const detached = lagging;
       this.close(detached, true);
+      this.removeFromOrder(detached.id);
       this.pending.push({
         event: this.control(detached.id, true),
         excluded: detached.id,
@@ -276,9 +290,9 @@ class ModelWorld {
   }
 
   private findLagging(): ModelObserver | undefined {
-    return [...this.live]
+    return this.order
       .map((id) => this.require(id))
-      .find((observer) => !observer.closed && !this.canAcceptCritical(observer));
+      .find((observer) => !this.canAcceptCritical(observer));
   }
 
   private drain(): void {
@@ -312,6 +326,7 @@ class RealWorld {
   readonly subscriptions = new Map<string, EventSubscription>();
   readonly live = new Set<string>();
   readonly observed = new Map<string, ObservedOutcome[]>();
+  readonly archived = new Map<string, ObservedOutcome[][]>();
   readonly dispatcher: EventDispatcher;
   private readonly floating = new Map<string, Promise<ObservedOutcome>[]>();
 
@@ -330,7 +345,16 @@ class RealWorld {
   }
 
   subscribe(id: string, capacity: number): void {
-    this.subscriptions.set(id, this.dispatcher.subscribe({ observerId: id, capacity }));
+    // Subscribe first: a duplicate id throws before any harness state moves.
+    const subscription = this.dispatcher.subscribe({ observerId: id, capacity });
+    if (this.subscriptions.has(id)) {
+      const previous = this.observed.get(id) ?? [];
+      const generations = this.archived.get(id);
+      if (generations === undefined) this.archived.set(id, [previous]);
+      else generations.push(previous);
+      this.observed.set(id, []);
+    }
+    this.subscriptions.set(id, subscription);
     this.live.add(id);
   }
 
@@ -353,6 +377,19 @@ class RealWorld {
     // done is observed by a later read, exactly like the model.
     await this.flushFloating(id);
     this.live.delete(id);
+  }
+
+  /**
+   * Await floatings that already resolved so their records land before any
+   * later in-task record. Never waits for future resolutions (the tick wins
+   * for unresolved floatings), so this cannot deadlock scheduled tasks.
+   */
+  async drainSettled(id: string): Promise<void> {
+    const pending = this.floating.get(id);
+    if (pending === undefined) return;
+    await Promise.all(
+      pending.map((outcome) => Promise.race([outcome, Promise.resolve(DONE)])),
+    );
   }
 
   async flushFloating(id: string): Promise<void> {
@@ -386,6 +423,8 @@ class RealWorld {
 class DualWorld {
   readonly model = new ModelWorld();
   readonly real: RealWorld;
+  /** Traversed read/emission paths, for deterministic aggregate assertions. */
+  readonly paths = new Set<string>();
 
   constructor(runId: string) {
     this.real = new RealWorld(runId);
@@ -407,6 +446,7 @@ class DualWorld {
     if (this.model.completed) {
       expect(() => this.real.emit(delivery, value)).toThrow(/complete/i);
       expect(this.real.sink).toHaveLength(this.model.sink.length);
+      this.paths.add('emit-throws');
       return;
     }
     this.real.emit(delivery, value);
@@ -436,12 +476,15 @@ class DualWorld {
 
   /** Scheduler-path read: availability, concurrent rejection, or a parked waiter. */
   async tryRead(id: string): Promise<void> {
-    await this.real.flushFloating(id);
+    await this.real.drainSettled(id);
     if (this.model.isAvailable(id)) {
+      this.paths.add('read-available');
       await this.readAvailable(id);
     } else if (this.model.isWaiting(id)) {
+      this.paths.add('read-rejects');
       await expect(this.real.require(id).next()).rejects.toThrow(CONCURRENT_READ_ERROR);
     } else {
+      this.paths.add('read-parks');
       this.model.park(id);
       this.real.park(id);
     }
@@ -450,11 +493,11 @@ class DualWorld {
   async settle(status: CompletionStatus): Promise<void> {
     if (!this.model.completed) this.complete(status);
     // Completion resolves every parked waiter, so floatings settle here.
-    await this.real.flushAllFloating();
+    await settleSoon(this.real.flushAllFloating(), 'floating reads');
     for (const id of [...this.model.observers.keys()].sort()) {
       while (true) {
         const expected = this.model.readAvailable(id);
-        const actual = await readOutcome(this.real.require(id));
+        const actual = await settleSoon(readOutcome(this.real.require(id)), `drain for ${id}`);
         this.real.record(id, actual);
         expect(actual).toEqual(expected);
         if (expected.kind === 'done') break;
@@ -463,10 +506,34 @@ class DualWorld {
     expect(this.real.live).toEqual(this.model.live);
     for (const [id, observer] of this.model.observers) {
       expect(this.real.observed.get(id)).toEqual(observer.received);
+      expect(this.real.archived.get(id) ?? []).toEqual(observer.generations);
+      for (const generation of [observer.received, ...observer.generations]) {
+        assertObserverWellFormed(generation);
+      }
     }
     expect(this.real.sink.map(project)).toEqual(this.model.sink);
     assertSinkContiguous(this.real.sink.map(project));
-    for (const outcomes of this.real.observed.values()) assertObserverWellFormed(outcomes);
+  }
+}
+
+/**
+ * Fail fast with a deadlock diagnosis instead of hanging to the test timeout:
+ * every awaited harness promise resolves within milliseconds unless a defect
+ * (or mutant) broke waiter resolution.
+ */
+async function settleSoon<T>(promise: Promise<T>, what: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => {
+          reject(new Error(`Deadlock suspected while awaiting ${what}`));
+        }, 10_000);
+      }),
+    ]);
+  } finally {
+    clearTimeout(timer);
   }
 }
 
@@ -475,6 +542,9 @@ function assertSinkContiguous(sink: ObservedEvent[]): void {
 }
 
 function assertObserverWellFormed(outcomes: ObservedOutcome[]): void {
+  // Archived generations are prefixes that may end mid-stream; only the
+  // trailing-done shape is invariant: no event may follow a done, sequences
+  // increase, and the terminal event (when present) comes last.
   const sequences: number[] = [];
   let seenTerminal = false;
   let seenDone = false;
@@ -483,13 +553,11 @@ function assertObserverWellFormed(outcomes: ObservedOutcome[]): void {
       seenDone = true;
       continue;
     }
-    // Reads after termination always resolve done; only the trailing run is kept.
     expect(seenDone).toBe(false);
     expect(seenTerminal).toBe(false);
     sequences.push(outcome.event.sequence);
     if (outcome.event.type === 'promptiris.run.completed') seenTerminal = true;
   }
-  expect(seenDone).toBe(true);
   expect([...sequences].sort((a, b) => a - b)).toEqual(sequences);
 }
 
@@ -562,7 +630,10 @@ class DisposeCommand implements WorldCommand {
   constructor(private readonly id: string) {}
 
   check(model: ModelWorld): boolean {
-    return model.live.has(this.id);
+    // Live subscriptions dispose mid-run; completed runs also dispose swept
+    // subscriptions, which must still drain their retained queues (close is a
+    // no-op on them, so disposal must not discard).
+    return model.observers.has(this.id) && (model.live.has(this.id) || model.completed);
   }
 
   async run(world: DualWorld): Promise<void> {
@@ -672,39 +743,57 @@ async function executeSchedule(
   scheduler: Scheduler,
   runId: string,
   observers: readonly { id: string; capacity: number }[],
-  prePark: readonly string[],
   ops: readonly ScheduledOp[],
-): Promise<void> {
+): Promise<DualWorld> {
   const world = new DualWorld(runId);
   for (const { id, capacity } of observers) world.subscribe(id, capacity);
-  for (const id of prePark) {
-    world.model.park(id);
-    world.real.park(id);
-  }
-  const tasks = ops.map((op) => scheduler.scheduleFunction(() => applyScheduledOp(world, op))());
-  const finish = scheduler.scheduleFunction(() => {
-    world.complete('success');
-    return Promise.resolve();
-  })();
+  // One single-item sequence per operation: unlike scheduleFunction (which
+  // invokes eagerly in call order), sequence builders run at trigger time, so
+  // the scheduler genuinely permutes execution order across runs.
+  for (const op of ops) scheduler.scheduleSequence([() => applyScheduledOp(world, op)]);
   await scheduler.waitIdle();
-  await Promise.all([...tasks, finish]);
   expect(scheduler.count()).toBe(0);
-  await world.settle('success');
+  return world;
 }
 
+/** Scheduler-permuted lockstep run with deterministic completion teardown. */
 async function runScheduled(
   runId: string,
   observers: readonly { id: string; capacity: number }[],
   opsArb: fc.Arbitrary<readonly ScheduledOp[]>,
   numRuns: number,
-  prePark: readonly string[] = [],
 ): Promise<void> {
   await fc.assert(
-    fc.asyncProperty(fc.scheduler(), opsArb, (scheduler, ops) =>
-      executeSchedule(scheduler, runId, observers, prePark, ops),
-    ),
+    fc.asyncProperty(fc.scheduler(), opsArb, async (scheduler, ops) => {
+      const world = await executeSchedule(scheduler, runId, observers, ops);
+      await world.settle('success');
+    }),
     { numRuns },
   );
+}
+
+/** Exhaustive explicit-permutation lockstep run (deterministic, no roulette). */
+async function runPermutations(
+  runIdPrefix: string,
+  observers: readonly { id: string; capacity: number }[],
+  prePark: readonly string[],
+  permutations: readonly (readonly ScheduledOp[])[],
+  settleStatus: CompletionStatus,
+): Promise<DualWorld[]> {
+  const worlds: DualWorld[] = [];
+  let index = 0;
+  for (const ops of permutations) {
+    const world = new DualWorld(`${runIdPrefix}-${String(index++)}`);
+    for (const { id, capacity } of observers) world.subscribe(id, capacity);
+    for (const id of prePark) {
+      world.model.park(id);
+      world.real.park(id);
+    }
+    for (const op of ops) await applyScheduledOp(world, op);
+    await world.settle(settleStatus);
+    worlds.push(world);
+  }
+  return worlds;
 }
 
 const scheduledOpArb = (ids: readonly string[]): fc.Arbitrary<ScheduledOp> =>
@@ -727,6 +816,30 @@ const SCHEDULED_IDS = ['sched-left', 'sched-right'] as const;
 function outcomeTypes(outcomes: ObservedOutcome[] | undefined): string[] {
   if (outcomes === undefined) throw new Error('Expected recorded observer outcomes');
   return outcomes.map((outcome) => (outcome.kind === 'done' ? 'done' : outcome.event.type));
+}
+
+/** Establish an indexed outcome as defined (Stryker-checker safe access). */
+function at(outcomes: ObservedOutcome[], index: number): ObservedOutcome {
+  const outcome = outcomes[index];
+  if (outcome === undefined) throw new Error(`Missing outcome at index ${String(index)}`);
+  return outcome;
+}
+
+function permutationsOf<T>(items: readonly T[]): T[][] {
+  if (items.length === 0) return [[]];
+  const [head, ...tail] = items;
+  if (head === undefined) return [[]];
+  const result: T[][] = [];
+  for (const tailPermutation of permutationsOf(tail)) {
+    for (let index = 0; index <= tailPermutation.length; index++) {
+      result.push([
+        ...tailPermutation.slice(0, index),
+        head,
+        ...tailPermutation.slice(index),
+      ]);
+    }
+  }
+  return result;
 }
 
 describe('EventDispatcher concurrency', () => {
@@ -793,11 +906,11 @@ describe('EventDispatcher concurrency', () => {
       'promptiris.run.completed',
       'done',
     ]);
-    expect(healthyOutcomes[2]).toMatchObject({
+    expect(at(healthyOutcomes, 2)).toMatchObject({
       kind: 'event',
       event: { observer: 'lagging', delivery: 'critical' },
     });
-    expect(healthyOutcomes[4]).toMatchObject({
+    expect(at(healthyOutcomes, 4)).toMatchObject({
       kind: 'event',
       event: { observer: 'lagging', delivery: 'critical' },
     });
@@ -812,19 +925,24 @@ describe('EventDispatcher concurrency', () => {
     assertSinkContiguous(sink.map(project));
   });
 
-  it('rejects the read that loses a scheduled race', { timeout: 60_000 }, async () => {
-    const read = (id: string): ScheduledOp => ({ kind: 'read', id });
-    await runScheduled(
+  it('rejects the read that loses every race order', async () => {
+    const read: ScheduledOp = { kind: 'read', id: 'racer' };
+    const emit: ScheduledOp = { kind: 'emit', delivery: 'critical', value: 1 };
+    // The two reads are behaviorally identical, so deduplicate orders.
+    const orders = [...new Map(permutationsOf([read, read, emit]).map((ops) => [JSON.stringify(ops), ops])).values()];
+    expect(orders).toHaveLength(3);
+    const worlds = await runPermutations(
       'run-read-race',
       [{ id: 'racer', capacity: 1 }],
-      fc.constant<readonly ScheduledOp[]>([
-        read('racer'),
-        read('racer'),
-        { kind: 'emit', delivery: 'critical', value: 1 },
-        { kind: 'complete', status: 'success' },
-      ]),
-      100,
+      [],
+      orders,
+      'success',
     );
+    // Exactly the order that parks the first read before the second runs
+    // traverses the concurrent-read rejection; every order settles exactly.
+    const rejecting = worlds.filter((world) => world.paths.has('read-rejects'));
+    expect(rejecting).toHaveLength(1);
+    for (const world of worlds) expect(world.paths.has('read-parks')).toBe(true);
   });
 
   it('isolates a selective sink failure mid-delivery', async () => {
@@ -860,23 +978,41 @@ describe('EventDispatcher concurrency', () => {
       'promptiris.run.completed',
       'done',
     ]);
-    expect(outcomes[3]).toMatchObject({
+    expect(at(outcomes, 3)).toMatchObject({
       kind: 'event',
       event: { status: 'degraded', delivery: 'critical' },
     });
   });
 
-  it('orders a parked read against a scheduled complete-versus-emit race', { timeout: 60_000 }, async () => {
-    await runScheduled(
+  it('resolves a parked read on either side of a complete-versus-emit race', async () => {
+    const emit: ScheduledOp = { kind: 'emit', delivery: 'critical', value: 1 };
+    const complete: ScheduledOp = { kind: 'complete', status: 'cancelled' };
+    const worlds = await runPermutations(
       'run-parked-race',
       [{ id: 'parked', capacity: 2 }],
-      fc.constant<readonly ScheduledOp[]>([
-        { kind: 'emit', delivery: 'critical', value: 1 },
-        { kind: 'complete', status: 'cancelled' },
-      ]),
-      100,
       ['parked'],
+      permutationsOf([emit, complete]),
+      'cancelled',
     );
+    expect(worlds).toHaveLength(2);
+    // Emission first: the waiter observes the event, then the terminal event.
+    // Completion first: the waiter observes the terminal event and the
+    // emission is rejected as post-terminal.
+    const [emitFirst, completeFirst] = worlds;
+    if (emitFirst === undefined || completeFirst === undefined) {
+      throw new Error('Expected both race orders to run');
+    }
+    expect(outcomeTypes(emitFirst.real.observed.get('parked'))).toEqual([
+      'example.event-1',
+      'promptiris.run.completed',
+      'done',
+    ]);
+    expect(emitFirst.paths.has('emit-throws')).toBe(false);
+    expect(outcomeTypes(completeFirst.real.observed.get('parked'))).toEqual([
+      'promptiris.run.completed',
+      'done',
+    ]);
+    expect(completeFirst.paths.has('emit-throws')).toBe(true);
   });
 
   it('removes an observer disposed mid-delivery', async () => {
@@ -944,7 +1080,7 @@ describe('EventDispatcher concurrency', () => {
         'promptiris.run.completed',
         'done',
       ]);
-      expect(outcomes[2]).toMatchObject({
+      expect(at(outcomes, 2)).toMatchObject({
         kind: 'event',
         event: { status: 'success', delivery: 'critical' },
       });
