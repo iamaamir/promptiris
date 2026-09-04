@@ -1,0 +1,13 @@
+# Deterministic replay of the fast-check counterexample against the REAL
+# dispatcher (packages/core/dist). Script: /tmp/repro-resubscribe.mjs
+# Command: node /tmp/repro-resubscribe.mjs; echo "EXIT:$?"
+
+read-after-detach: done
+recorded outcome types: ["done","promptiris.run.completed","done"]
+INVARIANT VIOLATION: event after done -> assertObserverWellFormed fails
+EXIT:2
+
+# Production behavior is sane (resubscribe-after-detach allowed, terminal
+# delivered). The harness contradicts itself: SubscribeCommand.check permits
+# resubscribe of a detached id, ModelWorld.subscribe preserves the prior DONE
+# in `received`, and assertObserverWellFormed forbids any event after DONE.

@@ -1,0 +1,97 @@
+{
+  "commentDecisions": [],
+  "evidence": [
+    {
+      "checkId": "tsc-bare-lint-config",
+      "evidenceRef": "bare npx tsc -p tsconfig.lint.json --noEmit RC=0 @162233e; artifact packages/core/src/event-dispatcher.concurrency.test.ts",
+      "evidenceSha256": "670a4cdc80b05c62bed7b87dd4f4f40c65c47636b7199f0f46a7df730e05a305",
+      "status": "passed"
+    },
+    {
+      "checkId": "eslint-concurrency-test-file",
+      "evidenceRef": "npx eslint packages/core/src/event-dispatcher.concurrency.test.ts --max-warnings 0 RC=0; no eslint-disable in file",
+      "evidenceSha256": "670a4cdc80b05c62bed7b87dd4f4f40c65c47636b7199f0f46a7df730e05a305",
+      "status": "passed"
+    },
+    {
+      "checkId": "markdownlint-audit-doc",
+      "evidenceRef": "npx markdownlint docs/analysis/testing-techniques-audit.md RC=0, 0 issues",
+      "evidenceSha256": "fb4f388fe969bfa8f77419cbee11204cca56001339be56e80eb79cca0db4984d",
+      "status": "passed"
+    },
+    {
+      "checkId": "vitest-concurrency-8-tests",
+      "evidenceRef": "npx vitest run src/event-dispatcher.concurrency.test.ts in packages/core: 8 passed (model 200 runs, scheduler 100 runs, 6 deterministic incl. 2 explicit-permutation)",
+      "evidenceSha256": "670a4cdc80b05c62bed7b87dd4f4f40c65c47636b7199f0f46a7df730e05a305",
+      "status": "passed"
+    },
+    {
+      "checkId": "mutation-scores-match-doc",
+      "evidenceRef": "mutation-baseline.json (Killed 147 + Timeout 2)/160 = 93.125 -> 93.13; mutation-with-tests.json (142 + 12)/160 = 96.25; doc claims 93.13->96.25",
+      "evidenceSha256": "f7ec58521fee32a49299f01d857455da325a19955f2354c95b79ee848cf6c7fb",
+      "status": "passed"
+    },
+    {
+      "checkId": "five-claimed-kills",
+      "evidenceRef": "mutation-with-tests.json: id40 L79 BooleanLiteral->false, id44 L84 BlockStatement, id94 L122 ConditionalExpression->false, id136 L162 ConditionalExpression->false, id214 L260 ConditionalExpression->false all Killed by test 17 (model commands) with counterexamples; all Survived in baseline",
+      "evidenceSha256": "f7ec58521fee32a49299f01d857455da325a19955f2354c95b79ee848cf6c7fb",
+      "status": "passed"
+    },
+    {
+      "checkId": "six-survivors-equivalent",
+      "evidenceRef": "mutation-with-tests.json survivors id21/id23 L66 (post-shift reset always true: shift from len<=cap yields len<cap), id47 L89 (closed-enqueue unreachable: closed members removed before next deliver), id84 L114 left-operand false => false||right == right == waiting||right given waiting=>empty, id98 L127 ->true equivalent given waiting=>queue-empty invariant, id207 L254 clear() unobservable post-terminal (accepting false, no further deliver)",
+      "evidenceSha256": "bcf802ca4dfcaa409198090bc029fc452ea751ed26d0ee570738cdb30e919f83",
+      "status": "passed"
+    },
+    {
+      "checkId": "generations-archive-symmetry",
+      "evidenceRef": "ModelWorld.subscribe archives previous.received into generations and resets received; RealWorld.subscribe dispatcher-first then archives previous observed into archived on subscriptions.has; DuplicateSubscribe throws before any harness mutation; settle compares archived==generations and asserts well-formedness per generation (no post-done events, terminal last, sequences sorted)",
+      "evidenceSha256": "670a4cdc80b05c62bed7b87dd4f4f40c65c47636b7199f0f46a7df730e05a305",
+      "status": "passed"
+    },
+    {
+      "checkId": "order-mirrors-dispatcher-set",
+      "evidenceRef": "ModelWorld.order push on subscribe, removeFromOrder on dispose/report-detached/prepareTerminal-detach, clear on terminal; matches StandardEventDispatcher Set add/delete/clear including resubscribe re-append; isAddressed reads order; deliver/findLagging iterate order",
+      "evidenceSha256": "670a4cdc80b05c62bed7b87dd4f4f40c65c47636b7199f0f46a7df730e05a305",
+      "status": "passed"
+    },
+    {
+      "checkId": "scheduler-sequence-genuine-and-permutations",
+      "evidenceRef": "fast-check@4.9.0 source: scheduleFunction invokes asyncFunction(...args) eagerly at schedule time; scheduleSequence defers builders to trigger time (() => builder()); suite uses one single-item sequence per op + waitIdle + count()==0; E1 dedupes [read,read,emit] to 3 orders asserting exactly 1 read-rejects world with read-parks in all; E3 pre-parks waiter and races [emit,complete] asserting exact waiter outcomes plus emit-throws path",
+      "evidenceSha256": "670a4cdc80b05c62bed7b87dd4f4f40c65c47636b7199f0f46a7df730e05a305",
+      "status": "passed"
+    },
+    {
+      "checkId": "stryker-safe-indexing",
+      "evidenceRef": "at() helper guards every indexed matcher input (4 uses); remaining brackets are type annotations or guarded (permutationsOf head check, emitFirst/completeFirst undefined check, outcomeTypes throw, require() throws); no T|undefined flows into matchers",
+      "evidenceSha256": "670a4cdc80b05c62bed7b87dd4f4f40c65c47636b7199f0f46a7df730e05a305",
+      "status": "passed"
+    },
+    {
+      "checkId": "no-deadlock-settle-drain",
+      "evidenceRef": "settleSoon 10s fail-fast wraps flushAllFloating and drain reads; tryRead starts with drainSettled (race vs tick, never suspends on unresolved floatings); emit/complete builders sync, read builder awaits only immediately-resolvable promises or parks without awaiting floating; dispose flushes post-resolve; settle completes before flushing so parked waiters resolve",
+      "evidenceSha256": "670a4cdc80b05c62bed7b87dd4f4f40c65c47636b7199f0f46a7df730e05a305",
+      "status": "passed"
+    },
+    {
+      "checkId": "no-prod-change-and-no-dup-models",
+      "evidenceRef": "git diff 38bdf23..HEAD touches only concurrency test + audit doc; event-dispatcher.ts unchanged; 8 new tests each carry distinct failure models vs event-dispatcher.test.ts (lockstep oracle, scheduled interleavings, exact multi-stage detach drain, 3-order read race, selective sink throw, 2-order parked emit-vs-complete race, sink-reentrant mid-delivery dispose, multi-observer reentrant fanout)",
+      "evidenceSha256": "bcf802ca4dfcaa409198090bc029fc452ea751ed26d0ee570738cdb30e919f83",
+      "status": "passed"
+    }
+  ],
+  "findings": [],
+  "independent": true,
+  "producerId": "dispatcher-reviewer",
+  "residualRisks": [
+    "Audit doc concurrency paragraph still names `scheduleFunction` (line 25) while the suite uses `scheduleSequence` (test file lines ~750-754 explains scheduleFunction invokes eagerly in call order, sequences trigger at schedule time). Doc numbers (93.13->96.25, 5 kills, 6 survivors) and summary matrix are correct and markdownlint is clean; only the mechanism noun and the edge-test enumeration (omits the two explicit-permutation race tests E1/E3, attributing their paths to the scheduler run) are stale. Low documentation impact, no test impact.",
+    "Packet acceptance text still says operations ’wrapped in scheduleFunction’; implementation correctly uses per-op scheduleSequence per the eager-invocation proof (fast-check@4.9.0 source). Packet letter drifted, spirit (genuine scheduler permutation) fulfilled.",
+    "Stale round-1 artifacts remain in the evidence dir (checks.log, hardener-evidence.log @38bdf23 claiming 96.88/6 kills including L127->true). Superseded by mutation-baseline.json and mutation-with-tests.json @162233e (96.25/5 kills, L127 survived); consider archiving the stale logs to avoid confusion.",
+    "This worktree’s rtk tsc wrapper reports 97 pre-existing environment errors (node types/lib config); bare `npx tsc -p tsconfig.lint.json --noEmit` is RC=0. Wrapper-only issue, no production impact."
+  ],
+  "schemaVersion": 1,
+  "verdict": "pass",
+  "taskId": ".scratch/dispatcher-concurrency/issues/01-event-dispatcher-concurrency.md",
+  "baseRevision": "acd14fdbc125824ce838178cdea1a08e7103000f",
+  "candidateRevision": "sha256:47c28d1db2d20dbcba5953f082f5ef5182d642ff237f516db56f95792ff4d43d"
+}

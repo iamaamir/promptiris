@@ -1,0 +1,84 @@
+{
+  "role": "qa",
+  "status": "passed",
+  "sourceBlind": true,
+  "commentDecisions": [],
+  "evidence": [
+    {
+      "checkId": "packet-mapping-8-tests-1:1",
+      "evidenceRef": ".scratch/dispatcher-concurrency/issues/01-event-dispatcher-concurrency.md",
+      "evidenceSha256": "1d17cad02b03eaef8da5eb9bf1946a771ae1a3a97d9156550f31bf128df3179b",
+      "status": "passed"
+    },
+    {
+      "checkId": "concurrency-file-8/8-x3-runs",
+      "evidenceRef": "packages/core/src/event-dispatcher.concurrency.test.ts",
+      "evidenceSha256": "670a4cdc80b05c62bed7b87dd4f4f40c65c47636b7199f0f46a7df730e05a305",
+      "status": "passed"
+    },
+    {
+      "checkId": "core-suite-13-files-204-tests",
+      "evidenceRef": "packages/core/src/event-dispatcher.concurrency.test.ts",
+      "evidenceSha256": "670a4cdc80b05c62bed7b87dd4f4f40c65c47636b7199f0f46a7df730e05a305",
+      "status": "passed"
+    },
+    {
+      "checkId": "eslint-test-file-clean",
+      "evidenceRef": "packages/core/src/event-dispatcher.concurrency.test.ts",
+      "evidenceSha256": "670a4cdc80b05c62bed7b87dd4f4f40c65c47636b7199f0f46a7df730e05a305",
+      "status": "passed"
+    },
+    {
+      "checkId": "bare-tsc-lint-config-exit-0",
+      "evidenceRef": "packages/core/src/event-dispatcher.concurrency.test.ts",
+      "evidenceSha256": "670a4cdc80b05c62bed7b87dd4f4f40c65c47636b7199f0f46a7df730e05a305",
+      "status": "passed"
+    },
+    {
+      "checkId": "core-package-typecheck-exit-0",
+      "evidenceRef": "packages/core/src/event-dispatcher.concurrency.test.ts",
+      "evidenceSha256": "670a4cdc80b05c62bed7b87dd4f4f40c65c47636b7199f0f46a7df730e05a305",
+      "status": "passed"
+    },
+    {
+      "checkId": "markdownlint-audit-doc-exit-0",
+      "evidenceRef": "docs/analysis/testing-techniques-audit.md",
+      "evidenceSha256": "fb4f388fe969bfa8f77419cbee11204cca56001339be56e80eb79cca0db4984d",
+      "status": "passed"
+    },
+    {
+      "checkId": "mutation-96.25-5-new-kills-6-survivors",
+      "evidenceRef": ".scratch/dispatcher-concurrency/issues/01-event-dispatcher-concurrency.evidence/mutation-with-tests.json",
+      "evidenceSha256": "f7ec58521fee32a49299f01d857455da325a19955f2354c95b79ee848cf6c7fb",
+      "status": "passed"
+    },
+    {
+      "checkId": "mutation-baseline-93.13-11-survivors",
+      "evidenceRef": ".scratch/dispatcher-concurrency/issues/01-event-dispatcher-concurrency.evidence/mutation-baseline.json",
+      "evidenceSha256": "54d3259e8675576fe9bdbf806272f212f5127282f4da9ee45842fd0cda9e745a",
+      "status": "passed"
+    },
+    {
+      "checkId": "scheduler-scheduleSequence-permutes-6-of-6",
+      "evidenceRef": "packages/core/src/event-dispatcher.concurrency.test.ts",
+      "evidenceSha256": "670a4cdc80b05c62bed7b87dd4f4f40c65c47636b7199f0f46a7df730e05a305",
+      "status": "passed"
+    }
+  ],
+  "findings": [],
+  "independent": true,
+  "producerId": "dispatcher-qa",
+  "residualRisks": [
+    "SOURCE BLINDNESS: this QA never read packages/core/src/event-dispatcher.ts. All model-fidelity and mutant-label judgments rest on packet/tests/docs/evidence alone: the DualWorld lockstep compares model against real behavior at runtime (a faithful-oracle claim verified only by 3x 8/8 green runs plus exact-outcome assertions, not by source comparison), and the audit kill labels (asyncDispose delegation, return-discard flag, close early-return, complete idempotency, report branching) were matched to the 5 newly killed mutants by location/counterexample plausibility only (e.g. [complete,complete] for idempotency). taskId/baseRevision/candidateRevision omitted per QA instructions; branch dispatcher-concurrency HEAD 162233edc572e54f45864bdf2baa964c5728a5ff verified at review time.",
+    "Audit doc section 1 says operations are wrapped in scheduleFunction, but the test file uses scheduleSequence (one single-item sequence per op) plus waitIdle plus count 0 plus settle. Verified empirically with repo fast-check 4.9.0 that scheduleSequence genuinely permutes (all 6 orders of 3 ops across 100 runs) while scheduleFunction with sync-resolved promises executes only in call order, so the code exceeds the packet intent and the doc name is stale. Low severity: code comment at executeSchedule explains why; suggest doc say scheduleSequence.",
+    "Audit doc deterministic-edges bullet names 4 tests (lagging detachment, selective sink failure, mid-delivery disposal, reentrant publication) but does not mention the two explicit-permutation lockstep tests (read-race 3 orders with exactly 1 rejecting world; parked complete-versus-emit race with exact waiter outcomes on both orders); their coverage is partly attributed to the scheduler bullet. The 8-test count is still correct (1 model + 1 scheduler + 6 edges). Low severity: suggest listing all six edge/permutation tests.",
+    "Test name rejects the read that loses every race order is ambiguous: only 1 of the 3 deduplicated orders rejects (the order that parks the first read before the second runs); the other two settle with no rejection. Accurate under the parse where loses means arrives-while-parked, but a contributor may read it as rejection-in-every-order. Assertions themselves are exact (rejecting==1, every world parks). Low severity: consider rejects a concurrent read while one is parked, in every race order.",
+    "rtk tsc wrapper reports 97 pre-existing environmental errors repo-wide (missing node types, Symbol.asyncDispose lib) including 2 lines in the new test file; bare tsc -p tsconfig.lint.json --noEmit exits 0 and pnpm --filter @promptiris/core typecheck exits 0, so per QA instructions the wrapper output is environmental noise, not a regression. No production files touched; git status shows only the untracked evidence directory.",
+    "Timeouts (120s on the two property tests) and run counts (200 model runs of up to 40 commands, 100 scheduler runs of 2-12 ops) are generous relative to observed runtime (~20ms per property test, 3 consecutive green runs on fresh random seeds), and capacities 1-4 plus scheduler capacities 1-2 deliberately stress overflow/detach paths. No unjustified sleeps or magic numbers found; settleSoon 10s deadlock guard, drainSettled-vs-flushFloating split, paths tags, generations/archived mirroring, order array, and permutationsOf JSON dedupe (3 orders asserted) are all commented and justified."
+  ],
+  "schemaVersion": 1,
+  "verdict": "pass",
+  "taskId": ".scratch/dispatcher-concurrency/issues/01-event-dispatcher-concurrency.md",
+  "baseRevision": "acd14fdbc125824ce838178cdea1a08e7103000f",
+  "candidateRevision": "sha256:47c28d1db2d20dbcba5953f082f5ef5182d642ff237f516db56f95792ff4d43d"
+}
