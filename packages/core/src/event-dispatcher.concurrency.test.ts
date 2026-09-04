@@ -49,8 +49,7 @@ function project(event: Event): ObservedEvent {
 }
 
 type ObservedOutcome =
-  | { readonly kind: 'event'; readonly event: ObservedEvent }
-  | { readonly kind: 'done' };
+  { readonly kind: 'event'; readonly event: ObservedEvent } | { readonly kind: 'done' };
 
 async function readOutcome(subscription: EventSubscription): Promise<ObservedOutcome> {
   const result = await subscription.next();
@@ -103,8 +102,7 @@ class ModelWorld {
     // A resubscribed id starts a new generation: the dispatcher's set drops
     // detached/disposed members and re-appends them, so prior history is
     // archived rather than extended.
-    const generations =
-      previous === undefined ? [] : [...previous.generations, previous.received];
+    const generations = previous === undefined ? [] : [...previous.generations, previous.received];
     this.observers.set(id, {
       id,
       capacity,
@@ -387,9 +385,7 @@ class RealWorld {
   async drainSettled(id: string): Promise<void> {
     const pending = this.floating.get(id);
     if (pending === undefined) return;
-    await Promise.all(
-      pending.map((outcome) => Promise.race([outcome, Promise.resolve(DONE)])),
-    );
+    await Promise.all(pending.map((outcome) => Promise.race([outcome, Promise.resolve(DONE)])));
   }
 
   async flushFloating(id: string): Promise<void> {
@@ -808,7 +804,10 @@ const scheduledOpArb = (ids: readonly string[]): fc.Arbitrary<ScheduledOp> =>
         .map(({ delivery, value }) => ({ kind: 'emit', delivery, value }) as const),
     },
     { weight: 4, arbitrary: fc.constantFrom(...ids).map((id) => ({ kind: 'read', id }) as const) },
-    { weight: 1, arbitrary: completionStatusArb.map((status) => ({ kind: 'complete', status }) as const) },
+    {
+      weight: 1,
+      arbitrary: completionStatusArb.map((status) => ({ kind: 'complete', status }) as const),
+    },
   );
 
 const SCHEDULED_IDS = ['sched-left', 'sched-right'] as const;
@@ -832,41 +831,45 @@ function permutationsOf<T>(items: readonly T[]): T[][] {
   const result: T[][] = [];
   for (const tailPermutation of permutationsOf(tail)) {
     for (let index = 0; index <= tailPermutation.length; index++) {
-      result.push([
-        ...tailPermutation.slice(0, index),
-        head,
-        ...tailPermutation.slice(index),
-      ]);
+      result.push([...tailPermutation.slice(0, index), head, ...tailPermutation.slice(index)]);
     }
   }
   return result;
 }
 
 describe('EventDispatcher concurrency', () => {
-  it('matches the observer model across generated command sequences', { timeout: 120_000 }, async () => {
-    await fc.assert(
-      fc.asyncProperty(fc.array(commandArb, { maxLength: 40 }), async (commands) => {
-        const world = new DualWorld('run-model');
-        for (const command of commands) {
-          if (command.check(world.model)) await command.run(world);
-        }
-        await world.settle('success');
-      }),
-      { numRuns: 200 },
-    );
-  });
+  it(
+    'matches the observer model across generated command sequences',
+    { timeout: 120_000 },
+    async () => {
+      await fc.assert(
+        fc.asyncProperty(fc.array(commandArb, { maxLength: 40 }), async (commands) => {
+          const world = new DualWorld('run-model');
+          for (const command of commands) {
+            if (command.check(world.model)) await command.run(world);
+          }
+          await world.settle('success');
+        }),
+        { numRuns: 200 },
+      );
+    },
+  );
 
-  it('preserves per-observer order under scheduled interleavings', { timeout: 120_000 }, async () => {
-    await runScheduled(
-      'run-scheduled',
-      [
-        { id: 'sched-left', capacity: 1 },
-        { id: 'sched-right', capacity: 2 },
-      ],
-      fc.array(scheduledOpArb(SCHEDULED_IDS), { minLength: 2, maxLength: 12 }),
-      100,
-    );
-  });
+  it(
+    'preserves per-observer order under scheduled interleavings',
+    { timeout: 120_000 },
+    async () => {
+      await runScheduled(
+        'run-scheduled',
+        [
+          { id: 'sched-left', capacity: 1 },
+          { id: 'sched-right', capacity: 2 },
+        ],
+        fc.array(scheduledOpArb(SCHEDULED_IDS), { minLength: 2, maxLength: 12 }),
+        100,
+      );
+    },
+  );
 
   it('detaches a lagging observer while the healthy observer drains exactly', async () => {
     const sink: Event[] = [];
@@ -929,7 +932,11 @@ describe('EventDispatcher concurrency', () => {
     const read: ScheduledOp = { kind: 'read', id: 'racer' };
     const emit: ScheduledOp = { kind: 'emit', delivery: 'critical', value: 1 };
     // The two reads are behaviorally identical, so deduplicate orders.
-    const orders = [...new Map(permutationsOf([read, read, emit]).map((ops) => [JSON.stringify(ops), ops])).values()];
+    const orders = [
+      ...new Map(
+        permutationsOf([read, read, emit]).map((ops) => [JSON.stringify(ops), ops]),
+      ).values(),
+    ];
     expect(orders).toHaveLength(3);
     const worlds = await runPermutations(
       'run-read-race',
