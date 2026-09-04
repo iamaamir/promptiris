@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "producerId": "point-action-reviewer",
+  "independent": true,
+  "verdict": "pass",
+  "findings": [],
+  "commentDecisions": [],
+  "evidence": [
+    {
+      "checkId": "review.contract-scope",
+      "status": "passed",
+      "evidenceRef": ".scratch/agent-guidance/issues/01-point-of-action.md",
+      "evidenceSha256": "35f471fa27410a259d96d630e5876cc8fae956184b4ec2c86be523f041768ff6"
+    },
+    {
+      "checkId": "review.stage-checklist-ordering",
+      "status": "passed",
+      "evidenceRef": "scripts/agent-work",
+      "evidenceSha256": "fd488a23f290b492edc8de95223b483d12d08872d96e822f19a1df9e5270f749"
+    },
+    {
+      "checkId": "review.stage-failure-path",
+      "status": "passed",
+      "evidenceRef": "tooling/quality/agent-work.test.sh",
+      "evidenceSha256": "f01c341b93f8a9cb23872ff2efa0aef8a9e0d7e842eabddc97b09475391c922f"
+    },
+    {
+      "checkId": "review.environment-additive",
+      "status": "passed",
+      "evidenceRef": "scripts/agent-context",
+      "evidenceSha256": "68590576afbf00773ca17efe1ae276b6369f604730c039b1234018ac982ffb2c"
+    },
+    {
+      "checkId": "review.context-tests",
+      "status": "passed",
+      "evidenceRef": "tooling/quality/agent-context.test.sh",
+      "evidenceSha256": "503b05404856af8a295f5ff0fc4d373f18b29bd3a2992e7d6aa6de83a8678c71"
+    },
+    {
+      "checkId": "review.preflight-semantics",
+      "status": "passed",
+      "evidenceRef": "scripts/verify-candidate",
+      "evidenceSha256": "5520194bc1c724e66848740b7e09c93e823999aef780094cf273699033e9ffbf"
+    },
+    {
+      "checkId": "review.no-hosting-coupling",
+      "status": "passed",
+      "evidenceRef": "CONTRIBUTING.md",
+      "evidenceSha256": "4cc5bf411f62f677d121976ec917a435f18aedcf200d722be6312239121061d9"
+    }
+  ],
+  "residualRisks": [
+    "Full candidate verification (verify-candidate --ci/--full, mutation gate) was not executed by this review; merge still requires green candidate/full verification per packet acceptance.",
+    "Review validated the stage-checklist success path in an isolated fixture; live claim transitions on this branch were deliberately not exercised to avoid mutating review state."
+  ],
+  "taskId": ".scratch/agent-guidance/issues/01-point-of-action.md",
+  "baseRevision": "37c68536424773bee4e5d4b6d2e37e87d208f6f8",
+  "candidateRevision": "sha256:6e012e36620e47b3806e27b3576fd840dc193c4aa87429566cea4badbe51faed"
+}

@@ -10,6 +10,19 @@ started_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 started_ms="$(node -e 'process.stdout.write(String(Date.now()))')"
 gate_ids=()
 
+preflight_missing=0
+if [[ ! -x "$repo_root/.tools/bin/gopls" ]] && ! command -v gopls >/dev/null 2>&1; then
+  printf 'FAIL preflight: gopls is missing (the lsp gate needs it); run scripts/bootstrap-tools\n' >&2
+  preflight_missing=1
+fi
+if [[ "$profile" == "--ci" || "$profile" == "--full" ]] && ! command -v gitleaks >/dev/null 2>&1; then
+  printf 'FAIL preflight: gitleaks is required for %s; run scripts/bootstrap-tools\n' "$profile" >&2
+  preflight_missing=1
+fi
+if (( preflight_missing )); then
+  exit 1
+fi
+
 run_check() {
   local name="$1"
   local provider="$2"
