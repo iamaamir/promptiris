@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "roles": {
+    "reviewer": {
+      "promptId": "reviewer-v1",
+      "prompt": "tooling/roles/prompts/reviewer.md",
+      "promptDigest": "sha256:d0f79218b58d7f7d005a9e092519b087febfc47cbcaf26ed0b766be081ba110e"
+    },
+    "hardener": {
+      "promptId": "hardener-v1",
+      "prompt": "tooling/roles/prompts/hardener.md",
+      "promptDigest": "sha256:14a5efd948d118448a68e4bcd97bf97f66ef753add31cb6d0ca3d34b0bfe2e99"
+    },
+    "qa": {
+      "promptId": "qa-v1",
+      "prompt": "tooling/roles/prompts/qa.md",
+      "promptDigest": "sha256:0a7051b71c5e25d562fbed9922209652a4e24cf6858b961acf594b68d82a0764"
+    }
+  },
+  "issuers": ["promptiris.host", "promptiris.maintainer"],
+  "verifiers": ["promptiris.role-verifier"]
+}

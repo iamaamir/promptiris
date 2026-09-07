@@ -36,6 +36,11 @@
     "baseRevision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
     "candidateRevision": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
     "producerId": { "type": "string", "minLength": 1 },
+    "attemptId": { "type": "string", "pattern": "^attempt-[A-Za-z0-9._-]+$" },
+    "parentInvocationId": { "type": "string", "minLength": 1 },
+    "promptDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "inputManifestDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "attestationDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
     "status": { "enum": ["passed", "failed"] },
     "sourceBlind": { "type": "boolean" },
     "scenarios": {

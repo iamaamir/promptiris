@@ -5,9 +5,12 @@ repository_root="$(git rev-parse --show-toplevel)"
 workspace="$(mktemp -d "${TMPDIR:-/tmp}/promptiris-candidate-finalize-test.XXXXXX")"
 trap 'rm -rf "$workspace"' EXIT
 repo="$workspace/repo"
-mkdir -p "$repo/scripts" "$repo/.scratch/test/issues/01-test.evidence" "$repo/.agent/claims"
+mkdir -p "$repo/scripts" "$repo/tooling/quality" "$repo/.scratch/test/issues/01-test.evidence" "$repo/.agent/claims"
 cp "$repository_root/scripts/finalize-candidate.mjs" "$repository_root/scripts/bind-role-evidence.mjs" \
   "$repo/scripts/"
+cp "$repository_root/tooling/quality/role-evidence-policy.mjs" \
+  "$repository_root/tooling/quality/evidence-file.mjs" "$repo/tooling/quality/"
+ln -s "$repository_root/node_modules" "$repo/node_modules"
 git -C "$repo" init -q
 git -C "$repo" config user.email test@example.test
 git -C "$repo" config user.name test
@@ -63,29 +66,14 @@ jq --argjson expiresAtEpochMs "$active_claim_expiry" '.expiresAtEpochMs = $expir
   .agent/claims/isolated-task.json >claim.json
 mv claim.json .agent/claims/isolated-task.json
 
-PROMPTIRIS_AGENT_ROOT="$repo/.agent" PROMPTIRIS_BASE_REVISION="$head" node scripts/bind-role-evidence.mjs reviewer >/dev/null
-jq -e '.taskId == ".scratch/test/issues/01-test.md" and (.candidateRevision | test("^sha256:[0-9a-f]{64}$"))' .scratch/test/issues/01-test.evidence/reviewer.json >/dev/null
-
-git add .scratch/test/issues/01-test.evidence/reviewer.json
-git commit -qm 'record evidence'
-PROMPTIRIS_AGENT_ROOT="$repo/.agent" PROMPTIRIS_BASE_REVISION="$head" node scripts/finalize-candidate.mjs check .scratch/test/issues/01-test.md >/dev/null
-
-cat >.scratch/test/issues/01-test.evidence/hardener.json <<'EOF'
-{"schemaVersion":1,"role":"hardener","producerId":"hardener","status":"passed","scenarios":["test"],"evidence":[]}
-EOF
-PROMPTIRIS_AGENT_ROOT="$repo/.agent" PROMPTIRIS_BASE_REVISION="$head" node scripts/bind-role-evidence.mjs hardener >/dev/null
-git add .scratch/test/issues/01-test.evidence/hardener.json
-git commit -qm 'record hardener evidence'
-cat >.scratch/test/issues/01-test.evidence/qa.json <<'EOF'
-{"schemaVersion":1,"role":"qa","producerId":"qa","status":"passed","sourceBlind":true,"scenarios":["test"],"evidence":[]}
-EOF
-PROMPTIRIS_AGENT_ROOT="$repo/.agent" PROMPTIRIS_BASE_REVISION="$head" node scripts/bind-role-evidence.mjs qa >/dev/null
-git add .scratch/test/issues/01-test.evidence/qa.json
-git commit -qm 'record qa evidence'
 if PROMPTIRIS_AGENT_ROOT="$repo/.agent" PROMPTIRIS_BASE_REVISION="$head" node scripts/bind-role-evidence.mjs reviewer >/dev/null 2>&1; then
-  echo 'identified report unexpectedly rebound' >&2
+  echo 'legacy self-authored report unexpectedly bound without an attempt ledger' >&2
   exit 1
 fi
+
+git add .scratch/test/issues/01-test.evidence/reviewer.json
+git commit -qm 'record unbound evidence fixture'
+PROMPTIRIS_AGENT_ROOT="$repo/.agent" PROMPTIRIS_BASE_REVISION="$head" node scripts/finalize-candidate.mjs check .scratch/test/issues/01-test.md >/dev/null
 
 printf 'second\n' >source.txt
 git add source.txt

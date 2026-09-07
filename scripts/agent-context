@@ -90,6 +90,16 @@ else
 fi
 
 echo
+echo '## INDEPENDENT ROLES'
+if [[ -x "$worktree_root/scripts/agent-role" ]]; then
+  if ! PROMPTIRIS_AGENT_ROOT="$agent_root" "$worktree_root/scripts/agent-role" status; then
+    echo 'role status failed; follow the printed Next action'
+  fi
+else
+  echo 'role interface unavailable'
+fi
+
+echo
 echo '## LAST OBSERVED CURRENT-WORKTREE TRACE'
 last_trace="$(node -e '
   const fs = require("node:fs");
