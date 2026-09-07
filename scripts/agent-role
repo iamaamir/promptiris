@@ -214,6 +214,11 @@ const changedPaths = (context, candidate) =>
 
 const stateReference = (context, path) => relative(context.sharedRoot, path);
 
+const resolvedInputPath = (context, reference) =>
+  reference.startsWith('.agent/')
+    ? resolve(context.sharedRoot, reference)
+    : resolve(context.root, reference);
+
 const trackedTypeScriptSources = async (context) => {
   const paths = git(context.root, ['ls-files', '*.ts', '*.tsx', '*.mts', '*.cts'])
     .split('\n')
@@ -403,7 +408,21 @@ const prepare = async (context, role, arguments_) => {
     await atomicJson(ledgerPath, ledger);
   });
   process.stdout.write(
-    `${JSON.stringify({ attemptId, manifestRef: manifestPath, next: `run ${role} using the manifest, then record its attestation and report` })}\n`,
+    `${JSON.stringify({
+      attemptId,
+      manifestRef: manifestPath,
+      inputRoots: {
+        repository: context.root,
+        agentState: context.sharedRoot,
+      },
+      resolvedInputs: manifest.inputs.map(({ kind, ref, digest }) => ({
+        kind,
+        ref,
+        digest,
+        path: resolvedInputPath(context, ref),
+      })),
+      next: `run ${role} using only the resolved inputs, then record its attestation and report`,
+    })}\n`,
   );
 };
 

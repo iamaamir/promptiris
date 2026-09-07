@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { cp, mkdir, mkdtemp, readFile, symlink, writeFile } from 'node:fs/promises';
+import { cp, mkdir, mkdtemp, readFile, realpath, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import test from 'node:test';
@@ -237,6 +237,13 @@ test('role interface guides and enforces attempt preparation', async () => {
   const manifest = JSON.parse(await readFile(prepared.manifestRef, 'utf8'));
   assert.equal(manifest.manifestDigest, digestJson(withoutKey(manifest, 'manifestDigest')));
   assert.equal(manifest.producerId, 'reviewer-agent');
+  const canonicalWorkspace = await realpath(workspace);
+  assert.equal(prepared.inputRoots.repository, canonicalWorkspace);
+  assert.equal(prepared.inputRoots.agentState, canonicalWorkspace);
+  assert.equal(prepared.resolvedInputs.length, manifest.inputs.length);
+  for (const input of prepared.resolvedInputs) {
+    assert.equal(digestBytes(await readFile(input.path)), input.digest);
+  }
   const status = JSON.parse(run(workspace, ['scripts/agent-role', 'status'], { env }));
   assert.deepEqual(status.completedRoles, []);
   assert.ok(status.missingRoles.includes('reviewer'));

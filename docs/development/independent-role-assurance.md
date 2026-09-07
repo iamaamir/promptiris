@@ -7,7 +7,7 @@ Independent role Evidence proves that Reviewer, Hardener, and source-blind QA we
 1. Freeze committed implementation with `pnpm candidate:finalize -- PACKET`.
 2. Inspect missing roles with `scripts/agent-role status`.
 3. Prepare a role with `scripts/agent-role prepare ROLE PRODUCER_ID MODEL_CLASS PARENT_ID`.
-4. Give the independent invocation only the returned manifest and registered prompt.
+4. Give the independent invocation only the returned manifest, registered prompt, and `resolvedInputs`. The Host output resolves canonical `.agent/` references against the shared repository checkout and repository references against the active worktree, so workers never guess either root.
 5. If the Host cannot provide required isolation, run `scripts/agent-role unsupported ROLE REASON`. The Candidate becomes `needs-independent-roles`; a self-authored substitute cannot pass.
 6. The Host writes a native proof and normalized attestation envelope. Register it with `scripts/agent-role external ROLE ENVELOPE`.
 7. The role writes only its unbound report. Run `pnpm candidate:bind-role ROLE`; the binder injects Candidate, attempt, manifest, prompt, and attestation identity.
