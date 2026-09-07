@@ -38,6 +38,8 @@ Allowed paths:
 - `tooling/capabilities.json`
 - `tooling/quality/role-evidence-policy.mjs`
 - `tooling/quality/role-evidence-policy.test.mjs`
+- `tooling/quality/candidate-finalize.test.sh`
+- `tooling/quality/quality-stage-contract.test.mjs`
 - `tooling/roles/registry.json`
 - `tooling/roles/prompts/reviewer.md`
 - `tooling/roles/prompts/hardener.md`
