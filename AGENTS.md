@@ -19,7 +19,7 @@ Optimize for correctness and verified acceptance before efficiency. The target m
 
 - Verify every change before declaring completion. No Change Producer self-certifies, including maintainers and strong models.
 - Before editing, claim the local Work Item with `scripts/agent-work claim PACKET AGENT_ID`; concurrent writers use separate worktrees and the integration checkout stays on `main`.
-- Completion requires SHA-bound structured Reviewer, Hardener, and source-blind QA reports. A green mechanical job without those reports is incomplete. Only external maintainers decide whether to merge.
+- Completion requires SHA-bound structured Reviewer, Hardener, and source-blind QA reports produced through `scripts/agent-role`; self-authored role JSON is not Evidence. A green mechanical job without ledger-backed independent reports is incomplete. Only external maintainers decide whether to merge.
 
 ## Policy pointers
 

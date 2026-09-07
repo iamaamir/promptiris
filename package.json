@@ -44,6 +44,7 @@
     "watch:verify": "./scripts/watch-verify",
     "dashboard": "node apps/dashboard/server.mjs",
     "agent:context": "./scripts/agent-context",
+    "agent:role": "./scripts/agent-role",
     "candidate:finalize": "node scripts/finalize-candidate.mjs finalize",
     "candidate:check": "node scripts/finalize-candidate.mjs check",
     "candidate:bind-role": "node scripts/bind-role-evidence.mjs",
