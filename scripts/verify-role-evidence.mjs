@@ -310,7 +310,7 @@ for (const role of ROLE_NAMES) {
       'ROLE_REQUIRED_ATTEMPT_MISSING',
       `${role} has no authoritative completed zero-finding attempt`,
       ledgerRef,
-      `scripts/agent-role prepare ${role} <producer-id> <model-class> <parent-id>`,
+      `scripts/agent-role prepare ${role} <producer-id> <model-class> <parent-id> [host-attested|maintainer-attested]`,
     );
   }
 }
@@ -427,7 +427,7 @@ const verifyManifestInputs = async (role, manifest, attempt) => {
         'ROLE_REVIEWER_CONTEXT_INCOMPLETE',
         'Reviewer input omits affected context or frozen Candidate Evidence',
         manifest.promptRef,
-        'scripts/agent-role prepare reviewer <producer-id> <model-class> <parent-id>',
+        'scripts/agent-role prepare reviewer <producer-id> <model-class> <parent-id> [host-attested|maintainer-attested]',
       );
     }
     await verifyGateEvidence(
@@ -463,7 +463,7 @@ const verifyManifestInputs = async (role, manifest, attempt) => {
         'ROLE_ATTACK_SURFACES_INCOMPLETE',
         'Hardener input does not cover every deterministically changed surface',
         manifest.promptRef,
-        'scripts/agent-role prepare hardener <producer-id> <model-class> <parent-id>',
+        'scripts/agent-role prepare hardener <producer-id> <model-class> <parent-id> [host-attested|maintainer-attested]',
       );
     }
     await verifyGateEvidence(role, attempt, expectedEvidence, attack?.candidate?.headRevision);

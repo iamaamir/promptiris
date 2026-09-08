@@ -29,6 +29,7 @@ import {
 
 const modes = Object.freeze(['prepare', 'record', 'unsupported', 'external', 'status']);
 const modelClasses = Object.freeze(['quick', 'general', 'frontier']);
+const attestationStrengths = Object.freeze(['host-attested', 'maintainer-attested']);
 const sourceAccess = Object.freeze({
   reviewer: 'contract-diff',
   hardener: 'attack-surfaces',
@@ -559,13 +560,19 @@ const writeReportTemplate = async (role, producerId, manifest, manifestPath) => 
 };
 
 const prepare = async (context, role, arguments_) => {
-  const [producerId, modelClass, parentInvocationId] = arguments_;
-  if (!producerId || !modelClasses.includes(modelClass) || !parentInvocationId) {
+  const [producerId, modelClass, parentInvocationId, attestationStrength = 'host-attested'] =
+    arguments_;
+  if (
+    !producerId ||
+    !modelClasses.includes(modelClass) ||
+    !parentInvocationId ||
+    !attestationStrengths.includes(attestationStrength)
+  ) {
     throw new RoleError(
       'ROLE_PREPARE_USAGE',
-      'prepare requires producer identity, model class, and parent invocation ID',
+      'prepare requires producer identity, model class, parent invocation ID, and an optional supported attestation strength',
       'none',
-      `scripts/agent-role prepare ${role} <producer-id> <quick|general|frontier> <parent-id>`,
+      `scripts/agent-role prepare ${role} <producer-id> <quick|general|frontier> <parent-id> [host-attested|maintainer-attested]`,
     );
   }
   const packet = findPacket(context);
@@ -652,7 +659,7 @@ const prepare = async (context, role, arguments_) => {
       inputManifestDigest: manifest.manifestDigest,
       sourceAccessMode: sourceAccess[role],
       state: 'reserved',
-      attestationStrength: 'host-attested',
+      attestationStrength,
       toolTraceRefs: [],
       unresolvedFindingCount: 0,
       recordedAt: new Date().toISOString(),
@@ -727,7 +734,7 @@ const record = async (context, role, arguments_) => {
         'ROLE_ATTEMPT_MISSING',
         `no ${role} attempt matches ${attemptId}`,
         ledgerPath,
-        `scripts/agent-role prepare ${role} <producer-id> <model-class> <parent-id>`,
+        `scripts/agent-role prepare ${role} <producer-id> <model-class> <parent-id> [host-attested|maintainer-attested]`,
       );
     }
     const unresolvedFindingCount = Number(findingCountText);
@@ -805,7 +812,7 @@ const recordExternalAttestation = async (context, role, [envelopePath]) => {
         'ROLE_ATTESTATION_ATTEMPT_MISSING',
         'attestation does not identify a current role attempt',
         envelopePath,
-        `scripts/agent-role prepare ${role} <producer-id> <model-class> <parent-id>`,
+        `scripts/agent-role prepare ${role} <producer-id> <model-class> <parent-id> [host-attested|maintainer-attested]`,
       );
     }
     const registry = await readJson(join(context.root, 'tooling/roles/registry.json'));
@@ -877,7 +884,7 @@ const status = async (context) => {
   const missingRoles = ROLE_NAMES.filter((role) => !result.attempts.has(role));
   const nextActions = missingRoles.map(
     (role) =>
-      `scripts/agent-role prepare ${role} <producer-id> <quick|general|frontier> <parent-id>`,
+      `scripts/agent-role prepare ${role} <producer-id> <quick|general|frontier> <parent-id> [host-attested|maintainer-attested]`,
   );
   process.stdout.write(
     `${JSON.stringify(
