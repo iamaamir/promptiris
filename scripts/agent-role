@@ -78,7 +78,16 @@ const repository = () => {
 const findPacket = ({ root, branch }) => {
   const output = execFileSync(
     'rg',
-    ['-l', '--fixed-strings', `Branch: \`${branch}\``, '.scratch'],
+    [
+      '-l',
+      '--fixed-strings',
+      '--glob',
+      '*.md',
+      '--glob',
+      '!*.evidence/**',
+      `Branch: \`${branch}\``,
+      '.scratch',
+    ],
     {
       cwd: root,
       encoding: 'utf8',
