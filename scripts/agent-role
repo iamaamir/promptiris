@@ -637,6 +637,7 @@ const prepare = async (context, role, arguments_) => {
   );
   await atomicJson(manifestPath, manifest);
   const reportTemplatePath = await writeReportTemplate(role, producerId, manifest, manifestPath);
+  const reportPath = join(dirname(reportTemplatePath), 'report.json');
   const ledgerPath = join(roleDirectory(context, candidate.candidateRevision), 'ledger.json');
   await withLedgerLock(context, async () => {
     let ledger = await loadLedger(ledgerPath, context, packet, candidate);
@@ -686,7 +687,7 @@ const prepare = async (context, role, arguments_) => {
     schemaVersion: 1,
     manifestRef: manifestPath,
     reportTemplateRef: reportTemplatePath,
-    reportRef: join(context.root, evidenceDirectory, `${role}.json`),
+    reportRef: reportPath,
     resolvedInputs,
   };
   await atomicJson(accessPath, access);
@@ -696,7 +697,7 @@ const prepare = async (context, role, arguments_) => {
       manifestRef: manifestPath,
       accessRef: accessPath,
       reportTemplateRef: reportTemplatePath,
-      reportRef: join(context.root, evidenceDirectory, `${role}.json`),
+      reportRef: reportPath,
       resolvedInputs,
       next: `give only accessRef to the independent ${role}; it contains every allowed resolved input and the safe failing report path`,
     })}\n`,
