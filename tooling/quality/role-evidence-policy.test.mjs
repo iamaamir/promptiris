@@ -14,6 +14,7 @@ import {
   digestJson,
   replayLedger,
   validateAttestation,
+  validateEvidenceReference,
   validateRoleIdentities,
   validTransition,
   withoutKey,
@@ -118,6 +119,15 @@ test('attestation validation binds identity and validity window', () => {
     validateAttestation({ ...envelope, producerId: 'other' }, attempt, registry, 0)[0],
     /producerId/,
   );
+});
+
+test('evidence references reject absolute and escaping paths before reading', async () => {
+  assert.deepEqual(await validateEvidenceReference('.', '/etc/passwd', digest), [
+    'evidence reference is not repository-relative',
+  ]);
+  assert.deepEqual(await validateEvidenceReference('.', '../outside', digest), [
+    'evidence reference is not repository-relative',
+  ]);
 });
 
 test('attack surfaces are classified deterministically', () => {
@@ -244,6 +254,10 @@ test('role interface guides and enforces attempt preparation', async () => {
   for (const input of prepared.resolvedInputs) {
     assert.equal(digestBytes(await readFile(input.path)), input.digest);
   }
+  const reportTemplate = JSON.parse(await readFile(prepared.reportTemplateRef, 'utf8'));
+  assert.equal(reportTemplate.producerId, 'reviewer-agent');
+  assert.equal(reportTemplate.verdict, 'changes-required');
+  assert.equal(reportTemplate.candidateRevision, undefined);
   const status = JSON.parse(run(workspace, ['scripts/agent-role', 'status'], { env }));
   assert.deepEqual(status.completedRoles, []);
   assert.ok(status.missingRoles.includes('reviewer'));
@@ -268,6 +282,17 @@ test('role interface guides and enforces attempt preparation', async () => {
         { env, stdio: 'pipe' },
       ),
     (error) => error.stderr.includes('ROLE_LEDGER_INVALID'),
+  );
+  run(workspace, ['scripts/agent-role', 'unsupported', 'qa', 'host has no isolated workers'], {
+    env,
+  });
+  assert.throws(
+    () =>
+      run(workspace, ['scripts/agent-role', 'unsupported', 'qa', 'duplicate declaration'], {
+        env,
+        stdio: 'pipe',
+      }),
+    (error) => error.stderr.includes('ROLE_UNSUPPORTED_ALREADY_RECORDED'),
   );
 });
 
@@ -331,6 +356,24 @@ test('binding and verification require three attested independent roles', async 
       }),
     );
     const manifest = JSON.parse(await readFile(prepared.manifestRef, 'utf8'));
+    if (role === 'qa') {
+      const bundlePath = prepared.resolvedInputs.find(
+        ({ kind }) => kind === 'source-blind-bundle',
+      ).path;
+      assert.match(
+        execFileSync(join(bundlePath, 'bin/agent-role'), ['status'], {
+          cwd: bundlePath,
+          encoding: 'utf8',
+        }),
+        /roles-incomplete/,
+      );
+      assert.throws(() =>
+        execFileSync(join(bundlePath, 'bin/agent-role'), ['invalid'], {
+          cwd: bundlePath,
+          stdio: 'pipe',
+        }),
+      );
+    }
     const proofRef = `${evidenceDirectory}/${role}-proof.json`;
     const proof = `${JSON.stringify({ role, producerId })}\n`;
     await writeFile(join(workspace, proofRef), proof);
@@ -389,6 +432,17 @@ test('binding and verification require three attested independent roles', async 
             producerId,
             status: 'passed',
             ...(role === 'qa' ? { sourceBlind: true } : {}),
+            ...(role === 'hardener'
+              ? {
+                  surfaceCoverage: manifest.inputs
+                    .find(({ kind }) => kind === 'attack-surfaces')
+                    .surfaces.map(({ path }) => ({
+                      path,
+                      scenario: 'validated by fixture proof',
+                      evidenceCheckId: `${role}-proof`,
+                    })),
+                }
+              : {}),
             scenarios: [`${role} scenario`],
             evidence,
           };

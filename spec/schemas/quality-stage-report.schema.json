@@ -16,9 +16,11 @@
   ],
   "oneOf": [
     {
+      "required": ["surfaceCoverage"],
       "properties": {
         "role": { "const": "hardener" },
-        "sourceBlind": { "type": "boolean" }
+        "sourceBlind": { "type": "boolean" },
+        "surfaceCoverage": { "type": "array" }
       }
     },
     {
@@ -43,6 +45,19 @@
     "attestationDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
     "status": { "enum": ["passed", "failed"] },
     "sourceBlind": { "type": "boolean" },
+    "surfaceCoverage": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "scenario", "evidenceCheckId"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "scenario": { "type": "string", "minLength": 1 },
+          "evidenceCheckId": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
     "scenarios": {
       "type": "array",
       "minItems": 1,

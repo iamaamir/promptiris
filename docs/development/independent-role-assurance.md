@@ -7,7 +7,7 @@ Independent role Evidence proves that Reviewer, Hardener, and source-blind QA we
 1. Freeze committed implementation with `pnpm candidate:finalize -- PACKET`.
 2. Inspect missing roles with `scripts/agent-role status`.
 3. Prepare a role with `scripts/agent-role prepare ROLE PRODUCER_ID MODEL_CLASS PARENT_ID`.
-4. Give the independent invocation only the returned manifest, registered prompt, and `resolvedInputs`. The Host output resolves canonical `.agent/` references against the shared repository checkout and repository references against the active worktree, so workers never guess either root.
+4. Give the independent invocation only the returned manifest, registered prompt, `resolvedInputs`, and safe failing `reportTemplateRef`. The worker copies the template to `reportRef` and replaces its placeholders; binder-owned identity fields are never hand-authored. The Host output resolves canonical `.agent/` references against the shared repository checkout and repository references against the active worktree, so workers never guess either root.
 5. If the Host cannot provide required isolation, run `scripts/agent-role unsupported ROLE REASON`. The Candidate becomes `needs-independent-roles`; a self-authored substitute cannot pass.
 6. The Host writes a native proof and normalized attestation envelope. Register it with `scripts/agent-role external ROLE ENVELOPE`.
 7. The role writes only its unbound report. Run `pnpm candidate:bind-role ROLE`; the binder injects Candidate, attempt, manifest, prompt, and attestation identity.
@@ -21,4 +21,6 @@ Volatile artifacts live under shared `.agent/role-attempts/` state. The accepted
 
 The portable verifier checks prompt bytes, contiguous transitions, distinct identities, Candidate and manifest bindings, issuer/verifier registration, validity windows, nonce reuse, proof and report digests, Hardener surface completeness, and QA isolation declarations. Host attestations describe what their Host enforced; the repository does not claim to cryptographically prove another Host's internals.
 
-QA receives a read-only bundle of public documentation, schemas, and API reports. Source, Git metadata, and symlinks are excluded. Network, environment, and ambient-filesystem isolation remain explicit capabilities: unavailable enforcement stays visible rather than becoming false passing Evidence.
+Native proofs must be repository-relative Evidence files with the declared digest. Absolute and parent-traversal paths are rejected before file access.
+
+QA receives a read-only bundle of public documentation, schemas, API reports, black-box launchers, and machine-readable procedures. Source, Git metadata, and symlinks are excluded. Network, environment, and ambient-filesystem isolation remain explicit capabilities: unavailable enforcement stays visible rather than becoming false passing Evidence.

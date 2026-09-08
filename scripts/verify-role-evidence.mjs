@@ -12,6 +12,7 @@ import {
   digestBytes,
   digestJson,
   validateAttestation,
+  validateEvidenceReference,
   validateRoleIdentities,
   withoutKey,
 } from '../tooling/quality/role-evidence-policy.mjs';
@@ -305,6 +306,24 @@ const verifyManifestInputs = async (role, manifest) => {
       `rerun ${role}`,
     );
   }
+  if (role === 'reviewer') {
+    const reviewerContext = manifest.inputs.find(({ kind }) => kind === 'reviewer-context');
+    if (
+      !reviewerContext ||
+      reviewerContext.context?.complete !== true ||
+      canonicalJson(reviewerContext.context?.affectedSurfaces) !==
+        canonicalJson(expectedSurfaces) ||
+      reviewerContext.context?.candidate?.baseRevision !== baseRevision ||
+      reviewerContext.context?.candidate?.candidateRevision !== candidateRevision
+    ) {
+      reject(
+        'ROLE_REVIEWER_CONTEXT_INCOMPLETE',
+        'Reviewer input omits affected context or frozen Candidate Evidence',
+        manifest.promptRef,
+        'scripts/agent-role prepare reviewer <producer-id> <model-class> <parent-id>',
+      );
+    }
+  }
   if (role === 'hardener') {
     const attack = manifest.inputs.find(({ kind }) => kind === 'attack-surfaces');
     const expectedDocument = { schemaVersion: 1, complete: true, surfaces: expectedSurfaces };
@@ -394,6 +413,20 @@ const verifyRole = async (role, attempt) => {
       attempt.attestationRef,
       `rerun ${role}`,
     );
+  }
+  for (const evidence of report.evidence ?? []) {
+    for (const failure of await validateEvidenceReference(
+      root,
+      evidence.evidenceRef,
+      `sha256:${evidence.evidenceSha256}`,
+    )) {
+      reject(
+        'ROLE_REPORT_EVIDENCE_INVALID',
+        `${role} ${evidence.checkId}: ${failure}`,
+        evidence.evidenceRef,
+        `rerun ${role} and preserve repository-relative deterministic Evidence`,
+      );
+    }
   }
   if (
     digestJson(withoutKey(manifest, 'manifestDigest')) !== manifest.manifestDigest ||
@@ -495,6 +528,26 @@ const verifyRole = async (role, attempt) => {
     );
   }
   await verifyManifestInputs(role, manifest);
+  if (role === 'hardener') {
+    const coverage = report.surfaceCoverage ?? [];
+    const coveredPaths = coverage.map(({ path }) => path).sort();
+    const expectedPaths = expectedSurfaces.map(({ path }) => path).sort();
+    const passedEvidence = new Set(
+      report.evidence.filter(({ status }) => status === 'passed').map(({ checkId }) => checkId),
+    );
+    if (
+      canonicalJson(coveredPaths) !== canonicalJson(expectedPaths) ||
+      new Set(coveredPaths).size !== coveredPaths.length ||
+      coverage.some(({ evidenceCheckId }) => !passedEvidence.has(evidenceCheckId))
+    ) {
+      reject(
+        'ROLE_HARDENER_COVERAGE_INCOMPLETE',
+        'Hardener report does not bind every attack surface to passing Evidence',
+        attempt.reportRef,
+        'challenge every manifest attack surface and rerun Hardener',
+      );
+    }
+  }
   if (role === 'reviewer' && (report.verdict !== 'pass' || report.findings.length > 0)) {
     reject(
       'ROLE_REVIEW_UNRESOLVED',

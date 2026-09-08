@@ -7,6 +7,7 @@ import {
   lstat,
   mkdir,
   readFile,
+  readdir,
   rename,
   rm,
   stat,
@@ -21,6 +22,7 @@ import {
   digestJson,
   replayLedger,
   validateAttestation,
+  validateEvidenceReference,
   withoutKey,
 } from '../tooling/quality/role-evidence-policy.mjs';
 
@@ -242,12 +244,67 @@ const writeHardenerSurfaces = async (context, directory, paths) => {
   };
 };
 
+const readCandidateTraces = async (context, candidate) => {
+  const traceDirectory = join(context.agentRoot, 'traces');
+  let names = [];
+  try {
+    names = await readdir(traceDirectory);
+  } catch {
+    return [];
+  }
+  const traces = [];
+  for (const name of names.filter((candidate) => candidate.endsWith('.json')).sort()) {
+    try {
+      const trace = await readJson(join(traceDirectory, name));
+      if (
+        trace.exitCode === 0 &&
+        trace.context?.branch === context.branch &&
+        trace.context?.candidateRevision === candidate.headRevision &&
+        trace.context?.dirty === false
+      ) {
+        traces.push({
+          taskId: trace.taskId,
+          providerId: trace.providerId,
+          evidenceRef: trace.evidence?.ref,
+          evidenceDigest: trace.evidence?.sha256,
+          dirty: trace.context.dirty,
+        });
+      }
+    } catch {
+      // Ignore malformed operational traces; the verifier validates accepted Evidence separately.
+    }
+  }
+  return traces;
+};
+
+const writeReviewerContext = async (context, directory, candidate, paths) => {
+  const path = join(directory, 'reviewer-context.json');
+  const document = {
+    schemaVersion: 1,
+    complete: true,
+    affectedSurfaces: deriveAttackSurfaces(await trackedTypeScriptSources(context), paths),
+    deterministicEvidence: await readCandidateTraces(context, candidate),
+    candidate: {
+      baseRevision: candidate.baseRevision,
+      headRevision: candidate.headRevision,
+      candidateRevision: candidate.candidateRevision,
+    },
+  };
+  await atomicJson(path, document);
+  return {
+    kind: 'reviewer-context',
+    ref: stateReference(context, path),
+    digest: digestBytes(await readFile(path)),
+    context: document,
+  };
+};
+
 const qaAllowedPath = (path) =>
   /^(?:README\.md|PRODUCT\.md|CONTRIBUTING\.md|spec\/schemas\/|packages\/[^/]+\/etc\/)/.test(
     path,
   ) && !/(?:^|\/)src(?:\/|$)|(?:^|\/)\.git(?:\/|$)/.test(path);
 
-const writeQaBundle = async (context, directory) => {
+const writeQaBundle = async (context, directory, candidate) => {
   const bundleRoot = join(directory, 'qa-bundle');
   const paths = git(context.root, ['ls-files']).split('\n').filter(qaAllowedPath).sort();
   const files = [];
@@ -268,6 +325,23 @@ const writeQaBundle = async (context, directory) => {
     await chmod(destination, 0o444);
     files.push({ path, digest: digestBytes(await readFile(source)) });
   }
+  const launcherPath = join(bundleRoot, 'bin', 'agent-role');
+  const launcher = `#!/usr/bin/env node\nimport { spawnSync } from 'node:child_process';\nconst result = spawnSync(process.execPath, [${JSON.stringify(join(context.root, 'scripts/agent-role'))}, ...process.argv.slice(2)], { cwd: ${JSON.stringify(context.root)}, env: { PATH: process.env.PATH ?? '', PROMPTIRIS_AGENT_ROOT: ${JSON.stringify(context.agentRoot)}, PROMPTIRIS_BASE_REVISION: ${JSON.stringify(candidate.baseRevision)} }, stdio: 'inherit' });\nprocess.exit(result.status ?? 1);\n`;
+  await mkdir(dirname(launcherPath), { recursive: true });
+  await writeFile(launcherPath, launcher);
+  await chmod(launcherPath, 0o555);
+  files.push({ path: 'bin/agent-role', digest: digestBytes(Buffer.from(launcher)) });
+  const proceduresPath = join(bundleRoot, 'procedures.json');
+  const procedures = {
+    schemaVersion: 1,
+    commands: [
+      { id: 'status', command: './bin/agent-role status', expectedExit: 0 },
+      { id: 'invalid-mode', command: './bin/agent-role invalid', expectedExit: 1 },
+    ],
+  };
+  await atomicJson(proceduresPath, procedures);
+  await chmod(proceduresPath, 0o444);
+  files.push({ path: 'procedures.json', digest: digestBytes(await readFile(proceduresPath)) });
   await chmod(bundleRoot, 0o555);
   const capabilities = {
     sourceExcluded: true,
@@ -278,7 +352,11 @@ const writeQaBundle = async (context, directory) => {
     networkDisabled: false,
     ambientFilesystemDisabled: false,
   };
-  const bundle = { root: 'qa-bundle', files, capabilities };
+  const bundle = {
+    root: 'qa-bundle',
+    files: files.sort((left, right) => left.path.localeCompare(right.path)),
+    capabilities,
+  };
   return {
     kind: 'source-blind-bundle',
     ref: stateReference(context, bundleRoot),
@@ -303,15 +381,75 @@ const prepareInputs = async (context, candidate, packet, role, directory) => {
     stateReference(context, diffPath),
     diffPath,
   );
-  if (role === 'reviewer') return [packetInput, diffInput];
-  if (role === 'hardener') {
+  const paths = changedPaths(context, candidate);
+  if (role === 'reviewer') {
     return [
       packetInput,
       diffInput,
-      await writeHardenerSurfaces(context, directory, changedPaths(context, candidate)),
+      await writeReviewerContext(context, directory, candidate, paths),
     ];
   }
-  return [await writeQaBundle(context, directory)];
+  if (role === 'hardener') {
+    return [packetInput, diffInput, await writeHardenerSurfaces(context, directory, paths)];
+  }
+  return [await writeQaBundle(context, directory, candidate)];
+};
+
+const writeReportTemplate = async (role, producerId, manifest, manifestPath) => {
+  const manifestRef = relative(resolve('.'), manifestPath);
+  const manifestDigest = digestBytes(await readFile(manifestPath)).replace('sha256:', '');
+  const evidence = [
+    {
+      checkId: `${role}.incomplete`,
+      status: 'failed',
+      evidenceRef: manifestRef,
+      evidenceSha256: manifestDigest,
+    },
+  ];
+  const template =
+    role === 'reviewer'
+      ? {
+          schemaVersion: 1,
+          producerId,
+          independent: true,
+          verdict: 'changes-required',
+          findings: [
+            {
+              id: 'review-incomplete',
+              severity: 'blocker',
+              file: manifest.taskId,
+              line: 1,
+              summary: 'Independent review has not been completed.',
+              evidenceRef: manifestRef,
+            },
+          ],
+          commentDecisions: [],
+          evidence,
+          residualRisks: ['Replace this safe failing template with reviewed results.'],
+        }
+      : {
+          schemaVersion: 1,
+          role,
+          producerId,
+          status: 'failed',
+          ...(role === 'qa' ? { sourceBlind: true } : {}),
+          ...(role === 'hardener'
+            ? {
+                surfaceCoverage: manifest.inputs
+                  .find(({ kind }) => kind === 'attack-surfaces')
+                  .surfaces.map(({ path }, index) => ({
+                    path,
+                    scenario: 'Surface has not been challenged.',
+                    evidenceCheckId: `surface-${index + 1}`,
+                  })),
+              }
+            : {}),
+          scenarios: ['Independent role execution has not been completed.'],
+          evidence,
+        };
+  const path = join(dirname(manifestPath), 'report-template.json');
+  await atomicJson(path, template);
+  return path;
 };
 
 const prepare = async (context, role, arguments_) => {
@@ -376,6 +514,7 @@ const prepare = async (context, role, arguments_) => {
     'input-manifest.json',
   );
   await atomicJson(manifestPath, manifest);
+  const reportTemplatePath = await writeReportTemplate(role, producerId, manifest, manifestPath);
   const ledgerPath = join(roleDirectory(context, candidate.candidateRevision), 'ledger.json');
   await withLedgerLock(dirname(ledgerPath), async () => {
     let ledger = await loadLedger(ledgerPath, context, packet, candidate);
@@ -411,6 +550,8 @@ const prepare = async (context, role, arguments_) => {
     `${JSON.stringify({
       attemptId,
       manifestRef: manifestPath,
+      reportTemplateRef: reportTemplatePath,
+      reportRef: join(context.root, evidenceDirectory, `${role}.json`),
       inputRoots: {
         repository: context.root,
         agentState: context.sharedRoot,
@@ -421,7 +562,7 @@ const prepare = async (context, role, arguments_) => {
         digest,
         path: resolvedInputPath(context, ref),
       })),
-      next: `run ${role} using only the resolved inputs, then record its attestation and report`,
+      next: `copy the safe failing report template, run ${role} using only the resolved inputs, then record its attestation and report`,
     })}\n`,
   );
 };
@@ -487,6 +628,15 @@ const recordUnsupported = async (context, role, reasonParts) => {
   }
   await withLedgerLock(directory, async () => {
     const ledger = await loadLedger(ledgerPath, context, packet, candidate);
+    const prior = ledger.unsupported.find((entry) => entry.role === role);
+    if (prior) {
+      throw new RoleError(
+        'ROLE_UNSUPPORTED_ALREADY_RECORDED',
+        `${role} already has an unsupported-capability declaration for this Candidate`,
+        ledgerPath,
+        'supply registered Host Evidence or finalize the role after Candidate invalidation',
+      );
+    }
     await atomicJson(ledgerPath, {
       ...ledger,
       unsupported: [...ledger.unsupported, { role, reason, recordedAt: new Date().toISOString() }],
@@ -533,13 +683,17 @@ const recordExternalAttestation = async (context, role, [envelopePath]) => {
         `obtain a fresh registered attestation for ${attempt.attemptId}`,
       );
     }
-    const proofPath = resolve(context.root, envelope.nativeProofRef);
-    if (digestBytes(await readFile(proofPath)) !== envelope.nativeProofDigest) {
+    const proofFailures = await validateEvidenceReference(
+      context.root,
+      envelope.nativeProofRef,
+      envelope.nativeProofDigest,
+    );
+    if (proofFailures.length > 0) {
       throw new RoleError(
-        'ROLE_NATIVE_PROOF_MISMATCH',
-        'native proof bytes do not match the attestation digest',
+        'ROLE_NATIVE_PROOF_INVALID',
+        proofFailures.join('; '),
         envelope.nativeProofRef,
-        'regenerate the Host attestation from the original native proof',
+        'store the native proof inside the repository Evidence directory and regenerate the attestation',
       );
     }
     const evidenceDirectory = join(dirname(packet), `${basename(packet, '.md')}.evidence`);
