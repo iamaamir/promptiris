@@ -1,0 +1,154 @@
+{
+  "schemaVersion": 1,
+  "role": "hardener",
+  "producerId": "luna11-hardener-49",
+  "status": "passed",
+  "surfaceCoverage": [
+    {
+      "path": ".scratch/harness-integrity/issues/05-independent-roles.md",
+      "scenario": "challenged contract",
+      "evidenceCheckId": "hardener.frozen-surfaces"
+    },
+    {
+      "path": "AGENTS.md",
+      "scenario": "challenged policy",
+      "evidenceCheckId": "hardener.frozen-surfaces"
+    },
+    {
+      "path": "docs/development/independent-role-assurance.md",
+      "scenario": "challenged workflow",
+      "evidenceCheckId": "hardener.frozen-surfaces"
+    },
+    {
+      "path": "package.json",
+      "scenario": "challenged command wiring",
+      "evidenceCheckId": "hardener.frozen-surfaces"
+    },
+    {
+      "path": "scripts/agent-context",
+      "scenario": "challenged status disclosure",
+      "evidenceCheckId": "hardener.frozen-surfaces"
+    },
+    {
+      "path": "scripts/agent-role",
+      "scenario": "challenged role protocol and worker roots",
+      "evidenceCheckId": "hardener.frozen-surfaces"
+    },
+    {
+      "path": "scripts/agent-work",
+      "scenario": "challenged work state",
+      "evidenceCheckId": "hardener.frozen-surfaces"
+    },
+    {
+      "path": "scripts/bind-role-evidence.mjs",
+      "scenario": "challenged binding",
+      "evidenceCheckId": "hardener.frozen-surfaces"
+    },
+    {
+      "path": "scripts/verify-role-evidence.mjs",
+      "scenario": "challenged verification",
+      "evidenceCheckId": "hardener.frozen-surfaces"
+    },
+    {
+      "path": "spec/schemas/quality-stage-report.schema.json",
+      "scenario": "challenged report schema",
+      "evidenceCheckId": "hardener.frozen-surfaces"
+    },
+    {
+      "path": "spec/schemas/reviewer-report.schema.json",
+      "scenario": "challenged reviewer schema",
+      "evidenceCheckId": "hardener.frozen-surfaces"
+    },
+    {
+      "path": "spec/schemas/role-attempt.schema.json",
+      "scenario": "challenged attempt provenance",
+      "evidenceCheckId": "hardener.frozen-surfaces"
+    },
+    {
+      "path": "spec/schemas/role-attestation-envelope.schema.json",
+      "scenario": "challenged attestations",
+      "evidenceCheckId": "hardener.frozen-surfaces"
+    },
+    {
+      "path": "spec/schemas/role-input-manifest.schema.json",
+      "scenario": "challenged manifest binding",
+      "evidenceCheckId": "hardener.frozen-surfaces"
+    },
+    {
+      "path": "spec/schemas/role-ledger.schema.json",
+      "scenario": "challenged ledger transitions",
+      "evidenceCheckId": "hardener.frozen-surfaces"
+    },
+    {
+      "path": "tooling/capabilities.json",
+      "scenario": "challenged capabilities",
+      "evidenceCheckId": "hardener.frozen-surfaces"
+    },
+    {
+      "path": "tooling/quality/candidate-finalize.test.sh",
+      "scenario": "challenged candidate freeze",
+      "evidenceCheckId": "hardener.frozen-surfaces"
+    },
+    {
+      "path": "tooling/quality/quality-stage-contract.test.mjs",
+      "scenario": "challenged mandatory roles",
+      "evidenceCheckId": "hardener.frozen-surfaces"
+    },
+    {
+      "path": "tooling/quality/role-evidence-policy.mjs",
+      "scenario": "challenged policy gaps",
+      "evidenceCheckId": "hardener.frozen-surfaces"
+    },
+    {
+      "path": "tooling/quality/role-evidence-policy.test.mjs",
+      "scenario": "challenged adversarial tests",
+      "evidenceCheckId": "hardener.frozen-surfaces"
+    },
+    {
+      "path": "tooling/roles/prompts/hardener.md",
+      "scenario": "challenged hardener duties",
+      "evidenceCheckId": "hardener.frozen-surfaces"
+    },
+    {
+      "path": "tooling/roles/prompts/qa.md",
+      "scenario": "challenged source blindness",
+      "evidenceCheckId": "hardener.frozen-surfaces"
+    },
+    {
+      "path": "tooling/roles/prompts/reviewer.md",
+      "scenario": "challenged reviewer inputs",
+      "evidenceCheckId": "hardener.frozen-surfaces"
+    },
+    {
+      "path": "tooling/roles/registry.json",
+      "scenario": "challenged registrations",
+      "evidenceCheckId": "hardener.frozen-surfaces"
+    }
+  ],
+  "scenarios": [
+    "Challenged all declared attack surfaces and found no unresolved counterexample.",
+    "Verified worker roots are no longer disclosed through the delivered QA interface. No reproducible delivered command exposes source, Git metadata, prompt text, or forbidden context. ambientFilesystemDisabled=false remains an explicit accepted limitation."
+  ],
+  "evidence": [
+    {
+      "checkId": "hardener.worker-root-disclosure",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-ac25afed-9520-48cc-99cb-f87be1246a08/inputs/candidate.diff",
+      "evidenceSha256": "77eca65190ae0e302e29402f81749724e567533030ab85fcead7554ca1e2a450"
+    },
+    {
+      "checkId": "hardener.frozen-surfaces",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-ac25afed-9520-48cc-99cb-f87be1246a08/inputs/attack-surfaces.json",
+      "evidenceSha256": "a7e48d3f1d6dd402ddad9e7d379a5508b36cdd32b46639e159af5649695ffafe"
+    }
+  ],
+  "taskId": ".scratch/harness-integrity/issues/05-independent-roles.md",
+  "baseRevision": "35ceba57bb72c990a54b516e04af2967a7489828",
+  "candidateRevision": "sha256:8815314f8f76a03ee028b68cdc5dd2c41e63aa51f385e7c5c7f98b3be8a4a509",
+  "attemptId": "attempt-ac25afed-9520-48cc-99cb-f87be1246a08",
+  "parentInvocationId": "final-r11",
+  "promptDigest": "sha256:cfdc50a75dd9463f10906d4d676ed1bef51f5f5ae78a73777146a000ba28fa42",
+  "inputManifestDigest": "sha256:80526b7ff59e5dbab09166bf1fdfeda059a75fb968f8bc5e6ff8734096ef949c",
+  "attestationDigest": "sha256:f202664c4e4ac6e472f55f0496d83c51cd385247b2f3a5c6cdda2bc71f5adb45"
+}

@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "role": "qa",
+  "producerId": "luna11-qa-49",
+  "status": "passed",
+  "sourceBlind": true,
+  "scenarios": [
+    "happy-path: status exited 0 and included roles-incomplete",
+    "invalid-input: invalid exited 1",
+    "retry: status exited 0",
+    "recovery: status exited 0 and included roles-incomplete",
+    "limitation: ambientFilesystemDisabled=false; no forbidden-context access or exposure was observed, and no Host enforcement is claimed"
+  ],
+  "evidence": [
+    {
+      "checkId": "qa.happy-path",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-40698311-f8b3-4476-968b-c1b2b509909c/inputs/qa-bundle/procedures.json",
+      "evidenceSha256": "25448ffc9c0fc53704ad7205432e4132989af7e8037b21f38fcf9de1d25037ac"
+    },
+    {
+      "checkId": "qa.invalid-input",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-40698311-f8b3-4476-968b-c1b2b509909c/inputs/qa-bundle/procedures.json",
+      "evidenceSha256": "25448ffc9c0fc53704ad7205432e4132989af7e8037b21f38fcf9de1d25037ac"
+    },
+    {
+      "checkId": "qa.retry",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-40698311-f8b3-4476-968b-c1b2b509909c/inputs/qa-bundle/procedures.json",
+      "evidenceSha256": "25448ffc9c0fc53704ad7205432e4132989af7e8037b21f38fcf9de1d25037ac"
+    },
+    {
+      "checkId": "qa.recovery",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-40698311-f8b3-4476-968b-c1b2b509909c/inputs/qa-bundle/procedures.json",
+      "evidenceSha256": "25448ffc9c0fc53704ad7205432e4132989af7e8037b21f38fcf9de1d25037ac"
+    }
+  ],
+  "taskId": ".scratch/harness-integrity/issues/05-independent-roles.md",
+  "baseRevision": "35ceba57bb72c990a54b516e04af2967a7489828",
+  "candidateRevision": "sha256:8815314f8f76a03ee028b68cdc5dd2c41e63aa51f385e7c5c7f98b3be8a4a509",
+  "attemptId": "attempt-40698311-f8b3-4476-968b-c1b2b509909c",
+  "parentInvocationId": "final-r11",
+  "promptDigest": "sha256:33334901b05d3ee6f7ace889ee090c292c672be32f07ac243db0bfc8f6ab07d0",
+  "inputManifestDigest": "sha256:560d4e2aad4e5b54849743a9996022d4db6d44491401eb1655b7845bc641f3e6",
+  "attestationDigest": "sha256:2a934d3d123eee6db45534cdc9a8199cea91f14f71e4c3eb7a9063c29693056b"
+}

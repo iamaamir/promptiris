@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 3,
+  "traceId": "e37204bb-6951-4574-aade-78e48db277bd",
+  "runId": "verify-20260908T183545Z-28498",
+  "taskId": "verify.go-vet",
+  "providerId": "go-vet",
+  "tools": [
+    "go-vet"
+  ],
+  "executor": "env",
+  "startedAt": "2026-09-08T18:36:16Z",
+  "startedAtEpochMs": 1788892576955,
+  "durationMs": 158,
+  "exitCode": 0,
+  "context": {
+    "repositoryId": "f1c573ec8d35a233",
+    "worktreeId": "18180bae8c9a8c81",
+    "branch": "independent-roles",
+    "candidateRevision": "f9cb0b6a7908d27cf050a377fc35d04a4542a3d2",
+    "workspaceDigest": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "dirty": false,
+    "agentId": "codex-role-orchestrator"
+  },
+  "output": {
+    "rawBytes": 0,
+    "modelVisibleBytes": 199,
+    "reducedBytes": 0,
+    "estimatedRawTokens": 0,
+    "estimatedModelVisibleTokens": 50,
+    "estimatedTokensAvoided": 0,
+    "tokenEstimate": {
+      "method": "utf8_bytes_divided_by_4",
+      "version": 1
+    }
+  },
+  "evidence": {
+    "ref": ".agent/logs/tool-e37204bb-6951-4574-aade-78e48db277bd.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "redaction": {
+      "mode": "default",
+      "count": 0
+    }
+  }
+}
