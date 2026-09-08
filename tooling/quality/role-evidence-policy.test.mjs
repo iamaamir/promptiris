@@ -449,6 +449,20 @@ test('binding and verification require three attested independent roles', async 
     );
     const manifest = JSON.parse(await readFile(prepared.manifestRef, 'utf8'));
     if (role === 'qa') {
+      assert.equal(prepared.inputRoots, undefined);
+      const access = JSON.parse(
+        await readFile(
+          join(
+            workspace,
+            '.agent/role-attempts/roles-test',
+            manifest.candidateRevision.replace('sha256:', ''),
+            prepared.attemptId,
+            'access.json',
+          ),
+          'utf8',
+        ),
+      );
+      assert.equal(access.inputRoots, undefined);
       const bundlePath = prepared.resolvedInputs.find(
         ({ kind }) => kind === 'source-blind-bundle',
       ).path;

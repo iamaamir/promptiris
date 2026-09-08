@@ -691,7 +691,9 @@ const prepare = async (context, role, arguments_) => {
     manifestRef: manifestPath,
     reportTemplateRef: reportTemplatePath,
     reportRef: join(context.root, evidenceDirectory, `${role}.json`),
-    inputRoots: { repository: context.root, agentState: context.sharedRoot },
+    ...(role === 'qa'
+      ? {}
+      : { inputRoots: { repository: context.root, agentState: context.sharedRoot } }),
     resolvedInputs,
   };
   await atomicJson(accessPath, access);
@@ -702,10 +704,9 @@ const prepare = async (context, role, arguments_) => {
       accessRef: accessPath,
       reportTemplateRef: reportTemplatePath,
       reportRef: join(context.root, evidenceDirectory, `${role}.json`),
-      inputRoots: {
-        repository: context.root,
-        agentState: context.sharedRoot,
-      },
+      ...(role === 'qa'
+        ? {}
+        : { inputRoots: { repository: context.root, agentState: context.sharedRoot } }),
       resolvedInputs,
       next: `give only accessRef to the independent ${role}; it contains every allowed resolved input and the safe failing report path`,
     })}\n`,
