@@ -12,6 +12,7 @@ import {
   digestBytes,
   digestJson,
   validateAttestation,
+  validateBundleDirectory,
   validateEvidenceReference,
   validateRoleIdentities,
   withoutKey,
@@ -287,7 +288,7 @@ const typeScriptSources = new Map(
 const expectedSurfaces = deriveAttackSurfaces(typeScriptSources, changedPaths);
 const usedNonces = new Set();
 
-const verifyManifestInputs = async (role, manifest) => {
+const verifyManifestInputs = async (role, manifest, attempt) => {
   const workItem = manifest.inputs.find(({ kind }) => kind === 'work-item');
   const diff = manifest.inputs.find(({ kind }) => kind === 'candidate-diff');
   if (role !== 'qa' && workItem?.digest !== digestBytes(await readFile(packet))) {
@@ -305,6 +306,16 @@ const verifyManifestInputs = async (role, manifest) => {
       ledgerRef,
       `rerun ${role}`,
     );
+  }
+  for (const input of manifest.inputs.filter(({ kind }) => kind !== 'source-blind-bundle')) {
+    for (const failure of await validateEvidenceReference(root, input.ref, input.digest)) {
+      reject(
+        'ROLE_INPUT_EVIDENCE_INVALID',
+        `${role} ${input.kind}: ${failure}`,
+        input.ref,
+        `rerun ${role} against repository-relative frozen inputs`,
+      );
+    }
   }
   if (role === 'reviewer') {
     const reviewerContext = manifest.inputs.find(({ kind }) => kind === 'reviewer-context');
@@ -346,6 +357,15 @@ const verifyManifestInputs = async (role, manifest) => {
   if (role !== 'qa') return;
   const bundle = manifest.inputs.find(({ kind }) => kind === 'source-blind-bundle')?.bundle;
   const bundleInput = manifest.inputs.find(({ kind }) => kind === 'source-blind-bundle');
+  const expectedBundleRef = `${evidenceRelative}/role-protocol/${attempt.attemptId}/inputs/qa-bundle`;
+  if (bundleInput?.ref !== expectedBundleRef) {
+    reject(
+      'ROLE_QA_BUNDLE_LOCATION_INVALID',
+      'QA bundle is not inside its attempt-scoped Work Item Evidence directory',
+      bundleInput?.ref ?? ledgerRef,
+      'discard the bundle and rerun scripts/agent-role prepare qa',
+    );
+  }
   const required = ['sourceExcluded', 'gitMetadataExcluded', 'symlinksRejected', 'readOnlyFiles'];
   if (!bundle || required.some((capability) => bundle.capabilities[capability] !== true)) {
     reject(
@@ -370,6 +390,32 @@ const verifyManifestInputs = async (role, manifest) => {
       ledgerRef,
       'discard the bundle and rerun scripts/agent-role prepare qa',
     );
+  }
+  if (bundleInput) {
+    const bundlePath = resolve(root, bundleInput.ref);
+    for (const failure of await validateBundleDirectory(bundlePath, bundleInput.bundle?.files)) {
+      reject(
+        'ROLE_QA_BUNDLE_TREE_INVALID',
+        failure,
+        bundleInput.ref,
+        'discard the bundle and rerun scripts/agent-role prepare qa',
+      );
+    }
+    const tracked = git(['ls-files', '--', `${bundleInput.ref}/**`], { encoding: 'utf8' })
+      .trim()
+      .split('\n')
+      .filter(Boolean)
+      .map((path) => relative(bundleInput.ref, path))
+      .sort();
+    const declared = (bundleInput.bundle?.files ?? []).map(({ path }) => path).sort();
+    if (canonicalJson(tracked) !== canonicalJson(declared)) {
+      reject(
+        'ROLE_QA_BUNDLE_UNTRACKED',
+        'QA bundle files are not exactly preserved as tracked Evidence',
+        bundleInput.ref,
+        'commit the exact prepared QA bundle before verification',
+      );
+    }
   }
 };
 
@@ -527,7 +573,7 @@ const verifyRole = async (role, attempt) => {
       attestation.nativeProofDigest,
     );
   }
-  await verifyManifestInputs(role, manifest);
+  await verifyManifestInputs(role, manifest, attempt);
   if (role === 'hardener') {
     const coverage = report.surfaceCoverage ?? [];
     const coveredPaths = coverage.map(({ path }) => path).sort();

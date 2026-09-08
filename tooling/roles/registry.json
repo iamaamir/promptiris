@@ -4,17 +4,17 @@
     "reviewer": {
       "promptId": "reviewer-v1",
       "prompt": "tooling/roles/prompts/reviewer.md",
-      "promptDigest": "sha256:4bab1b88293266dd2721336de52f231d4c9c8159842d06a8a3d4dcd5a2e63696"
+      "promptDigest": "sha256:9f9597af8d9b61ed615baabc3507833005687360640d34030b00350639c900d3"
     },
     "hardener": {
       "promptId": "hardener-v1",
       "prompt": "tooling/roles/prompts/hardener.md",
-      "promptDigest": "sha256:9e4d5c457d91afb2ce04ab838b71b3a38e9a03f3b772938d764b28401a4f5365"
+      "promptDigest": "sha256:cfdc50a75dd9463f10906d4d676ed1bef51f5f5ae78a73777146a000ba28fa42"
     },
     "qa": {
       "promptId": "qa-v1",
       "prompt": "tooling/roles/prompts/qa.md",
-      "promptDigest": "sha256:59f5dee72a69a94bd62f3812eb3e907ffcfb0d293b2d6613984473493fb67032"
+      "promptDigest": "sha256:1f371a4da6563d542941a52f253d511bdbaf118a3396aa5ea183f97f6597786c"
     }
   },
   "issuers": ["promptiris.host", "promptiris.maintainer"],

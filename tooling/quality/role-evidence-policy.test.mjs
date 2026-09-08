@@ -1,6 +1,15 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { cp, mkdir, mkdtemp, readFile, realpath, symlink, writeFile } from 'node:fs/promises';
+import {
+  chmod,
+  cp,
+  mkdir,
+  mkdtemp,
+  readFile,
+  realpath,
+  symlink,
+  writeFile,
+} from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import test from 'node:test';
@@ -14,6 +23,7 @@ import {
   digestJson,
   replayLedger,
   validateAttestation,
+  validateBundleDirectory,
   validateEvidenceReference,
   validateRoleIdentities,
   validTransition,
@@ -128,6 +138,20 @@ test('evidence references reject absolute and escaping paths before reading', as
   assert.deepEqual(await validateEvidenceReference('.', '../outside', digest), [
     'evidence reference is not repository-relative',
   ]);
+});
+
+test('bundle validation requires an exact immutable regular-file tree', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'promptiris-bundle-'));
+  await writeFile(join(root, 'public.txt'), 'public\n');
+  await chmod(join(root, 'public.txt'), 0o444);
+  await chmod(root, 0o555);
+  const files = [{ path: 'public.txt', digest: digestBytes('public\n') }];
+  assert.deepEqual(await validateBundleDirectory(root, files), []);
+  assert.match(
+    (await validateBundleDirectory(root, [...files, { path: '../escape', digest }]))[0],
+    /unsafe path/,
+  );
+  assert.match((await validateBundleDirectory(root, []))[0], /file set or digest/);
 });
 
 test('attack surfaces are classified deterministically', () => {
@@ -360,16 +384,32 @@ test('binding and verification require three attested independent roles', async 
       const bundlePath = prepared.resolvedInputs.find(
         ({ kind }) => kind === 'source-blind-bundle',
       ).path;
+      const bundleInput = manifest.inputs.find(({ kind }) => kind === 'source-blind-bundle');
+      assert.equal(bundleInput.files, undefined);
+      assert.equal(
+        bundleInput.bundle.files.some(({ path }) => path.startsWith('scripts/')),
+        false,
+      );
       assert.match(
         execFileSync(join(bundlePath, 'bin/agent-role'), ['status'], {
           cwd: bundlePath,
           encoding: 'utf8',
+          env: {
+            PATH: process.env.PATH,
+            ...prepared.resolvedInputs.find(({ kind }) => kind === 'source-blind-bundle')
+              .environment,
+          },
         }),
         /roles-incomplete/,
       );
       assert.throws(() =>
         execFileSync(join(bundlePath, 'bin/agent-role'), ['invalid'], {
           cwd: bundlePath,
+          env: {
+            PATH: process.env.PATH,
+            ...prepared.resolvedInputs.find(({ kind }) => kind === 'source-blind-bundle')
+              .environment,
+          },
           stdio: 'pipe',
         }),
       );

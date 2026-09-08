@@ -9,6 +9,7 @@ import {
   digestJson,
   replayLedger,
   validateAttestation,
+  validateBundleDirectory,
   validateEvidenceReference,
   withoutKey,
 } from '../tooling/quality/role-evidence-policy.mjs';
@@ -127,6 +128,22 @@ try {
     promptDigest: attempt.promptDigest,
   })) {
     if (inputManifest[field] !== expected) throw new Error(`input manifest does not bind ${field}`);
+  }
+  const qaBundle = inputManifest.inputs.find(({ kind }) => kind === 'source-blind-bundle');
+  if (role === 'qa') {
+    if (!qaBundle) throw new Error('QA input manifest has no source-blind bundle');
+    const expectedBundleRef = relative(
+      root,
+      join(evidenceDirectory, 'role-protocol', attempt.attemptId, 'inputs', 'qa-bundle'),
+    );
+    if (qaBundle.ref !== expectedBundleRef) {
+      throw new Error('QA bundle is outside its attempt-scoped Work Item Evidence directory');
+    }
+    const bundleFailures = await validateBundleDirectory(
+      resolveReference(qaBundle.ref),
+      qaBundle.bundle?.files,
+    );
+    if (bundleFailures.length > 0) throw new Error(bundleFailures.join('; '));
   }
 
   const reportPath = join(evidenceDirectory, `${role}.json`);
