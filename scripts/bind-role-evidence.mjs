@@ -44,7 +44,7 @@ const stateDirectory = join(
   candidate.candidateRevision.replace('sha256:', ''),
 );
 const ledgerPath = join(stateDirectory, 'ledger.json');
-const lockPath = `${stateDirectory}.lock`;
+const lockPath = join(agentRoot, 'locks', 'role-ledger.lock');
 
 const atomicJson = async (path, value) => {
   await mkdir(dirname(path), { recursive: true });
@@ -54,7 +54,7 @@ const atomicJson = async (path, value) => {
 };
 
 const acquireLock = async () => {
-  await mkdir(stateDirectory, { recursive: true });
+  await mkdir(dirname(lockPath), { recursive: true });
   try {
     await mkdir(lockPath);
   } catch {
