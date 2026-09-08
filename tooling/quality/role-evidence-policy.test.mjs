@@ -123,11 +123,41 @@ test('attestation validation binds identity and validity window', () => {
     expiresAt: '2027-01-01T00:00:00.000Z',
     nonce: '0123456789abcdef',
   };
-  const registry = { issuers: ['promptiris.host'], verifiers: ['promptiris.role-verifier'] };
+  const registry = {
+    issuers: ['promptiris.host', 'promptiris.maintainer'],
+    issuerStrengths: {
+      'promptiris.host': ['host-attested'],
+      'promptiris.maintainer': ['maintainer-attested'],
+    },
+    verifiers: ['promptiris.role-verifier'],
+  };
   assert.deepEqual(validateAttestation(envelope, attempt, registry, Date.UTC(2026, 1, 1)), []);
   assert.match(
     validateAttestation({ ...envelope, producerId: 'other' }, attempt, registry, 0)[0],
     /producerId/,
+  );
+  assert.match(
+    validateAttestation(
+      { ...envelope, issuer: 'promptiris.maintainer' },
+      attempt,
+      registry,
+      Date.UTC(2026, 1, 1),
+    )[0],
+    /does not authorize/,
+  );
+  const maintainerAttempt = { ...attempt, attestationStrength: 'maintainer-attested' };
+  assert.deepEqual(
+    validateAttestation(
+      {
+        ...envelope,
+        issuer: 'promptiris.maintainer',
+        attestationStrength: 'maintainer-attested',
+      },
+      maintainerAttempt,
+      registry,
+      Date.UTC(2026, 1, 1),
+    ),
+    [],
   );
 });
 
@@ -401,10 +431,21 @@ test('binding and verification require three attested independent roles', async 
 
   for (const [index, role] of ['reviewer', 'hardener', 'qa'].entries()) {
     const producerId = `${role}-agent`;
+    const attestationStrength = role === 'qa' ? 'maintainer-attested' : 'host-attested';
     const prepared = JSON.parse(
-      run(workspace, ['scripts/agent-role', 'prepare', role, producerId, 'quick', 'parent-1'], {
-        env,
-      }),
+      run(
+        workspace,
+        [
+          'scripts/agent-role',
+          'prepare',
+          role,
+          producerId,
+          'quick',
+          'parent-1',
+          attestationStrength,
+        ],
+        { env },
+      ),
     );
     const manifest = JSON.parse(await readFile(prepared.manifestRef, 'utf8'));
     if (role === 'qa') {
@@ -450,7 +491,7 @@ test('binding and verification require three attested independent roles', async 
       `${JSON.stringify(
         {
           schemaVersion: 1,
-          issuer: 'promptiris.host',
+          issuer: role === 'qa' ? 'promptiris.maintainer' : 'promptiris.host',
           verifierId: 'promptiris.role-verifier',
           nativeProofRef: proofRef,
           nativeProofDigest: digestBytes(proof),
@@ -466,7 +507,7 @@ test('binding and verification require three attested independent roles', async 
           issuedAt: '2026-01-01T00:00:00.000Z',
           expiresAt: '2099-01-01T00:00:00.000Z',
           nonce: `${role}-nonce-000000${index}`,
-          attestationStrength: 'host-attested',
+          attestationStrength,
         },
         null,
         2,

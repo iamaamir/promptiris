@@ -131,6 +131,10 @@ export function validateAttestation(envelope, attempt, registry, now = Date.now(
   const failures = [];
   if (!registry.issuers.includes(envelope.issuer))
     failures.push('attestation issuer is not registered');
+  const authorizedStrengths = registry.issuerStrengths?.[envelope.issuer];
+  if (!authorizedStrengths?.includes(envelope.attestationStrength)) {
+    failures.push('attestation issuer does not authorize its declared strength');
+  }
   if (!registry.verifiers.includes(envelope.verifierId)) {
     failures.push('attestation verifier is not registered');
   }

@@ -18,5 +18,9 @@
     }
   },
   "issuers": ["promptiris.host", "promptiris.maintainer"],
+  "issuerStrengths": {
+    "promptiris.host": ["host-attested"],
+    "promptiris.maintainer": ["maintainer-attested"]
+  },
   "verifiers": ["promptiris.role-verifier"]
 }

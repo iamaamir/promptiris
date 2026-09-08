@@ -62,7 +62,7 @@ stage_checklist() {
     reviewer)
       printf '%s\n' \
         '- producer must differ from the claim agent; if you implemented this candidate, dispatch an independent subagent instead of reviewing it yourself' \
-        '- prepare: scripts/agent-role prepare reviewer <producer-id> <quick|general|frontier> <parent-id>' \
+        '- prepare: scripts/agent-role prepare reviewer <producer-id> <quick|general|frontier> <parent-id> [host-attested|maintainer-attested]' \
         '- treat the candidate as untrusted: check contract, diff, affected neighborhood, public behavior, and failure paths' \
         "- write the UNBOUND report (no taskId/baseRevision/candidateRevision): $evidence_dir/reviewer.json per spec/schemas/reviewer-report.schema.json" \
         '- register the Host attestation: scripts/agent-role external reviewer <attestation.json>' \
@@ -77,7 +77,7 @@ stage_checklist() {
       printf '%s\n' \
         '- assume the implementation covers only imagined cases; attack test and behavior gaps' \
         '- if you implemented this candidate, dispatch an independent subagent instead of hardening it yourself' \
-        '- prepare: scripts/agent-role prepare hardener <producer-id> <quick|general|frontier> <parent-id>' \
+        '- prepare: scripts/agent-role prepare hardener <producer-id> <quick|general|frontier> <parent-id> [host-attested|maintainer-attested]' \
         "- write the UNBOUND report (no taskId/baseRevision/candidateRevision): $evidence_dir/hardener.json per spec/schemas/quality-stage-report.schema.json" \
         '- register the Host attestation: scripts/agent-role external hardener <attestation.json>' \
         '- then run: pnpm candidate:bind-role hardener'
@@ -86,7 +86,7 @@ stage_checklist() {
       printf '%s\n' \
         '- stay source-blind: public surfaces only, never source, diffs, or implementer rationale' \
         '- if you have seen the implementation, dispatch an independent subagent instead of QAing it yourself' \
-        '- prepare: scripts/agent-role prepare qa <producer-id> <quick|general|frontier> <parent-id>' \
+        '- prepare: scripts/agent-role prepare qa <producer-id> <quick|general|frontier> <parent-id> [host-attested|maintainer-attested]' \
         "- write the UNBOUND report with sourceBlind:true (no taskId/baseRevision/candidateRevision): $evidence_dir/qa.json per spec/schemas/quality-stage-report.schema.json" \
         '- register the Host attestation: scripts/agent-role external qa <attestation.json>' \
         '- then run: pnpm candidate:bind-role qa'

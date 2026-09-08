@@ -83,7 +83,7 @@ try {
     .sort((left, right) => right.sequence - left.sequence)[0];
   if (!attempt) {
     throw new Error(
-      `no running ${role} attempt; run scripts/agent-role prepare ${role} <producer-id> <model-class> <parent-id>`,
+      `no running ${role} attempt; run scripts/agent-role prepare ${role} <producer-id> <model-class> <parent-id> [host-attested|maintainer-attested]`,
     );
   }
 
