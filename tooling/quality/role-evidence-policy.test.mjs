@@ -303,6 +303,7 @@ test('role interface guides and enforces attempt preparation', async () => {
     assert.equal(digestBytes(await readFile(input.path)), input.digest);
   }
   const reportTemplate = JSON.parse(await readFile(prepared.reportTemplateRef, 'utf8'));
+  assert.equal(prepared.reportRef, join(dirname(prepared.reportTemplateRef), 'report.json'));
   assert.equal(reportTemplate.producerId, 'reviewer-agent');
   assert.equal(reportTemplate.verdict, 'changes-required');
   assert.equal(reportTemplate.candidateRevision, undefined);
@@ -567,10 +568,7 @@ test('binding and verification require three attested independent roles', async 
             scenarios: [`${role} scenario`],
             evidence,
           };
-    await writeFile(
-      join(workspace, evidenceDirectory, `${role}.json`),
-      `${JSON.stringify(report, null, 2)}\n`,
-    );
+    await writeFile(prepared.reportRef, `${JSON.stringify(report, null, 2)}\n`);
     run(workspace, ['scripts/bind-role-evidence.mjs', role], { env });
   }
 
@@ -579,7 +577,13 @@ test('binding and verification require three attested independent roles', async 
   const output = run(workspace, ['scripts/verify-role-evidence.mjs'], { env });
   assert.match(output, /Role evidence passed/);
 
-  const reviewerPath = join(workspace, evidenceDirectory, 'reviewer.json');
+  const acceptedLedger = JSON.parse(
+    await readFile(join(workspace, evidenceDirectory, 'role-ledger.json'), 'utf8'),
+  );
+  const reviewerRef = acceptedLedger.entries.find(
+    ({ role, state }) => role === 'reviewer' && state === 'completed',
+  ).reportRef;
+  const reviewerPath = join(workspace, reviewerRef);
   const reviewer = JSON.parse(await readFile(reviewerPath, 'utf8'));
   delete reviewer.attemptId;
   await writeFile(reviewerPath, `${JSON.stringify(reviewer, null, 2)}\n`);

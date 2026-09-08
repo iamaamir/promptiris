@@ -146,7 +146,8 @@ try {
     if (bundleFailures.length > 0) throw new Error(bundleFailures.join('; '));
   }
 
-  const reportPath = join(evidenceDirectory, `${role}.json`);
+  const reportPath = resolveReference(join(dirname(attempt.inputManifestRef), 'report.json'));
+  const canonicalReportPath = join(evidenceDirectory, `${role}.json`);
   const report = JSON.parse(await readFile(reportPath, 'utf8'));
   const binding = {
     taskId: packet,
@@ -170,6 +171,7 @@ try {
     throw new Error(`report role does not match: ${role}`);
 
   await atomicJson(reportPath, report);
+  await atomicJson(canonicalReportPath, report);
 
   const unresolvedFindingCount =
     role === 'reviewer'
@@ -195,7 +197,7 @@ try {
   ledger = { ...ledger, entries };
   await atomicJson(ledgerPath, ledger);
   await atomicJson(join(evidenceDirectory, 'role-ledger.json'), ledger);
-  process.stdout.write(`${reportPath}\n`);
+  process.stdout.write(`${canonicalReportPath}\n`);
 } finally {
   await rm(lockPath, { recursive: true });
 }
