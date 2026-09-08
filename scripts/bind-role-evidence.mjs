@@ -44,7 +44,7 @@ const stateDirectory = join(
   candidate.candidateRevision.replace('sha256:', ''),
 );
 const ledgerPath = join(stateDirectory, 'ledger.json');
-const lockPath = join(agentRoot, 'locks', 'role-ledger.lock');
+const lockPath = join(commonGitDirectory, 'promptiris-locks', 'role-ledger.lock');
 
 const atomicJson = async (path, value) => {
   await mkdir(dirname(path), { recursive: true });
