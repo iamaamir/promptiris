@@ -7,7 +7,7 @@ Independent role Evidence proves that Reviewer, Hardener, and source-blind QA we
 1. Freeze committed implementation with `pnpm candidate:finalize -- PACKET`.
 2. Inspect missing roles with `scripts/agent-role status`.
 3. Prepare a role with `scripts/agent-role prepare ROLE PRODUCER_ID MODEL_CLASS PARENT_ID`.
-4. Give the independent invocation only the returned manifest, registered prompt, `resolvedInputs`, and safe failing `reportTemplateRef`. The worker copies the template to `reportRef` and replaces its placeholders; binder-owned identity fields are never hand-authored. The Host output resolves canonical `.agent/` references against the shared repository checkout and repository references against the active worktree, so workers never guess either root.
+4. Give the independent invocation only the returned absolute `accessRef`. That Host envelope resolves every allowed input, the registered manifest, the safe failing `reportTemplateRef`, and `reportRef`; workers never guess a repository or shared-state root. The worker copies the template to `reportRef` and replaces its placeholders; binder-owned identity fields are never hand-authored.
 5. If the Host cannot provide required isolation, run `scripts/agent-role unsupported ROLE REASON`. The Candidate becomes `needs-independent-roles`; a self-authored substitute cannot pass.
 6. The Host writes a native proof and normalized attestation envelope. Register it with `scripts/agent-role external ROLE ENVELOPE`.
 7. The role writes only its unbound report. Run `pnpm candidate:bind-role ROLE`; the binder injects Candidate, attempt, manifest, prompt, and attestation identity.
@@ -17,10 +17,10 @@ Every command failure prints a stable code, an Evidence reference, and an exact 
 
 ## State and trust
 
-Volatile artifacts live under shared `.agent/role-attempts/` state. The accepted append-only ledger, manifests, attestations, native proofs, and reports live under the Work Item evidence directory and are committed. Each attempt may transition only `reserved -> running -> completed|failed|invalidated`; a completed attempt may become `superseded` or `invalidated`. A changed Candidate selects a new content-addressed ledger, making old attempts non-authoritative.
+Volatile access envelopes, Host bridges, and ledgers-in-progress live under shared `.agent/role-attempts/` state. Frozen role inputs, accepted ledgers, manifests, attestations, native proofs, and reports live under the Work Item evidence directory and are committed. Each attempt may transition only `reserved -> running -> completed|failed|invalidated`; a completed attempt may become `superseded` or `invalidated`. A changed Candidate selects a new content-addressed ledger, making old attempts non-authoritative.
 
 The portable verifier checks prompt bytes, contiguous transitions, distinct identities, Candidate and manifest bindings, issuer/verifier registration, validity windows, nonce reuse, proof and report digests, Hardener surface completeness, and QA isolation declarations. Host attestations describe what their Host enforced; the repository does not claim to cryptographically prove another Host's internals.
 
 Native proofs must be repository-relative Evidence files with the declared digest. Absolute and parent-traversal paths are rejected before file access.
 
-QA receives a read-only bundle of public documentation, schemas, API reports, black-box launchers, and machine-readable procedures. Source, Git metadata, and symlinks are excluded. Network, environment, and ambient-filesystem isolation remain explicit capabilities: unavailable enforcement stays visible rather than becoming false passing Evidence.
+QA receives a read-only bundle of public documentation, schemas, API reports, a Host-bridged black-box launcher, and machine-readable procedures. The launcher contains no source-checkout path. Source, Git metadata, and symlinks are excluded. The binder and portable verifier require the exact declared file set, per-file digests, read-only permissions, and committed bundle Evidence. Procedures exercise every applicable QA category and preserve deterministic reasons for inapplicable categories. Network, environment, and ambient-filesystem isolation remain explicit capabilities: unavailable enforcement stays visible rather than becoming false passing Evidence.

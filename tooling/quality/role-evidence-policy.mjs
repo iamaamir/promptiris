@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
+import { lstat, readFile, readdir } from 'node:fs/promises';
 import { isAbsolute, posix, relative, resolve } from 'node:path';
 import ts from 'typescript';
 
@@ -170,6 +170,55 @@ export async function validateEvidenceReference(root, reference, expectedDigest)
       : ['evidence digest does not match'];
   } catch {
     return ['evidence reference is missing or unreadable'];
+  }
+}
+
+const safeBundlePath = (path) =>
+  path.length > 0 &&
+  !isAbsolute(path) &&
+  !path.split('/').includes('..') &&
+  posix.normalize(path) === path;
+
+const inspectBundleDirectory = async (root, directory = '') => {
+  const entries = [];
+  for (const entry of await readdir(resolve(root, directory), { withFileTypes: true })) {
+    const path = directory ? `${directory}/${entry.name}` : entry.name;
+    const metadata = await lstat(resolve(root, path));
+    if (metadata.isSymbolicLink()) throw new Error(`bundle contains symbolic link: ${path}`);
+    if (metadata.isDirectory()) {
+      if ((metadata.mode & 0o222) !== 0) throw new Error(`bundle directory is writable: ${path}`);
+      entries.push(...(await inspectBundleDirectory(root, path)));
+      continue;
+    }
+    if (!metadata.isFile()) throw new Error(`bundle contains non-regular file: ${path}`);
+    if ((metadata.mode & 0o222) !== 0) throw new Error(`bundle file is writable: ${path}`);
+    entries.push({ path, digest: digestBytes(await readFile(resolve(root, path))) });
+  }
+  return entries;
+};
+
+export async function validateBundleDirectory(root, declaredFiles) {
+  if (!Array.isArray(declaredFiles) || declaredFiles.some(({ path }) => !safeBundlePath(path))) {
+    return ['bundle descriptor contains an unsafe path'];
+  }
+  if (new Set(declaredFiles.map(({ path }) => path)).size !== declaredFiles.length) {
+    return ['bundle descriptor contains duplicate paths'];
+  }
+  try {
+    const metadata = await lstat(root);
+    if (metadata.isSymbolicLink() || !metadata.isDirectory()) {
+      return ['bundle root is not a regular directory'];
+    }
+    if ((metadata.mode & 0o222) !== 0) return ['bundle root is writable'];
+    const actual = (await inspectBundleDirectory(root)).sort((left, right) =>
+      left.path.localeCompare(right.path),
+    );
+    const expected = [...declaredFiles].sort((left, right) => left.path.localeCompare(right.path));
+    return canonicalJson(actual) === canonicalJson(expected)
+      ? []
+      : ['bundle file set or digest differs from its descriptor'];
+  } catch (error) {
+    return [error instanceof Error ? error.message : String(error)];
   }
 }
 

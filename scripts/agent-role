@@ -22,6 +22,7 @@ import {
   digestJson,
   replayLedger,
   validateAttestation,
+  validateBundleDirectory,
   validateEvidenceReference,
   withoutKey,
 } from '../tooling/quality/role-evidence-policy.mjs';
@@ -140,6 +141,7 @@ const loadLedger = async (path, context, packet, candidate) => {
 
 const withLedgerLock = async (directory, operation) => {
   const lock = `${directory}.lock`;
+  await mkdir(dirname(lock), { recursive: true });
   try {
     await mkdir(lock, { recursive: false });
   } catch {
@@ -214,7 +216,7 @@ const changedPaths = (context, candidate) =>
     .filter(Boolean)
     .sort();
 
-const stateReference = (context, path) => relative(context.sharedRoot, path);
+const inputReferencePath = (context, path) => relative(context.root, path);
 
 const resolvedInputPath = (context, reference) =>
   reference.startsWith('.agent/')
@@ -238,7 +240,7 @@ const writeHardenerSurfaces = async (context, directory, paths) => {
   await atomicJson(surfacePath, { schemaVersion: 1, complete: true, surfaces });
   return {
     kind: 'attack-surfaces',
-    ref: stateReference(context, surfacePath),
+    ref: inputReferencePath(context, surfacePath),
     digest: digestBytes(await readFile(surfacePath)),
     surfaces,
   };
@@ -293,7 +295,7 @@ const writeReviewerContext = async (context, directory, candidate, paths) => {
   await atomicJson(path, document);
   return {
     kind: 'reviewer-context',
-    ref: stateReference(context, path),
+    ref: inputReferencePath(context, path),
     digest: digestBytes(await readFile(path)),
     context: document,
   };
@@ -304,7 +306,7 @@ const qaAllowedPath = (path) =>
     path,
   ) && !/(?:^|\/)src(?:\/|$)|(?:^|\/)\.git(?:\/|$)/.test(path);
 
-const writeQaBundle = async (context, directory, candidate) => {
+const writeQaBundle = async (context, directory, candidate, hostDirectory) => {
   const bundleRoot = join(directory, 'qa-bundle');
   const paths = git(context.root, ['ls-files']).split('\n').filter(qaAllowedPath).sort();
   const files = [];
@@ -325,8 +327,13 @@ const writeQaBundle = async (context, directory, candidate) => {
     await chmod(destination, 0o444);
     files.push({ path, digest: digestBytes(await readFile(source)) });
   }
+  const hostExecutable = join(hostDirectory, 'agent-role-host');
+  const hostBridge = `#!/usr/bin/env node\nimport { spawnSync } from 'node:child_process';\nconst result = spawnSync(process.execPath, [${JSON.stringify(join(context.root, 'scripts/agent-role'))}, ...process.argv.slice(2)], { cwd: ${JSON.stringify(context.root)}, env: { PATH: process.env.PATH ?? '', PROMPTIRIS_AGENT_ROOT: ${JSON.stringify(context.agentRoot)}, PROMPTIRIS_BASE_REVISION: ${JSON.stringify(candidate.baseRevision)} }, stdio: 'inherit' });\nprocess.exit(result.status ?? 1);\n`;
+  await mkdir(hostDirectory, { recursive: true });
+  await writeFile(hostExecutable, hostBridge);
+  await chmod(hostExecutable, 0o555);
   const launcherPath = join(bundleRoot, 'bin', 'agent-role');
-  const launcher = `#!/usr/bin/env node\nimport { spawnSync } from 'node:child_process';\nconst result = spawnSync(process.execPath, [${JSON.stringify(join(context.root, 'scripts/agent-role'))}, ...process.argv.slice(2)], { cwd: ${JSON.stringify(context.root)}, env: { PATH: process.env.PATH ?? '', PROMPTIRIS_AGENT_ROOT: ${JSON.stringify(context.agentRoot)}, PROMPTIRIS_BASE_REVISION: ${JSON.stringify(candidate.baseRevision)} }, stdio: 'inherit' });\nprocess.exit(result.status ?? 1);\n`;
+  const launcher = `#!/usr/bin/env node\nimport { spawnSync } from 'node:child_process';\nconst executable = process.env.PROMPTIRIS_QA_HOST_EXECUTABLE;\nif (!executable) {\n  process.stderr.write('QA_HOST_UNAVAILABLE: Host did not provide a black-box executable.\\n');\n  process.exit(1);\n}\nconst result = spawnSync(executable, process.argv.slice(2), { env: { PATH: process.env.PATH ?? '' }, stdio: 'inherit' });\nprocess.exit(result.status ?? 1);\n`;
   await mkdir(dirname(launcherPath), { recursive: true });
   await writeFile(launcherPath, launcher);
   await chmod(launcherPath, 0o555);
@@ -335,14 +342,51 @@ const writeQaBundle = async (context, directory, candidate) => {
   const procedures = {
     schemaVersion: 1,
     commands: [
-      { id: 'status', command: './bin/agent-role status', expectedExit: 0 },
-      { id: 'invalid-mode', command: './bin/agent-role invalid', expectedExit: 1 },
+      {
+        id: 'happy-path',
+        category: 'happy-path',
+        command: './bin/agent-role status',
+        expectedExit: 0,
+      },
+      {
+        id: 'invalid-input',
+        category: 'invalid-input',
+        command: './bin/agent-role invalid',
+        expectedExit: 1,
+      },
+      { id: 'retry', category: 'retries', command: './bin/agent-role status', expectedExit: 0 },
+      {
+        id: 'recovery',
+        category: 'recovery',
+        command: './bin/agent-role status',
+        expectedExit: 0,
+      },
+    ],
+    notApplicable: [
+      {
+        category: 'cancellation',
+        reason: 'The bounded status command exposes no cancellable operation.',
+      },
+      {
+        category: 'degraded-operation',
+        reason: 'The public bounded status command has no degraded operating mode.',
+      },
+      {
+        category: 'progress',
+        reason: 'The bounded status command has no intermediate progress contract.',
+      },
     ],
   };
   await atomicJson(proceduresPath, procedures);
   await chmod(proceduresPath, 0o444);
   files.push({ path: 'procedures.json', digest: digestBytes(await readFile(proceduresPath)) });
-  await chmod(bundleRoot, 0o555);
+  const makeDirectoriesReadOnly = async (root) => {
+    for (const entry of await readdir(root, { withFileTypes: true })) {
+      if (entry.isDirectory()) await makeDirectoriesReadOnly(join(root, entry.name));
+    }
+    await chmod(root, 0o555);
+  };
+  await makeDirectoriesReadOnly(bundleRoot);
   const capabilities = {
     sourceExcluded: true,
     gitMetadataExcluded: true,
@@ -357,11 +401,23 @@ const writeQaBundle = async (context, directory, candidate) => {
     files: files.sort((left, right) => left.path.localeCompare(right.path)),
     capabilities,
   };
+  const failures = await validateBundleDirectory(bundleRoot, bundle.files);
+  if (failures.length > 0) {
+    throw new RoleError(
+      'ROLE_QA_BUNDLE_INVALID',
+      failures.join('; '),
+      inputReferencePath(context, bundleRoot),
+      'discard the generated bundle and rerun prepare',
+    );
+  }
   return {
-    kind: 'source-blind-bundle',
-    ref: stateReference(context, bundleRoot),
-    digest: digestJson(bundle),
-    bundle,
+    input: {
+      kind: 'source-blind-bundle',
+      ref: inputReferencePath(context, bundleRoot),
+      digest: digestJson(bundle),
+      bundle,
+    },
+    hostEnvironment: { PROMPTIRIS_QA_HOST_EXECUTABLE: hostExecutable },
   };
 };
 
@@ -371,28 +427,33 @@ const inputReference = async (kind, ref, path) => ({
   digest: digestBytes(await readFile(path)),
 });
 
-const prepareInputs = async (context, candidate, packet, role, directory) => {
+const prepareInputs = async (context, candidate, packet, role, directory, hostDirectory) => {
   const packetInput = await inputReference('work-item', packet, join(context.root, packet));
   const diffPath = join(directory, 'candidate.diff');
   await mkdir(directory, { recursive: true });
   await writeFile(diffPath, candidateDiff(context, candidate));
   const diffInput = await inputReference(
     'candidate-diff',
-    stateReference(context, diffPath),
+    inputReferencePath(context, diffPath),
     diffPath,
   );
   const paths = changedPaths(context, candidate);
   if (role === 'reviewer') {
-    return [
-      packetInput,
-      diffInput,
-      await writeReviewerContext(context, directory, candidate, paths),
-    ];
+    return {
+      inputs: [
+        packetInput,
+        diffInput,
+        await writeReviewerContext(context, directory, candidate, paths),
+      ],
+    };
   }
   if (role === 'hardener') {
-    return [packetInput, diffInput, await writeHardenerSurfaces(context, directory, paths)];
+    return {
+      inputs: [packetInput, diffInput, await writeHardenerSurfaces(context, directory, paths)],
+    };
   }
-  return [await writeQaBundle(context, directory, candidate)];
+  const qa = await writeQaBundle(context, directory, candidate, hostDirectory);
+  return { inputs: [qa.input], hostEnvironment: qa.hostEnvironment };
 };
 
 const writeReportTemplate = async (role, producerId, manifest, manifestPath) => {
@@ -486,8 +547,21 @@ const prepare = async (context, role, arguments_) => {
     );
   }
   const attemptId = `attempt-${randomUUID()}`;
-  const directory = join(roleDirectory(context, candidate.candidateRevision), attemptId);
   const evidenceDirectory = join(dirname(packet), `${basename(packet, '.md')}.evidence`);
+  const directory = join(context.root, evidenceDirectory, 'role-protocol', attemptId, 'inputs');
+  const hostDirectory = join(
+    roleDirectory(context, candidate.candidateRevision),
+    attemptId,
+    'host',
+  );
+  const preparedInputs = await prepareInputs(
+    context,
+    candidate,
+    packet,
+    role,
+    directory,
+    hostDirectory,
+  );
   const manifestBase = {
     schemaVersion: 1,
     attemptId,
@@ -503,7 +577,7 @@ const prepare = async (context, role, arguments_) => {
     promptRef: registration.prompt,
     promptDigest,
     sourceAccessMode: sourceAccess[role],
-    inputs: await prepareInputs(context, candidate, packet, role, directory),
+    inputs: preparedInputs.inputs,
   };
   const manifest = { ...manifestBase, manifestDigest: digestJson(manifestBase) };
   const manifestPath = join(
@@ -546,23 +620,42 @@ const prepare = async (context, role, arguments_) => {
     });
     await atomicJson(ledgerPath, ledger);
   });
+  const resolvedInputs = manifest.inputs.map(({ kind, ref, digest }) => ({
+    kind,
+    ref,
+    digest,
+    path: resolvedInputPath(context, ref),
+    ...(kind === 'source-blind-bundle' && preparedInputs.hostEnvironment
+      ? { environment: preparedInputs.hostEnvironment }
+      : {}),
+  }));
+  const accessPath = join(
+    roleDirectory(context, candidate.candidateRevision),
+    attemptId,
+    'access.json',
+  );
+  const access = {
+    schemaVersion: 1,
+    manifestRef: manifestPath,
+    reportTemplateRef: reportTemplatePath,
+    reportRef: join(context.root, evidenceDirectory, `${role}.json`),
+    inputRoots: { repository: context.root, agentState: context.sharedRoot },
+    resolvedInputs,
+  };
+  await atomicJson(accessPath, access);
   process.stdout.write(
     `${JSON.stringify({
       attemptId,
       manifestRef: manifestPath,
+      accessRef: accessPath,
       reportTemplateRef: reportTemplatePath,
       reportRef: join(context.root, evidenceDirectory, `${role}.json`),
       inputRoots: {
         repository: context.root,
         agentState: context.sharedRoot,
       },
-      resolvedInputs: manifest.inputs.map(({ kind, ref, digest }) => ({
-        kind,
-        ref,
-        digest,
-        path: resolvedInputPath(context, ref),
-      })),
-      next: `copy the safe failing report template, run ${role} using only the resolved inputs, then record its attestation and report`,
+      resolvedInputs,
+      next: `give only accessRef to the independent ${role}; it contains every allowed resolved input and the safe failing report path`,
     })}\n`,
   );
 };
