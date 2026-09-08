@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "producerId": "luna11-reviewer-49",
+  "independent": true,
+  "verdict": "pass",
+  "findings": [],
+  "commentDecisions": [],
+  "evidence": [
+    {
+      "checkId": "reviewer.contract-diff",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-720978ac-4236-4cbf-9ee5-0edaab5078f7/inputs/candidate.diff",
+      "evidenceSha256": "77eca65190ae0e302e29402f81749724e567533030ab85fcead7554ca1e2a450"
+    }
+  ],
+  "residualRisks": [
+    "The Host limitation ambientFilesystemDisabled=false remains disclosed; no forbidden-context leak is evidenced in the supplied Candidate inputs."
+  ],
+  "taskId": ".scratch/harness-integrity/issues/05-independent-roles.md",
+  "baseRevision": "35ceba57bb72c990a54b516e04af2967a7489828",
+  "candidateRevision": "sha256:8815314f8f76a03ee028b68cdc5dd2c41e63aa51f385e7c5c7f98b3be8a4a509",
+  "attemptId": "attempt-720978ac-4236-4cbf-9ee5-0edaab5078f7",
+  "parentInvocationId": "final-r11",
+  "promptDigest": "sha256:9f9597af8d9b61ed615baabc3507833005687360640d34030b00350639c900d3",
+  "inputManifestDigest": "sha256:0f02cb99061c5266279b89dc9be47950cd293774eb91e43fa106ada09c832bde",
+  "attestationDigest": "sha256:1e73a3ebeb6a06ac30eba0fae46862d1d2ca2332e7e11b2ac631d4b646efe2a3"
+}

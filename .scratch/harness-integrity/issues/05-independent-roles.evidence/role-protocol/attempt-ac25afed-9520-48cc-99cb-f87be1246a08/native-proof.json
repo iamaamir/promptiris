@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "role": "hardener",
+  "producerId": "luna11-hardener-49",
+  "agentTask": "/root/hardener_49_r9",
+  "model": "gpt-5.6-luna",
+  "reasoningEffort": "low",
+  "candidateRevision": "sha256:8815314f8f76a03ee028b68cdc5dd2c41e63aa51f385e7c5c7f98b3be8a4a509",
+  "accessRef": ".agent/role-attempts/independent-roles/8815314f8f76a03ee028b68cdc5dd2c41e63aa51f385e7c5c7f98b3be8a4a509/attempt-ac25afed-9520-48cc-99cb-f87be1246a08/access.json",
+  "reportRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/hardener.json",
+  "reportDigest": "sha256:1aa9cb9e5225dc3cab15ba90c7329fa13d949b00014beb76afc8bf8786f8f665",
+  "outcome": "passed",
+  "surfaceCount": 24,
+  "recordedAt": "2026-09-08T18:40:56.000Z"
+}

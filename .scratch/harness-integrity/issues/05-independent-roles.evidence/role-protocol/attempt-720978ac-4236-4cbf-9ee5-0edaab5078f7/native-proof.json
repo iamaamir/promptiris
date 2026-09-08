@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "role": "reviewer",
+  "producerId": "luna11-reviewer-49",
+  "agentTask": "/root/reviewer_49_r9",
+  "model": "gpt-5.6-luna",
+  "reasoningEffort": "low",
+  "candidateRevision": "sha256:8815314f8f76a03ee028b68cdc5dd2c41e63aa51f385e7c5c7f98b3be8a4a509",
+  "accessRef": ".agent/role-attempts/independent-roles/8815314f8f76a03ee028b68cdc5dd2c41e63aa51f385e7c5c7f98b3be8a4a509/attempt-720978ac-4236-4cbf-9ee5-0edaab5078f7/access.json",
+  "reportRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/reviewer.json",
+  "reportDigest": "sha256:6818556dcba98e7c0ad66da6e11f14de26842484ac15a1c8a3158ea1e4244b5b",
+  "outcome": "pass",
+  "recordedAt": "2026-09-08T18:40:56.000Z"
+}
