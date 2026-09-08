@@ -24,6 +24,7 @@ Allowed paths:
 - `docs/development/independent-role-assurance.md`
 - `package.json`
 - `scripts/agent-context`
+- `tooling/quality/agent-context.test.sh`
 - `scripts/agent-work`
 - `scripts/bind-role-evidence.mjs`
 - `scripts/finalize-candidate.mjs`
