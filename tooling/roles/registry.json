@@ -14,7 +14,7 @@
     "qa": {
       "promptId": "qa-v1",
       "prompt": "tooling/roles/prompts/qa.md",
-      "promptDigest": "sha256:1f371a4da6563d542941a52f253d511bdbaf118a3396aa5ea183f97f6597786c"
+      "promptDigest": "sha256:33334901b05d3ee6f7ace889ee090c292c672be32f07ac243db0bfc8f6ab07d0"
     }
   },
   "issuers": ["promptiris.host", "promptiris.maintainer"],

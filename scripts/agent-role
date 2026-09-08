@@ -243,19 +243,33 @@ const trackedTypeScriptSources = async (context) => {
   );
 };
 
-const writeHardenerSurfaces = async (context, directory, paths) => {
+const writeHardenerSurfaces = async (context, directory, candidate, paths) => {
   const surfacePath = join(directory, 'attack-surfaces.json');
   const surfaces = deriveAttackSurfaces(await trackedTypeScriptSources(context), paths);
-  await atomicJson(surfacePath, { schemaVersion: 1, complete: true, surfaces });
+  const deterministicEvidence = await readCandidateTraces(context, candidate, directory);
+  const candidateIdentity = {
+    baseRevision: candidate.baseRevision,
+    headRevision: candidate.headRevision,
+    candidateRevision: candidate.candidateRevision,
+  };
+  await atomicJson(surfacePath, {
+    schemaVersion: 1,
+    complete: true,
+    surfaces,
+    deterministicEvidence,
+    candidate: candidateIdentity,
+  });
   return {
     kind: 'attack-surfaces',
     ref: inputReferencePath(context, surfacePath),
     digest: digestBytes(await readFile(surfacePath)),
     surfaces,
+    evidence: deterministicEvidence,
+    candidate: candidateIdentity,
   };
 };
 
-const readCandidateTraces = async (context, candidate) => {
+const readCandidateTraces = async (context, candidate, destinationDirectory) => {
   const traceDirectory = join(context.agentRoot, 'traces');
   let names = [];
   try {
@@ -266,18 +280,33 @@ const readCandidateTraces = async (context, candidate) => {
   const traces = [];
   for (const name of names.filter((candidate) => candidate.endsWith('.json')).sort()) {
     try {
-      const trace = await readJson(join(traceDirectory, name));
+      const tracePath = join(traceDirectory, name);
+      const trace = await readJson(tracePath);
       if (
         trace.exitCode === 0 &&
         trace.context?.branch === context.branch &&
         trace.context?.candidateRevision === candidate.headRevision &&
         trace.context?.dirty === false
       ) {
+        const evidencePath = resolvedInputPath(context, trace.evidence.ref);
+        const traceBytes = await readFile(tracePath);
+        const evidenceBytes = await readFile(evidencePath);
+        const traceId = basename(name, '.json');
+        const preservedDirectory = join(destinationDirectory, 'gate-evidence');
+        const preservedTrace = join(preservedDirectory, `${traceId}.json`);
+        const preservedLog = join(preservedDirectory, `${traceId}.log`);
+        await mkdir(preservedDirectory, { recursive: true });
+        await writeFile(preservedTrace, traceBytes);
+        await writeFile(preservedLog, evidenceBytes);
+        await chmod(preservedTrace, 0o444);
+        await chmod(preservedLog, 0o444);
         traces.push({
           taskId: trace.taskId,
           providerId: trace.providerId,
-          evidenceRef: trace.evidence?.ref,
-          evidenceDigest: trace.evidence?.sha256,
+          traceRef: inputReferencePath(context, preservedTrace),
+          traceDigest: digestBytes(traceBytes).replace('sha256:', ''),
+          evidenceRef: inputReferencePath(context, preservedLog),
+          evidenceDigest: digestBytes(evidenceBytes).replace('sha256:', ''),
           dirty: trace.context.dirty,
         });
       }
@@ -294,7 +323,7 @@ const writeReviewerContext = async (context, directory, candidate, paths) => {
     schemaVersion: 1,
     complete: true,
     affectedSurfaces: deriveAttackSurfaces(await trackedTypeScriptSources(context), paths),
-    deterministicEvidence: await readCandidateTraces(context, candidate),
+    deterministicEvidence: await readCandidateTraces(context, candidate, directory),
     candidate: {
       baseRevision: candidate.baseRevision,
       headRevision: candidate.headRevision,
@@ -356,6 +385,8 @@ const writeQaBundle = async (context, directory, candidate, hostDirectory) => {
         category: 'happy-path',
         command: './bin/agent-role status',
         expectedExit: 0,
+        expectedOutputIncludes: 'roles-incomplete',
+        rationale: 'QA itself is not bound yet, so an incomplete role state is the expected truth.',
       },
       {
         id: 'invalid-input',
@@ -369,6 +400,7 @@ const writeQaBundle = async (context, directory, candidate, hostDirectory) => {
         category: 'recovery',
         command: './bin/agent-role status',
         expectedExit: 0,
+        expectedOutputIncludes: 'roles-incomplete',
       },
     ],
     notApplicable: [
@@ -458,7 +490,11 @@ const prepareInputs = async (context, candidate, packet, role, directory, hostDi
   }
   if (role === 'hardener') {
     return {
-      inputs: [packetInput, diffInput, await writeHardenerSurfaces(context, directory, paths)],
+      inputs: [
+        packetInput,
+        diffInput,
+        await writeHardenerSurfaces(context, directory, candidate, paths),
+      ],
     };
   }
   const qa = await writeQaBundle(context, directory, candidate, hostDirectory);

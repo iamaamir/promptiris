@@ -179,6 +179,78 @@ const validateByteDigest = (role, kind, reference, bytes, expected) => {
   );
 };
 
+const verifyGateEvidence = async (role, attempt, records, expectedHeadRevision) => {
+  if (!Array.isArray(records) || records.length === 0) {
+    reject(
+      'ROLE_GATE_EVIDENCE_MISSING',
+      `${role} received no frozen deterministic gate Evidence`,
+      attempt.inputManifestRef,
+      `rerun clean deterministic gates, then prepare ${role}`,
+    );
+    return;
+  }
+  const expectedPrefix = `${evidenceRelative}/role-protocol/${attempt.attemptId}/inputs/gate-evidence/`;
+  for (const record of records) {
+    if (
+      !record.traceRef.startsWith(expectedPrefix) ||
+      !record.evidenceRef.startsWith(expectedPrefix)
+    ) {
+      reject(
+        'ROLE_GATE_EVIDENCE_LOCATION_INVALID',
+        `${role} gate Evidence is outside its attempt-scoped input directory`,
+        record.traceRef,
+        `rerun ${role}`,
+      );
+      continue;
+    }
+    const traceBytes = await loadEvidence(role, 'gate trace', record.traceRef);
+    const logBytes = await loadEvidence(role, 'gate log', record.evidenceRef);
+    if (!traceBytes || !logBytes) continue;
+    validateByteDigest(
+      role,
+      'gate trace',
+      record.traceRef,
+      traceBytes,
+      `sha256:${record.traceDigest}`,
+    );
+    validateByteDigest(
+      role,
+      'gate log',
+      record.evidenceRef,
+      logBytes,
+      `sha256:${record.evidenceDigest}`,
+    );
+    let trace;
+    try {
+      trace = JSON.parse(traceBytes.toString('utf8'));
+    } catch {
+      reject(
+        'ROLE_GATE_TRACE_INVALID',
+        `${role} gate trace is not JSON`,
+        record.traceRef,
+        `rerun ${role}`,
+      );
+      continue;
+    }
+    if (
+      trace.taskId !== record.taskId ||
+      trace.providerId !== record.providerId ||
+      trace.exitCode !== 0 ||
+      trace.context?.branch !== branch ||
+      trace.context?.candidateRevision !== expectedHeadRevision ||
+      trace.context?.dirty !== false ||
+      trace.evidence?.sha256 !== record.evidenceDigest
+    ) {
+      reject(
+        'ROLE_GATE_TRACE_BINDING_INVALID',
+        `${role} gate trace is not a clean passing trace for the frozen Candidate`,
+        record.traceRef,
+        `rerun clean deterministic gates, then prepare ${role}`,
+      );
+    }
+  }
+};
+
 const ledgerRef = relative(root, join(evidenceDirectory, 'role-ledger.json'));
 let ledger;
 try {
@@ -289,6 +361,28 @@ const typeScriptSources = new Map(
 const expectedSurfaces = deriveAttackSurfaces(typeScriptSources, changedPaths);
 const usedNonces = new Set();
 
+const candidateHeadIsValid = (headRevision) => {
+  if (!/^[0-9a-f]{40}$/.test(headRevision ?? '')) return false;
+  try {
+    git(['merge-base', '--is-ancestor', headRevision, 'HEAD']);
+    const bytes = git([
+      'diff',
+      '--raw',
+      '-z',
+      '--no-ext-diff',
+      '--no-textconv',
+      '--no-renames',
+      baseRevision,
+      headRevision,
+      '--',
+      ...candidatePathspec,
+    ]);
+    return `sha256:${createHash('sha256').update(bytes).digest('hex')}` === candidateRevision;
+  } catch {
+    return false;
+  }
+};
+
 const verifyManifestInputs = async (role, manifest, attempt) => {
   const workItem = manifest.inputs.find(({ kind }) => kind === 'work-item');
   const diff = manifest.inputs.find(({ kind }) => kind === 'candidate-diff');
@@ -326,7 +420,8 @@ const verifyManifestInputs = async (role, manifest, attempt) => {
       canonicalJson(reviewerContext.context?.affectedSurfaces) !==
         canonicalJson(expectedSurfaces) ||
       reviewerContext.context?.candidate?.baseRevision !== baseRevision ||
-      reviewerContext.context?.candidate?.candidateRevision !== candidateRevision
+      reviewerContext.context?.candidate?.candidateRevision !== candidateRevision ||
+      !candidateHeadIsValid(reviewerContext.context?.candidate?.headRevision)
     ) {
       reject(
         'ROLE_REVIEWER_CONTEXT_INCOMPLETE',
@@ -335,16 +430,33 @@ const verifyManifestInputs = async (role, manifest, attempt) => {
         'scripts/agent-role prepare reviewer <producer-id> <model-class> <parent-id>',
       );
     }
+    await verifyGateEvidence(
+      role,
+      attempt,
+      reviewerContext?.context?.deterministicEvidence ?? [],
+      reviewerContext?.context?.candidate?.headRevision,
+    );
   }
   if (role === 'hardener') {
     const attack = manifest.inputs.find(({ kind }) => kind === 'attack-surfaces');
-    const expectedDocument = { schemaVersion: 1, complete: true, surfaces: expectedSurfaces };
+    const expectedEvidence = attack?.evidence ?? [];
+    const expectedDocument = {
+      schemaVersion: 1,
+      complete: true,
+      surfaces: expectedSurfaces,
+      deterministicEvidence: expectedEvidence,
+      candidate: attack?.candidate,
+    };
     const expectedDigest = digestBytes(
       Buffer.from(`${JSON.stringify(expectedDocument, null, 2)}\n`),
     );
     if (
       !attack ||
       canonicalJson(attack.surfaces) !== canonicalJson(expectedSurfaces) ||
+      attack.evidence.length === 0 ||
+      attack.candidate?.baseRevision !== baseRevision ||
+      attack.candidate?.candidateRevision !== candidateRevision ||
+      !candidateHeadIsValid(attack.candidate?.headRevision) ||
       attack.digest !== expectedDigest
     ) {
       reject(
@@ -354,6 +466,7 @@ const verifyManifestInputs = async (role, manifest, attempt) => {
         'scripts/agent-role prepare hardener <producer-id> <model-class> <parent-id>',
       );
     }
+    await verifyGateEvidence(role, attempt, expectedEvidence, attack?.candidate?.headRevision);
   }
   if (role !== 'qa') return;
   const bundle = manifest.inputs.find(({ kind }) => kind === 'source-blind-bundle')?.bundle;

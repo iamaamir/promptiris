@@ -378,6 +378,25 @@ test('binding and verification require three attested independent roles', async 
     PROMPTIRIS_AGENT_ROOT: join(workspace, '.agent'),
     PROMPTIRIS_BASE_REVISION: baseRevision,
   };
+  const gateLog = 'deterministic gate passed\n';
+  const gateDigest = digestBytes(gateLog).replace('sha256:', '');
+  await mkdir(join(workspace, '.agent/traces'), { recursive: true });
+  await mkdir(join(workspace, '.agent/logs'), { recursive: true });
+  await writeFile(join(workspace, '.agent/logs/test-gate.log'), gateLog);
+  await writeFile(
+    join(workspace, '.agent/traces/test-gate.json'),
+    `${JSON.stringify({
+      taskId: 'test.gate',
+      providerId: 'test-runner',
+      exitCode: 0,
+      context: {
+        branch: 'roles-test',
+        candidateRevision: git(workspace, ['rev-parse', 'HEAD']),
+        dirty: false,
+      },
+      evidence: { ref: '.agent/logs/test-gate.log', sha256: gateDigest },
+    })}\n`,
+  );
   run(workspace, ['scripts/finalize-candidate.mjs', 'finalize', packet], { env });
 
   for (const [index, role] of ['reviewer', 'hardener', 'qa'].entries()) {
