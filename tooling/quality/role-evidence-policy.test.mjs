@@ -226,6 +226,10 @@ test('role interface guides and enforces attempt preparation', async () => {
   git(workspace, ['add', '.']);
   git(workspace, ['commit', '-qm', 'test fixture']);
   const baseRevision = git(workspace, ['rev-parse', 'HEAD']);
+  await writeFile(
+    join(workspace, '.scratch/test/issues/01-role.md'),
+    '# Role test\n\nStatus: in-progress\nBranch: `roles-test`\n\nExample: Branch: `roles-test`\n',
+  );
   await writeFile(join(workspace, 'packages/example/src/index.ts'), 'export const value = 2;\n');
   git(workspace, ['add', '.']);
   git(workspace, ['commit', '-qm', 'candidate']);
@@ -354,8 +358,12 @@ test('binding and verification require three attested independent roles', async 
   git(workspace, ['add', '.']);
   git(workspace, ['commit', '-qm', 'test fixture']);
   const baseRevision = git(workspace, ['rev-parse', 'HEAD']);
+  await writeFile(
+    join(workspace, packet),
+    '# Role test\n\nStatus: in-progress\nBranch: `roles-test`\n\nExample: Branch: `roles-test`\n',
+  );
   await writeFile(join(workspace, 'packages/example/src/index.ts'), 'export const value = 2;\n');
-  git(workspace, ['add', 'packages/example/src/index.ts']);
+  git(workspace, ['add', packet, 'packages/example/src/index.ts']);
   git(workspace, ['commit', '-qm', 'candidate']);
   await writeFile(
     join(workspace, '.agent/claims/roles-test.json'),

@@ -46,8 +46,9 @@ const reject = (code, message, evidenceRef, nextCommand) => {
 const collectPackets = async (directory, packets) => {
   for (const entry of await readdir(directory, { withFileTypes: true })) {
     const path = join(directory, entry.name);
-    if (entry.isDirectory()) await collectPackets(path, packets);
-    else if (entry.isFile() && entry.name.endsWith('.md')) packets.push(path);
+    if (entry.isDirectory() && !entry.name.endsWith('.evidence')) {
+      await collectPackets(path, packets);
+    } else if (entry.isFile() && entry.name.endsWith('.md')) packets.push(path);
   }
 };
 
