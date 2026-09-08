@@ -79,6 +79,44 @@
               }
             }
           },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "taskId",
+                "providerId",
+                "traceRef",
+                "traceDigest",
+                "evidenceRef",
+                "evidenceDigest",
+                "dirty"
+              ],
+              "properties": {
+                "taskId": { "type": "string", "minLength": 1 },
+                "providerId": { "type": "string", "minLength": 1 },
+                "traceRef": { "type": "string", "minLength": 1 },
+                "traceDigest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+                "evidenceRef": { "type": "string", "minLength": 1 },
+                "evidenceDigest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+                "dirty": { "type": "boolean" }
+              }
+            }
+          },
+          "candidate": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["baseRevision", "headRevision", "candidateRevision"],
+            "properties": {
+              "baseRevision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+              "headRevision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+              "candidateRevision": {
+                "type": "string",
+                "pattern": "^sha256:[0-9a-f]{64}$"
+              }
+            }
+          },
           "context": {
             "type": "object",
             "additionalProperties": false,
@@ -119,10 +157,20 @@
                 "items": {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": ["taskId", "providerId", "dirty"],
+                  "required": [
+                    "taskId",
+                    "providerId",
+                    "traceRef",
+                    "traceDigest",
+                    "evidenceRef",
+                    "evidenceDigest",
+                    "dirty"
+                  ],
                   "properties": {
                     "taskId": { "type": "string", "minLength": 1 },
                     "providerId": { "type": "string", "minLength": 1 },
+                    "traceRef": { "type": "string", "minLength": 1 },
+                    "traceDigest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
                     "evidenceRef": { "type": "string", "minLength": 1 },
                     "evidenceDigest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
                     "dirty": { "type": "boolean" }
