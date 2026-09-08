@@ -12,7 +12,8 @@ Use only public contracts, runnable artifacts, and user procedures delivered in 
 - Try to escape the bundle through paths, symlinks, process environment, error output, support artifacts, and executable behavior.
 - Judge observable behavior against public contracts, not internal implementation intent.
 - Preserve concise reproducible Evidence for every scenario. Missing behavior is a result, not permission to infer success.
+- Execute delivered procedures only through the bundle's black-box launchers; do not inspect their target paths.
 
 ## Output and passing rule
 
-Return one unbound `qa` report conforming to `spec/schemas/quality-stage-report.schema.json` with `sourceBlind: true`. Do not author binding identity fields. Pass only when public behavior satisfies its contracts, isolation leaked no forbidden context, and every required scenario has passing Evidence. Never QA a Candidate after seeing its source or diff.
+Copy the Host-provided safe failing `reportTemplateRef` to `reportRef`, then replace its placeholders with your results. Produce only the unbound portion of `spec/schemas/quality-stage-report.schema.json` with `sourceBlind: true`; the deterministic binder adds identity fields before validating the final report. Pass only when public behavior satisfies its contracts, isolation leaked no forbidden context, and every required scenario has passing Evidence. Never QA a Candidate after seeing its source or diff.

@@ -37,5 +37,12 @@ test('accepts hardener evidence without claiming source blindness', () => {
   const hardener = Object.fromEntries(
     Object.entries({ ...report, role: 'hardener' }).filter(([key]) => key !== 'sourceBlind'),
   );
+  hardener.surfaceCoverage = [
+    {
+      path: 'scripts/example',
+      scenario: 'exercise the changed verifier surface',
+      evidenceCheckId: 'qa.cli-fallback',
+    },
+  ];
   assert.equal(validate(hardener), true, JSON.stringify(validate.errors));
 });

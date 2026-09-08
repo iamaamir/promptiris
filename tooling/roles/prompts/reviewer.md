@@ -16,4 +16,4 @@ Use only the registered prompt and the Work Item, frozen diff, affected dependen
 
 ## Output and passing rule
 
-Return one unbound report conforming to `spec/schemas/reviewer-report.schema.json`. Do not author task, base, Candidate, attempt, prompt, manifest, or attestation binding fields; the deterministic binder owns them. Pass only when no finding remains unresolved. Never review or certify a Candidate you implemented.
+Copy the Host-provided safe failing `reportTemplateRef` to `reportRef`, then replace its placeholder finding with your results. Produce only the unbound portion of `spec/schemas/reviewer-report.schema.json`; the deterministic binder adds task, base, Candidate, attempt, prompt, manifest, and attestation fields before validating the final report. Pass only when no finding remains unresolved. Never review or certify a Candidate you implemented.
