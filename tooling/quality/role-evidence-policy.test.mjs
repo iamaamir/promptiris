@@ -264,6 +264,7 @@ test('role interface guides and enforces attempt preparation', async () => {
     })}\n`,
   );
   const env = {
+    PATH: '/usr/bin:/bin',
     PROMPTIRIS_AGENT_ROOT: join(workspace, '.agent'),
     PROMPTIRIS_BASE_REVISION: baseRevision,
   };
@@ -394,6 +395,7 @@ test('binding and verification require three attested independent roles', async 
     })}\n`,
   );
   const env = {
+    PATH: '/usr/bin:/bin',
     PROMPTIRIS_AGENT_ROOT: join(workspace, '.agent'),
     PROMPTIRIS_BASE_REVISION: baseRevision,
   };
