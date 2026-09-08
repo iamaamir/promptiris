@@ -138,8 +138,8 @@ const loadLedger = async (path, context, packet, candidate) => {
   }
 };
 
-const withLedgerLock = async (directory, operation) => {
-  const lock = `${directory}.lock`;
+const withLedgerLock = async (context, operation) => {
+  const lock = join(context.agentRoot, 'locks', 'role-ledger.lock');
   await mkdir(dirname(lock), { recursive: true });
   try {
     await mkdir(lock, { recursive: false });
@@ -293,6 +293,7 @@ const readCandidateTraces = async (context, candidate, destinationDirectory) => 
         traces.push({
           taskId: trace.taskId,
           providerId: trace.providerId,
+          exitCode: trace.exitCode,
           traceRef: inputReferencePath(context, preservedTrace),
           traceDigest: digestBytes(traceBytes).replace('sha256:', ''),
           evidenceRef: inputReferencePath(context, preservedLog),
@@ -636,7 +637,7 @@ const prepare = async (context, role, arguments_) => {
   await atomicJson(manifestPath, manifest);
   const reportTemplatePath = await writeReportTemplate(role, producerId, manifest, manifestPath);
   const ledgerPath = join(roleDirectory(context, candidate.candidateRevision), 'ledger.json');
-  await withLedgerLock(dirname(ledgerPath), async () => {
+  await withLedgerLock(context, async () => {
     let ledger = await loadLedger(ledgerPath, context, packet, candidate);
     const reserved = {
       schemaVersion: 1,
@@ -715,7 +716,7 @@ const record = async (context, role, arguments_) => {
   const { value: candidate } = await candidateManifest(context, packet);
   const directory = roleDirectory(context, candidate.candidateRevision);
   const ledgerPath = join(directory, 'ledger.json');
-  await withLedgerLock(directory, async () => {
+  await withLedgerLock(context, async () => {
     let ledger = await loadLedger(ledgerPath, context, packet, candidate);
     const previous = currentAttempt(ledger, attemptId);
     if (!previous || previous.role !== role) {
@@ -760,7 +761,7 @@ const recordUnsupported = async (context, role, reasonParts) => {
       `scripts/agent-role unsupported ${role} <reason>`,
     );
   }
-  await withLedgerLock(directory, async () => {
+  await withLedgerLock(context, async () => {
     const ledger = await loadLedger(ledgerPath, context, packet, candidate);
     const prior = ledger.unsupported.find((entry) => entry.role === role);
     if (prior) {
@@ -792,7 +793,7 @@ const recordExternalAttestation = async (context, role, [envelopePath]) => {
   const { value: candidate } = await candidateManifest(context, packet);
   const directory = roleDirectory(context, candidate.candidateRevision);
   const ledgerPath = join(directory, 'ledger.json');
-  await withLedgerLock(directory, async () => {
+  await withLedgerLock(context, async () => {
     const ledger = await loadLedger(ledgerPath, context, packet, candidate);
     const envelope = await readJson(resolve(envelopePath));
     const attempt = currentAttempt(ledger, envelope.attemptId);

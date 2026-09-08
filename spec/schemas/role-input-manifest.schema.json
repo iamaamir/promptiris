@@ -87,6 +87,7 @@
               "required": [
                 "taskId",
                 "providerId",
+                "exitCode",
                 "traceRef",
                 "traceDigest",
                 "evidenceRef",
@@ -96,6 +97,7 @@
               "properties": {
                 "taskId": { "type": "string", "minLength": 1 },
                 "providerId": { "type": "string", "minLength": 1 },
+                "exitCode": { "const": 0 },
                 "traceRef": { "type": "string", "minLength": 1 },
                 "traceDigest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
                 "evidenceRef": { "type": "string", "minLength": 1 },
@@ -160,6 +162,7 @@
                   "required": [
                     "taskId",
                     "providerId",
+                    "exitCode",
                     "traceRef",
                     "traceDigest",
                     "evidenceRef",
@@ -169,6 +172,7 @@
                   "properties": {
                     "taskId": { "type": "string", "minLength": 1 },
                     "providerId": { "type": "string", "minLength": 1 },
+                    "exitCode": { "const": 0 },
                     "traceRef": { "type": "string", "minLength": 1 },
                     "traceDigest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
                     "evidenceRef": { "type": "string", "minLength": 1 },

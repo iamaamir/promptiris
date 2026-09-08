@@ -440,6 +440,14 @@ test('binding and verification require three attested independent roles', async 
     );
     const manifest = JSON.parse(await readFile(prepared.manifestRef, 'utf8'));
     assert.equal(prepared.inputRoots, undefined);
+    if (role === 'hardener') {
+      const attackSurfacePath = prepared.resolvedInputs.find(
+        ({ kind }) => kind === 'attack-surfaces',
+      ).path;
+      const attackSurfaces = JSON.parse(await readFile(attackSurfacePath, 'utf8'));
+      assert.ok(attackSurfaces.deterministicEvidence.length > 0);
+      assert.ok(attackSurfaces.deterministicEvidence.every(({ exitCode }) => exitCode === 0));
+    }
     const access = JSON.parse(
       await readFile(
         join(
