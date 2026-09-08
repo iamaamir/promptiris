@@ -7,7 +7,8 @@ trap 'rm -rf "$workspace"' EXIT
 
 repo="$workspace/repo"
 mkdir -p "$repo/scripts" "$repo/tooling/telemetry" "$repo/tooling/quality" \
-  "$repo/.scratch/test/issues" "$repo/.agent/traces" "$repo/.agent/claims" "$repo/.agent/reports"
+  "$repo/.scratch/test/issues/01-test.evidence/role-protocol/attempt/inputs" \
+  "$repo/.agent/traces" "$repo/.agent/claims" "$repo/.agent/reports"
 cp "$repository_root/scripts/agent-context" "$repo/scripts/agent-context"
 cp "$repository_root/scripts/telemetry-analyze.mjs" "$repo/scripts/telemetry-analyze.mjs"
 cp "$repository_root/tooling/telemetry/analyze.mjs" "$repo/tooling/telemetry/analyze.mjs"
@@ -28,6 +29,9 @@ GitHub issue: pending
 Branch: `isolated-task`
 Parent: none
 Blocked by: none
+EOF
+cat >"$repo/.scratch/test/issues/01-test.evidence/role-protocol/attempt/inputs/candidate.diff" <<'EOF'
+This retained evidence also contains Branch: `isolated-task` and must not become the Work Item.
 EOF
 cat >"$repo/tooling/capabilities.json" <<'EOF'
 {"capabilities":{"textual_search":{"providers":["rg"]}},"providers":{"rg":{"name":"Ripgrep","capabilities":["textual_search"]}}}
@@ -50,6 +54,7 @@ echo '{"runId":"run-1","profile":"candidate","status":"passed","startedAt":"2026
 output="$(cd "$repo" && ./scripts/agent-context)"
 [[ ! -e "$repo/.agent/reports/telemetry-summary.json" ]]
 grep -Fqx 'tree: clean' <<<"$output"
+grep -Fq 'packet: .scratch/test/issues/01-test.md' <<<"$output"
 grep -Fq "\"currentHead\": \"$head\"" <<<"$output"
 grep -Fq '"claimedRevision"' <<<"$output"
 grep -Fq '"leaseState": "active"' <<<"$output"

@@ -14,7 +14,7 @@ base_revision="$(git -C "$worktree_root" merge-base HEAD origin/main 2>/dev/null
 
 packet=''
 if [[ -n "$branch" ]]; then
-  packet="$(rg -l --fixed-strings "Branch: \`$branch\`" "$worktree_root/.scratch" 2>/dev/null | LC_ALL=C sort | head -1 || true)"
+  packet="$(rg -l --fixed-strings --glob '*.md' --glob '!*.evidence/**' "Branch: \`$branch\`" "$worktree_root/.scratch" 2>/dev/null | LC_ALL=C sort | head -1 || true)"
 fi
 packet="${packet#"$worktree_root/"}"
 claim_file="$agent_root/claims/$branch.json"
