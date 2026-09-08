@@ -1,18 +1,7 @@
 #!/usr/bin/env node
 import { execFileSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
-import {
-  chmod,
-  copyFile,
-  lstat,
-  mkdir,
-  readFile,
-  readdir,
-  rename,
-  rm,
-  stat,
-  writeFile,
-} from 'node:fs/promises';
+import { chmod, mkdir, readFile, readdir, rename, rm, stat, writeFile } from 'node:fs/promises';
 import { basename, dirname, join, relative, resolve } from 'node:path';
 import {
   ROLE_NAMES,
@@ -24,8 +13,8 @@ import {
   validateAttestation,
   validateBundleDirectory,
   validateEvidenceReference,
-  withoutKey,
 } from '../tooling/quality/role-evidence-policy.mjs';
+import { readRegularEvidenceFile } from '../tooling/quality/evidence-file.mjs';
 
 const modes = Object.freeze(['prepare', 'record', 'unsupported', 'external', 'status']);
 const modelClasses = Object.freeze(['quick', 'general', 'frontier']);
@@ -76,25 +65,25 @@ const repository = () => {
   };
 };
 
-const findPacket = ({ root, branch }) => {
-  const output = execFileSync(
-    'rg',
-    [
-      '-l',
-      '--fixed-strings',
-      '--glob',
-      '*.md',
-      '--glob',
-      '!*.evidence/**',
-      `Branch: \`${branch}\``,
-      '.scratch',
-    ],
-    {
-      cwd: root,
-      encoding: 'utf8',
-    },
-  );
-  const packets = output.trim().split('\n').filter(Boolean).sort();
+const collectPackets = async (root, directory, branch, packets) => {
+  const entries = await readdir(directory, { withFileTypes: true });
+  for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
+    const path = join(directory, entry.name);
+    if (entry.isDirectory() && !entry.name.endsWith('.evidence')) {
+      await collectPackets(root, path, branch, packets);
+    } else if (
+      entry.isFile() &&
+      entry.name.endsWith('.md') &&
+      (await readFile(path, 'utf8')).split('\n').includes(`Branch: \`${branch}\``)
+    ) {
+      packets.push(relative(root, path));
+    }
+  }
+};
+
+const findPacket = async ({ root, branch }) => {
+  const packets = [];
+  await collectPackets(root, join(root, '.scratch'), branch, packets);
   if (packets.length !== 1) {
     throw new RoleError(
       'ROLE_PACKET_AMBIGUOUS',
@@ -272,7 +261,7 @@ const writeHardenerSurfaces = async (context, directory, candidate, paths) => {
 
 const readCandidateTraces = async (context, candidate, destinationDirectory) => {
   const traceDirectory = join(context.agentRoot, 'traces');
-  let names = [];
+  let names;
   try {
     names = await readdir(traceDirectory);
   } catch {
@@ -345,26 +334,31 @@ const qaAllowedPath = (path) =>
     path,
   ) && !/(?:^|\/)src(?:\/|$)|(?:^|\/)\.git(?:\/|$)/.test(path);
 
+const readQaSource = async (source, path) => {
+  try {
+    return await readRegularEvidenceFile(source);
+  } catch {
+    throw new RoleError(
+      'ROLE_QA_BUNDLE_UNSAFE',
+      `QA input is not a regular file: ${path}`,
+      path,
+      'remove the unsafe public artifact and rerun prepare',
+    );
+  }
+};
+
 const writeQaBundle = async (context, directory, candidate, hostDirectory) => {
   const bundleRoot = join(directory, 'qa-bundle');
   const paths = git(context.root, ['ls-files']).split('\n').filter(qaAllowedPath).sort();
   const files = [];
   for (const path of paths) {
     const source = join(context.root, path);
-    const metadata = await lstat(source);
-    if (metadata.isSymbolicLink() || !metadata.isFile()) {
-      throw new RoleError(
-        'ROLE_QA_BUNDLE_UNSAFE',
-        `QA input is not a regular file: ${path}`,
-        path,
-        'remove the unsafe public artifact and rerun prepare',
-      );
-    }
+    const bytes = await readQaSource(source, path);
     const destination = join(bundleRoot, path);
     await mkdir(dirname(destination), { recursive: true });
-    await copyFile(source, destination);
+    await writeFile(destination, bytes);
     await chmod(destination, 0o444);
-    files.push({ path, digest: digestBytes(await readFile(source)) });
+    files.push({ path, digest: digestBytes(bytes) });
   }
   const hostExecutable = join(hostDirectory, 'agent-role-host');
   const hostBridge = `#!/usr/bin/env node\nimport { spawnSync } from 'node:child_process';\nconst result = spawnSync(process.execPath, [${JSON.stringify(join(context.root, 'scripts/agent-role'))}, ...process.argv.slice(2)], { cwd: ${JSON.stringify(context.root)}, env: { PATH: process.env.PATH ?? '', PROMPTIRIS_AGENT_ROOT: ${JSON.stringify(context.agentRoot)}, PROMPTIRIS_BASE_REVISION: ${JSON.stringify(candidate.baseRevision)} }, stdio: 'inherit' });\nprocess.exit(result.status ?? 1);\n`;
@@ -575,7 +569,7 @@ const prepare = async (context, role, arguments_) => {
       `scripts/agent-role prepare ${role} <producer-id> <quick|general|frontier> <parent-id> [host-attested|maintainer-attested]`,
     );
   }
-  const packet = findPacket(context);
+  const packet = await findPacket(context);
   const { value: candidate } = await candidateManifest(context, packet);
   const claim = await readJson(join(context.agentRoot, 'claims', `${context.branch}.json`));
   if (claim.agentId === producerId) {
@@ -717,7 +711,7 @@ const record = async (context, role, arguments_) => {
       `scripts/agent-role record ${role} ${attemptId} <failed|invalidated|superseded> <finding-count>`,
     );
   }
-  const packet = findPacket(context);
+  const packet = await findPacket(context);
   const { value: candidate } = await candidateManifest(context, packet);
   const directory = roleDirectory(context, candidate.candidateRevision);
   const ledgerPath = join(directory, 'ledger.json');
@@ -753,7 +747,7 @@ const record = async (context, role, arguments_) => {
 };
 
 const recordUnsupported = async (context, role, reasonParts) => {
-  const packet = findPacket(context);
+  const packet = await findPacket(context);
   const { value: candidate } = await candidateManifest(context, packet);
   const directory = roleDirectory(context, candidate.candidateRevision);
   const ledgerPath = join(directory, 'ledger.json');
@@ -794,7 +788,7 @@ const recordExternalAttestation = async (context, role, [envelopePath]) => {
       `scripts/agent-role external ${role} <attestation.json>`,
     );
   }
-  const packet = findPacket(context);
+  const packet = await findPacket(context);
   const { value: candidate } = await candidateManifest(context, packet);
   const directory = roleDirectory(context, candidate.candidateRevision);
   const ledgerPath = join(directory, 'ledger.json');
@@ -862,7 +856,7 @@ const recordExternalAttestation = async (context, role, [envelopePath]) => {
 };
 
 const status = async (context) => {
-  const packet = findPacket(context);
+  const packet = await findPacket(context);
   let candidate;
   try {
     ({ value: candidate } = await candidateManifest(context, packet));
