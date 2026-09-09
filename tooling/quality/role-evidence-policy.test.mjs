@@ -395,6 +395,8 @@ test('binding and verification require three attested independent roles', async 
   git(workspace, ['init', '-q']);
   git(workspace, ['config', 'user.email', 'test@example.test']);
   git(workspace, ['config', 'user.name', 'test']);
+  git(workspace, ['config', 'diff.mnemonicPrefix', 'true']);
+  git(workspace, ['config', 'diff.algorithm', 'patience']);
   git(workspace, ['checkout', '-q', '-b', 'roles-test']);
   git(workspace, ['add', '.']);
   git(workspace, ['commit', '-qm', 'test fixture']);
@@ -611,6 +613,8 @@ test('binding and verification require three attested independent roles', async 
   git(workspace, ['add', '.scratch']);
   git(workspace, ['commit', '-qm', 'role evidence']);
   git(workspace, ['config', 'core.abbrev', '12']);
+  git(workspace, ['config', 'diff.mnemonicPrefix', 'false']);
+  git(workspace, ['config', 'diff.algorithm', 'histogram']);
   const output = run(workspace, ['scripts/verify-role-evidence.mjs'], { env });
   assert.match(output, /Role evidence passed/);
 

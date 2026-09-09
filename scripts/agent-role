@@ -24,6 +24,18 @@ const sourceAccess = Object.freeze({
   hardener: 'attack-surfaces',
   qa: 'source-blind-bundle',
 });
+const portableDiffArguments = Object.freeze([
+  '-c',
+  'core.quotePath=true',
+  'diff',
+  '--binary',
+  '--full-index',
+  '--default-prefix',
+  '--diff-algorithm=myers',
+  '--no-color',
+  '--no-ext-diff',
+  '--no-renames',
+]);
 
 class RoleError extends Error {
   constructor(code, message, evidenceRef, nextCommand) {
@@ -190,11 +202,7 @@ const candidateDiff = (context, candidate) =>
   execFileSync(
     'git',
     [
-      'diff',
-      '--binary',
-      '--full-index',
-      '--no-ext-diff',
-      '--no-renames',
+      ...portableDiffArguments,
       candidate.baseRevision,
       'HEAD',
       '--',

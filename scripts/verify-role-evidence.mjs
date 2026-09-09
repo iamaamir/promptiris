@@ -38,6 +38,18 @@ const baseName =
 const baseRevision = git(['merge-base', 'HEAD', baseName], { encoding: 'utf8' }).trim();
 const trustedMode = process.env.PROMPTIRIS_TRUSTED_MODE === 'true';
 const failures = [];
+const portableDiffArguments = Object.freeze([
+  '-c',
+  'core.quotePath=true',
+  'diff',
+  '--binary',
+  '--full-index',
+  '--default-prefix',
+  '--diff-algorithm=myers',
+  '--no-color',
+  '--no-ext-diff',
+  '--no-renames',
+]);
 
 const reject = (code, message, evidenceRef, nextCommand) => {
   failures.push({ code, message, evidenceRef, nextCommand });
@@ -333,11 +345,7 @@ if (implementers.size === 1) {
 }
 
 const diffBytes = git([
-  'diff',
-  '--binary',
-  '--full-index',
-  '--no-ext-diff',
-  '--no-renames',
+  ...portableDiffArguments,
   baseRevision,
   'HEAD',
   '--',
