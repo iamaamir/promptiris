@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "producerId": "luna-reviewer-64-r4",
+  "independent": true,
+  "verdict": "changes-required",
+  "findings": [
+    {
+      "id": "review-incomplete",
+      "severity": "blocker",
+      "file": ".scratch/harness-integrity/issues/05-independent-roles.md",
+      "line": 1,
+      "summary": "Independent review has not been completed.",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-8a6742a7-bf66-4ae2-b171-25ce0b66be45/input-manifest.json"
+    }
+  ],
+  "commentDecisions": [],
+  "evidence": [
+    {
+      "checkId": "reviewer.incomplete",
+      "status": "failed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-8a6742a7-bf66-4ae2-b171-25ce0b66be45/input-manifest.json",
+      "evidenceSha256": "068a37bb0199f7cea5b81fc1ddd3dda0f9ee8e744bbaa3f784c4723a73a4440f"
+    }
+  ],
+  "residualRisks": [
+    "Replace this safe failing template with reviewed results."
+  ]
+}

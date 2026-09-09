@@ -1,0 +1,128 @@
+[WARN] Unsupported engine: wanted: {"node":">=24.0.0 <25"} (current: {"node":"v26.8.1","pnpm":"11.24.0"})
+$ pnpm test:ts && pnpm test:go && pnpm test:tooling
+[WARN] Unsupported engine: wanted: {"node":">=24.0.0 <25"} (current: {"node":"v26.8.1","pnpm":"11.24.0"})
+$ pnpm -r --if-present test
+.                                        | [WARN] Unsupported engine: wanted: {"node":">=24.0.0 <25"} (current: {"node":"v26.8.1","pnpm":"11.24.0"})
+Scope: 7 of 8 workspace projects
+apps/dashboard test$ node --test server.test.mjs
+packages/protocol test$ vitest run
+apps/dashboard test: ✔ serves the dashboard with restrictive security headers (1.181833ms)
+packages/protocol test:  RUN  v4.1.11 /private/tmp/promptiris-role-enforce/packages/protocol
+apps/dashboard test: ✔ serves generated telemetry without caching (107.82125ms)
+apps/dashboard test: ✔ rejects unknown paths and mutating methods (0.12325ms)
+apps/dashboard test: ℹ tests 3
+apps/dashboard test: ℹ suites 0
+apps/dashboard test: ℹ pass 3
+apps/dashboard test: ℹ fail 0
+apps/dashboard test: ℹ cancelled 0
+apps/dashboard test: ℹ skipped 0
+apps/dashboard test: ℹ todo 0
+apps/dashboard test: ℹ duration_ms 152.249917
+apps/dashboard test: Done
+packages/protocol test:  Test Files  2 passed (2)
+packages/protocol test:       Tests  39 passed (39)
+packages/protocol test:    Start at  12:26:58
+packages/protocol test:    Duration  155ms (transform 37ms, setup 0ms, import 148ms, tests 22ms, environment 0ms)
+packages/protocol test: Done
+packages/plugin-sdk test$ vitest run
+packages/plugin-sdk test:  RUN  v4.1.11 /private/tmp/promptiris-role-enforce/packages/plugin-sdk
+packages/plugin-sdk test:  Test Files  4 passed (4)
+packages/plugin-sdk test:       Tests  36 passed (36)
+packages/plugin-sdk test:    Start at  12:26:58
+packages/plugin-sdk test:    Duration  198ms (transform 70ms, setup 0ms, import 416ms, tests 52ms, environment 0ms)
+packages/plugin-sdk test: Done
+packages/core test$ vitest run
+packages/core test:  RUN  v4.1.11 /private/tmp/promptiris-role-enforce/packages/core
+packages/core test:  Test Files  12 passed (12)
+packages/core test:       Tests  196 passed (196)
+packages/core test:    Start at  12:26:58
+packages/core test:    Duration  438ms (transform 475ms, setup 0ms, import 1.23s, tests 210ms, environment 1ms)
+packages/core test: Done
+apps/runtime-node test$ vitest run
+packages/observer-devtools test$ vitest run
+packages/testkit test$ vitest run
+apps/runtime-node test:  RUN  v4.1.11 /private/tmp/promptiris-role-enforce/apps/runtime-node
+packages/testkit test:  RUN  v4.1.11 /private/tmp/promptiris-role-enforce/packages/testkit
+packages/observer-devtools test:  RUN  v4.1.11 /private/tmp/promptiris-role-enforce/packages/observer-devtools
+packages/testkit test:  Test Files  1 passed (1)
+packages/testkit test:       Tests  1 passed (1)
+packages/testkit test:    Start at  12:26:59
+packages/testkit test:    Duration  423ms (transform 150ms, setup 0ms, import 285ms, tests 3ms, environment 0ms)
+packages/testkit test: Done
+packages/observer-devtools test:  Test Files  4 passed (4)
+packages/observer-devtools test:       Tests  97 passed (97)
+packages/observer-devtools test:    Start at  12:26:59
+packages/observer-devtools test:    Duration  757ms (transform 419ms, setup 0ms, import 954ms, tests 596ms, environment 0ms)
+packages/observer-devtools test: Done
+apps/runtime-node test:  Test Files  5 passed (5)
+apps/runtime-node test:       Tests  85 passed (85)
+apps/runtime-node test:    Start at  12:26:59
+apps/runtime-node test:    Duration  7.28s (transform 565ms, setup 0ms, import 1.25s, tests 6.98s, environment 0ms)
+apps/runtime-node test: Done
+[WARN] Unsupported engine: wanted: {"node":">=24.0.0 <25"} (current: {"node":"v26.8.1","pnpm":"11.24.0"})
+$ cd apps/cli-go && GOCACHE=${TMPDIR:-/tmp}/meta-prompt-go-cache go test ./...
+ok  	github.com/iamaamir/promptiris/apps/cli-go	(cached)
+[WARN] Unsupported engine: wanted: {"node":">=24.0.0 <25"} (current: {"node":"v26.8.1","pnpm":"11.24.0"})
+$ node --test tooling/telemetry/*.test.mjs tooling/quality/*.test.mjs && ./tooling/quality/agent-context.test.sh && ./tooling/quality/agent-work.test.sh && ./tooling/quality/candidate-finalize.test.sh && ./tooling/quality/ci-import.test.sh && ./tooling/quality/issue-sync.test.sh && ./tooling/quality/tool-trace.test.sh
+✔ CodeQL runs security-and-quality analysis and the project query pack (4.261333ms)
+✔ the project query governs every Node process-launch API (0.752625ms)
+✔ role evidence rejects symlinks and platforms without no-follow file opens (4.584917ms)
+✔ discovers only canonical workspace coverage reports (11.552458ms)
+✔ every shared fixture is exercised by a deterministic consumer (4.502834ms)
+✔ forbidden-addition rules are monotonic (1.340041ms)
+✔ rejects mutation policy weakening and target removal (0.248ms)
+✔ allows monotonic mutation policy improvements (0.105167ms)
+✔ allows exactly one safe additive mutation-target registration (0.582583ms)
+✔ allows a batch of independently strict mutation-target registrations (0.273125ms)
+✔ rejects a batch when a registered target has no matching policy (0.159084ms)
+✔ rejects mutation registration that changes aggregate policy or starts with debt (0.180292ms)
+✔ requires changed production sources to be mutation governed (0.153083ms)
+✔ rejects removal from the executable Stryker target list (0.147083ms)
+✔ enforces Work Item paths, test deletion, and immutable goldens (0.526375ms)
+✔ rejects new suppressions and skipped tests (0.1835ms)
+✔ requires explicit coverage floors at or above 90 percent (5.979667ms)
+✔ returns a stable unavailable shape when the mutation report is missing (2.045291ms)
+✔ returns a stable unavailable shape when the mutation report has no files (0.147416ms)
+✔ summarizes mutation debt separately from excluded mutants (1.761458ms)
+✔ reports aggregate, target, and missing-baseline regressions (0.136292ms)
+✔ rejects silent removal of a governed mutation target (0.077875ms)
+✔ accepts SHA-bound source-blind QA evidence (0.6295ms)
+✔ rejects QA that is not source blind (0.047833ms)
+✔ accepts hardener evidence without claiming source blindness (0.103ms)
+✔ tool evidence redacts common credential shapes before persistence (45.937041ms)
+✔ registers one safe production mutation target and rejects unsafe repeats (103.884875ms)
+✔ reviewer reports bind verdicts, comments, findings, and evidence to a candidate (0.703084ms)
+✔ reviewer reports reject narrative-only or unlocated findings (0.282625ms)
+✔ canonical JSON is independent of object insertion order (5.283875ms)
+✔ ledger replay requires contiguous append-only transitions (0.386417ms)
+✔ authoritative attempts require completed zero-finding role attempts (0.141042ms)
+✔ attestation validation binds identity and validity window (0.1005ms)
+✔ evidence references reject absolute and escaping paths before reading (0.121542ms)
+✔ bundle validation requires an exact immutable regular-file tree (2.529916ms)
+✔ attack surfaces are classified deterministically (3.241625ms)
+✔ role interface guides and enforces attempt preparation (2244.58175ms)
+✔ binding and verification require three attested independent roles (4839.499417ms)
+✔ attempt requires provenance and completed evidence bindings (14.993709ms)
+✔ attestation restricts access mode and validates dates (1.724792ms)
+✔ input manifests require complete Candidate and role bindings (7.214125ms)
+✔ role ledgers require Candidate identity and structured entries (9.985708ms)
+✔ test strategies are unique, classified, and evidence-bearing (0.554667ms)
+✔ excludes unsupported historical traces from current aggregates (34.025959ms)
+✔ summarizes verification runs and mutation evidence (23.039708ms)
+✔ ignores stale coverage outside canonical workspaces (19.117167ms)
+✔ aggregates and attributes traces across worktrees without duplication (19.905875ms)
+ℹ tests 47
+ℹ suites 0
+ℹ pass 47
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7341.18175
+agent-context tests passed
+warning: reclaimed expired claim: /private/var/folders/84/kjnjm26150s_jmsy6hhz4wgh0000gn/T/promptiris-agent-work-test.E8WPn3/repo/.agent/claims/isolated-task.json
+agent-work tests passed
+candidate finalization tests passed
+CI import tests passed
+issue-sync tests passed
+tool-trace tests passed
