@@ -1,0 +1,4 @@
+[WARN] Unsupported engine: wanted: {"node":">=24.0.0 <25"} (current: {"node":"v26.8.1","pnpm":"11.24.0"})
+$ node scripts/validate-tool-traces.mjs && node scripts/telemetry-analyze.mjs
+validated 1234 schema-v2/v3 Tool Traces; 0 unsupported historical traces excluded
+Telemetry report: /Users/mak/git/meta-prompt/.agent/reports/telemetry-summary.json
