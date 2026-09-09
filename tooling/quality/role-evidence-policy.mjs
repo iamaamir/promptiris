@@ -190,25 +190,33 @@ const safeBundlePath = (path) =>
   !path.split('/').includes('..') &&
   posix.normalize(path) === path;
 
-const inspectBundleDirectory = async (root, directory = '') => {
+const inspectBundleDirectory = async (root, directory = '', requireReadOnly = true) => {
   const entries = [];
   for (const entry of await readdir(resolve(root, directory), { withFileTypes: true })) {
     const path = directory ? `${directory}/${entry.name}` : entry.name;
     const metadata = await lstat(resolve(root, path));
     if (metadata.isSymbolicLink()) throw new Error(`bundle contains symbolic link: ${path}`);
     if (metadata.isDirectory()) {
-      if ((metadata.mode & 0o222) !== 0) throw new Error(`bundle directory is writable: ${path}`);
-      entries.push(...(await inspectBundleDirectory(root, path)));
+      if (requireReadOnly && (metadata.mode & 0o222) !== 0) {
+        throw new Error(`bundle directory is writable: ${path}`);
+      }
+      entries.push(...(await inspectBundleDirectory(root, path, requireReadOnly)));
       continue;
     }
     if (!metadata.isFile()) throw new Error(`bundle contains non-regular file: ${path}`);
-    if ((metadata.mode & 0o222) !== 0) throw new Error(`bundle file is writable: ${path}`);
+    if (requireReadOnly && (metadata.mode & 0o222) !== 0) {
+      throw new Error(`bundle file is writable: ${path}`);
+    }
     entries.push({ path, digest: digestBytes(await readFile(resolve(root, path))) });
   }
   return entries;
 };
 
-export async function validateBundleDirectory(root, declaredFiles) {
+export async function validateBundleDirectory(
+  root,
+  declaredFiles,
+  { requireReadOnly = true } = {},
+) {
   if (!Array.isArray(declaredFiles) || declaredFiles.some(({ path }) => !safeBundlePath(path))) {
     return ['bundle descriptor contains an unsafe path'];
   }
@@ -220,8 +228,8 @@ export async function validateBundleDirectory(root, declaredFiles) {
     if (metadata.isSymbolicLink() || !metadata.isDirectory()) {
       return ['bundle root is not a regular directory'];
     }
-    if ((metadata.mode & 0o222) !== 0) return ['bundle root is writable'];
-    const actual = (await inspectBundleDirectory(root)).sort((left, right) =>
+    if (requireReadOnly && (metadata.mode & 0o222) !== 0) return ['bundle root is writable'];
+    const actual = (await inspectBundleDirectory(root, '', requireReadOnly)).sort((left, right) =>
       left.path.localeCompare(right.path),
     );
     const expected = [...declaredFiles].sort((left, right) => left.path.localeCompare(right.path));
