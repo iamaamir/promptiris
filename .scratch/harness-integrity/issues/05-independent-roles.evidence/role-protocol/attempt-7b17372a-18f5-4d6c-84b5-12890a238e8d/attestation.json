@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "issuer": "promptiris.host",
+  "verifierId": "promptiris.role-verifier",
+  "nativeProofRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-7b17372a-18f5-4d6c-84b5-12890a238e8d/native-proof.json",
+  "nativeProofDigest": "sha256:528b1f9ff98d14a11661414989c4ac4aa43b7fb6cf17b00394b511d80c917a8d",
+  "subject": "luna-hardener-64-r3",
+  "producerId": "luna-hardener-64-r3",
+  "attemptId": "attempt-7b17372a-18f5-4d6c-84b5-12890a238e8d",
+  "parentInvocationId": "pr64-ci-corrected",
+  "role": "hardener",
+  "candidateRevision": "sha256:9e9c561ee8c33d3ed9dc761ece9ec50ff9469f18fd0a7462c433cdd851d2fcc9",
+  "promptDigest": "sha256:cfdc50a75dd9463f10906d4d676ed1bef51f5f5ae78a73777146a000ba28fa42",
+  "inputManifestDigest": "sha256:ec61ddaac94edaa75597d3575cc2bf44f2690d32ee3cf0aa29a74c4f526fe660",
+  "sourceAccessMode": "attack-surfaces",
+  "issuedAt": "2026-09-09T06:35:00.000Z",
+  "expiresAt": "2026-09-10T06:35:00.000Z",
+  "nonce": "hardener-64-r3-7b17372a",
+  "attestationStrength": "host-attested"
+}

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "host": "codex-collaboration",
+  "agentTask": "/root/hardener_64_ci",
+  "producerId": "luna-hardener-64-r3",
+  "role": "hardener",
+  "attemptId": "attempt-7b17372a-18f5-4d6c-84b5-12890a238e8d",
+  "outcome": "passed",
+  "findingCount": 0,
+  "challengedSurfaceCount": 25
+}
