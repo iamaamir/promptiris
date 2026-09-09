@@ -117,6 +117,7 @@ if (untracked.length > 0) {
 const candidateBytes = git([
   'diff',
   '--raw',
+  '--abbrev=40',
   '-z',
   '--no-ext-diff',
   '--no-textconv',
@@ -334,7 +335,9 @@ if (implementers.size === 1) {
 const diffBytes = git([
   'diff',
   '--binary',
+  '--full-index',
   '--no-ext-diff',
+  '--no-renames',
   baseRevision,
   'HEAD',
   '--',
@@ -342,7 +345,16 @@ const diffBytes = git([
   ':(exclude).scratch/**/*.evidence/**',
 ]);
 const changedPaths = git(
-  ['diff', '--name-only', baseRevision, 'HEAD', '--', '.', ':(exclude).scratch/**/*.evidence/**'],
+  [
+    'diff',
+    '--name-only',
+    '--no-renames',
+    baseRevision,
+    'HEAD',
+    '--',
+    '.',
+    ':(exclude).scratch/**/*.evidence/**',
+  ],
   { encoding: 'utf8' },
 )
   .trim()
@@ -371,6 +383,7 @@ const candidateHeadIsValid = (headRevision) => {
     const bytes = git([
       'diff',
       '--raw',
+      '--abbrev=40',
       '-z',
       '--no-ext-diff',
       '--no-textconv',
@@ -510,7 +523,9 @@ const verifyManifestInputs = async (role, manifest, attempt) => {
   }
   if (bundleInput) {
     const bundlePath = resolve(root, bundleInput.ref);
-    for (const failure of await validateBundleDirectory(bundlePath, bundleInput.bundle?.files)) {
+    for (const failure of await validateBundleDirectory(bundlePath, bundleInput.bundle?.files, {
+      requireReadOnly: false,
+    })) {
       reject(
         'ROLE_QA_BUNDLE_TREE_INVALID',
         failure,

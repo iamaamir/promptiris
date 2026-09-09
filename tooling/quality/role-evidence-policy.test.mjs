@@ -187,6 +187,9 @@ test('bundle validation requires an exact immutable regular-file tree', async ()
     /unsafe path/,
   );
   assert.match((await validateBundleDirectory(root, []))[0], /file set or digest/);
+  await chmod(root, 0o755);
+  await chmod(join(root, 'public.txt'), 0o644);
+  assert.deepEqual(await validateBundleDirectory(root, files, { requireReadOnly: false }), []);
 });
 
 test('attack surfaces are classified deterministically', () => {
@@ -283,6 +286,7 @@ test('role interface guides and enforces attempt preparation', async () => {
     PATH: '/usr/bin:/bin',
     PROMPTIRIS_AGENT_ROOT: join(workspace, '.agent'),
     PROMPTIRIS_BASE_REVISION: baseRevision,
+    PROMPTIRIS_BRANCH: 'roles-test',
   };
 
   const before = JSON.parse(run(workspace, ['scripts/agent-role', 'status'], { env }));
@@ -415,6 +419,7 @@ test('binding and verification require three attested independent roles', async 
     PATH: '/usr/bin:/bin',
     PROMPTIRIS_AGENT_ROOT: join(workspace, '.agent'),
     PROMPTIRIS_BASE_REVISION: baseRevision,
+    PROMPTIRIS_BRANCH: 'roles-test',
   };
   const gateLog = 'deterministic gate passed\n';
   const gateDigest = digestBytes(gateLog).replace('sha256:', '');
@@ -605,6 +610,7 @@ test('binding and verification require three attested independent roles', async 
 
   git(workspace, ['add', '.scratch']);
   git(workspace, ['commit', '-qm', 'role evidence']);
+  git(workspace, ['config', 'core.abbrev', '12']);
   const output = run(workspace, ['scripts/verify-role-evidence.mjs'], { env });
   assert.match(output, /Role evidence passed/);
 

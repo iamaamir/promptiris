@@ -192,7 +192,9 @@ const candidateDiff = (context, candidate) =>
     [
       'diff',
       '--binary',
+      '--full-index',
       '--no-ext-diff',
+      '--no-renames',
       candidate.baseRevision,
       'HEAD',
       '--',
@@ -206,6 +208,7 @@ const changedPaths = (context, candidate) =>
   git(context.root, [
     'diff',
     '--name-only',
+    '--no-renames',
     candidate.baseRevision,
     'HEAD',
     '--',
