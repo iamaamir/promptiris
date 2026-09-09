@@ -162,12 +162,19 @@ export function validateAttestation(envelope, attempt, registry, now = Date.now(
   return failures;
 }
 
-export async function validateEvidenceReference(root, reference, expectedDigest) {
+export async function validateEvidenceReference(root, reference, expectedDigest, allowedDirectory) {
   if (isAbsolute(reference) || reference.split('/').includes('..')) {
     return ['evidence reference is not repository-relative'];
   }
   const path = resolve(root, reference);
   if (relative(root, path).startsWith('..')) return ['evidence reference escapes repository'];
+  if (allowedDirectory) {
+    const allowedRoot = resolve(root, allowedDirectory);
+    const distance = relative(allowedRoot, path);
+    if (distance === '..' || distance.startsWith(`..${posix.sep}`) || isAbsolute(distance)) {
+      return ['evidence reference is outside its allowed directory'];
+    }
+  }
   try {
     return digestBytes(await readFile(path)) === expectedDigest
       ? []
@@ -239,7 +246,7 @@ export function classifyAttackSurface(path) {
   return 'changed-surface';
 }
 
-const typeScriptPath = /\.(?:[cm]?ts|tsx)$/;
+const modulePath = /\.(?:[cm]?[jt]s|[jt]sx)$/;
 
 const resolveImport = (from, specifier, knownPaths) => {
   if (!specifier.startsWith('.')) return null;
@@ -251,19 +258,46 @@ const resolveImport = (from, specifier, knownPaths) => {
     `${base}.tsx`,
     `${base}.mts`,
     `${base}.cts`,
+    `${base}.js`,
+    `${base}.jsx`,
+    `${base}.mjs`,
+    `${base}.cjs`,
     `${base}/index.ts`,
     `${base}/index.tsx`,
+    `${base}/index.js`,
+    `${base}/index.jsx`,
   ];
   return candidates.find((candidate) => knownPaths.has(candidate)) ?? null;
+};
+
+const moduleSpecifiers = (path, source) => {
+  const specifiers = new Set(
+    ts.preProcessFile(source).importedFiles.map(({ fileName }) => fileName),
+  );
+  const file = ts.createSourceFile(path, source, ts.ScriptTarget.Latest, true);
+  const visit = (node) => {
+    if (
+      ts.isCallExpression(node) &&
+      node.arguments.length === 1 &&
+      ts.isStringLiteral(node.arguments[0]) &&
+      ((ts.isIdentifier(node.expression) && node.expression.text === 'require') ||
+        node.expression.kind === ts.SyntaxKind.ImportKeyword)
+    ) {
+      specifiers.add(node.arguments[0].text);
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(file);
+  return specifiers;
 };
 
 export function deriveAttackSurfaces(sources, changedPaths) {
   const knownPaths = new Set(sources.keys());
   const dependents = new Map();
   for (const [path, source] of sources) {
-    if (!typeScriptPath.test(path)) continue;
-    for (const imported of ts.preProcessFile(source).importedFiles) {
-      const dependency = resolveImport(path, imported.fileName, knownPaths);
+    if (!modulePath.test(path)) continue;
+    for (const specifier of moduleSpecifiers(path, source)) {
+      const dependency = resolveImport(path, specifier, knownPaths);
       if (!dependency) continue;
       const entries = dependents.get(dependency) ?? new Set();
       entries.add(path);
@@ -272,7 +306,7 @@ export function deriveAttackSurfaces(sources, changedPaths) {
   }
   const changed = new Set(changedPaths);
   const affected = new Set(changedPaths);
-  const queue = changedPaths.filter((path) => typeScriptPath.test(path));
+  const queue = changedPaths.filter((path) => modulePath.test(path));
   while (queue.length > 0) {
     const path = queue.shift();
     for (const dependent of dependents.get(path) ?? []) {

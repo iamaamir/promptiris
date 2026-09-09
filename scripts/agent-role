@@ -223,8 +223,18 @@ const resolvedInputPath = (context, reference) =>
     ? resolve(context.sharedRoot, reference)
     : resolve(context.root, reference);
 
-const trackedTypeScriptSources = async (context) => {
-  const paths = git(context.root, ['ls-files', '*.ts', '*.tsx', '*.mts', '*.cts'])
+const trackedModuleSources = async (context) => {
+  const paths = git(context.root, [
+    'ls-files',
+    '*.ts',
+    '*.tsx',
+    '*.mts',
+    '*.cts',
+    '*.js',
+    '*.jsx',
+    '*.mjs',
+    '*.cjs',
+  ])
     .split('\n')
     .filter(Boolean);
   return new Map(
@@ -236,7 +246,7 @@ const trackedTypeScriptSources = async (context) => {
 
 const writeHardenerSurfaces = async (context, directory, candidate, paths) => {
   const surfacePath = join(directory, 'attack-surfaces.json');
-  const surfaces = deriveAttackSurfaces(await trackedTypeScriptSources(context), paths);
+  const surfaces = deriveAttackSurfaces(await trackedModuleSources(context), paths);
   const deterministicEvidence = await readCandidateTraces(context, candidate, directory);
   const candidateIdentity = {
     baseRevision: candidate.baseRevision,
@@ -314,7 +324,7 @@ const writeReviewerContext = async (context, directory, candidate, paths) => {
   const document = {
     schemaVersion: 1,
     complete: true,
-    affectedSurfaces: deriveAttackSurfaces(await trackedTypeScriptSources(context), paths),
+    affectedSurfaces: deriveAttackSurfaces(await trackedModuleSources(context), paths),
     deterministicEvidence: await readCandidateTraces(context, candidate, directory),
     candidate: {
       baseRevision: candidate.baseRevision,
@@ -595,51 +605,51 @@ const prepare = async (context, role, arguments_) => {
     );
   }
   const attemptId = `attempt-${randomUUID()}`;
-  const evidenceDirectory = join(dirname(packet), `${basename(packet, '.md')}.evidence`);
-  const directory = join(context.root, evidenceDirectory, 'role-protocol', attemptId, 'inputs');
-  const hostDirectory = join(
-    roleDirectory(context, candidate.candidateRevision),
-    attemptId,
-    'host',
-  );
-  const preparedInputs = await prepareInputs(
-    context,
-    candidate,
-    packet,
-    role,
-    directory,
-    hostDirectory,
-  );
-  const manifestBase = {
-    schemaVersion: 1,
-    attemptId,
-    parentInvocationId,
-    taskId: packet,
-    baseRevision: candidate.baseRevision,
-    candidateRevision: candidate.candidateRevision,
-    implementerId: claim.agentId,
-    producerId,
-    role,
-    modelClass,
-    promptId: registration.promptId,
-    promptRef: registration.prompt,
-    promptDigest,
-    sourceAccessMode: sourceAccess[role],
-    inputs: preparedInputs.inputs,
-  };
-  const manifest = { ...manifestBase, manifestDigest: digestJson(manifestBase) };
-  const manifestPath = join(
-    context.root,
-    evidenceDirectory,
-    'role-protocol',
-    attemptId,
-    'input-manifest.json',
-  );
-  await atomicJson(manifestPath, manifest);
-  const reportTemplatePath = await writeReportTemplate(role, producerId, manifest, manifestPath);
-  const reportPath = join(dirname(reportTemplatePath), 'report.json');
-  const ledgerPath = join(roleDirectory(context, candidate.candidateRevision), 'ledger.json');
   await withLedgerLock(context, async () => {
+    const evidenceDirectory = join(dirname(packet), `${basename(packet, '.md')}.evidence`);
+    const directory = join(context.root, evidenceDirectory, 'role-protocol', attemptId, 'inputs');
+    const hostDirectory = join(
+      roleDirectory(context, candidate.candidateRevision),
+      attemptId,
+      'host',
+    );
+    const preparedInputs = await prepareInputs(
+      context,
+      candidate,
+      packet,
+      role,
+      directory,
+      hostDirectory,
+    );
+    const manifestBase = {
+      schemaVersion: 1,
+      attemptId,
+      parentInvocationId,
+      taskId: packet,
+      baseRevision: candidate.baseRevision,
+      candidateRevision: candidate.candidateRevision,
+      implementerId: claim.agentId,
+      producerId,
+      role,
+      modelClass,
+      promptId: registration.promptId,
+      promptRef: registration.prompt,
+      promptDigest,
+      sourceAccessMode: sourceAccess[role],
+      inputs: preparedInputs.inputs,
+    };
+    const manifest = { ...manifestBase, manifestDigest: digestJson(manifestBase) };
+    const manifestPath = join(
+      context.root,
+      evidenceDirectory,
+      'role-protocol',
+      attemptId,
+      'input-manifest.json',
+    );
+    await atomicJson(manifestPath, manifest);
+    const reportTemplatePath = await writeReportTemplate(role, producerId, manifest, manifestPath);
+    const reportPath = join(dirname(reportTemplatePath), 'report.json');
+    const ledgerPath = join(roleDirectory(context, candidate.candidateRevision), 'ledger.json');
     let ledger = await loadLedger(ledgerPath, context, packet, candidate);
     const reserved = {
       schemaVersion: 1,
@@ -668,40 +678,40 @@ const prepare = async (context, role, arguments_) => {
       recordedAt: new Date().toISOString(),
     });
     await atomicJson(ledgerPath, ledger);
-  });
-  const resolvedInputs = manifest.inputs.map(({ kind, ref, digest }) => ({
-    kind,
-    ref,
-    digest,
-    path: resolvedInputPath(context, ref),
-    ...(kind === 'source-blind-bundle' && preparedInputs.hostEnvironment
-      ? { environment: preparedInputs.hostEnvironment }
-      : {}),
-  }));
-  const accessPath = join(
-    roleDirectory(context, candidate.candidateRevision),
-    attemptId,
-    'access.json',
-  );
-  const access = {
-    schemaVersion: 1,
-    manifestRef: manifestPath,
-    reportTemplateRef: reportTemplatePath,
-    reportRef: reportPath,
-    resolvedInputs,
-  };
-  await atomicJson(accessPath, access);
-  process.stdout.write(
-    `${JSON.stringify({
+    const resolvedInputs = manifest.inputs.map(({ kind, ref, digest }) => ({
+      kind,
+      ref,
+      digest,
+      path: resolvedInputPath(context, ref),
+      ...(kind === 'source-blind-bundle' && preparedInputs.hostEnvironment
+        ? { environment: preparedInputs.hostEnvironment }
+        : {}),
+    }));
+    const accessPath = join(
+      roleDirectory(context, candidate.candidateRevision),
       attemptId,
+      'access.json',
+    );
+    const access = {
+      schemaVersion: 1,
       manifestRef: manifestPath,
-      accessRef: accessPath,
       reportTemplateRef: reportTemplatePath,
       reportRef: reportPath,
       resolvedInputs,
-      next: `give only accessRef to the independent ${role}; it contains every allowed resolved input and the safe failing report path`,
-    })}\n`,
-  );
+    };
+    await atomicJson(accessPath, access);
+    process.stdout.write(
+      `${JSON.stringify({
+        attemptId,
+        manifestRef: manifestPath,
+        accessRef: accessPath,
+        reportTemplateRef: reportTemplatePath,
+        reportRef: reportPath,
+        resolvedInputs,
+        next: `give only accessRef to the independent ${role}; it contains every allowed resolved input and the safe failing report path`,
+      })}\n`,
+    );
+  });
 };
 
 const record = async (context, role, arguments_) => {
@@ -820,10 +830,13 @@ const recordExternalAttestation = async (context, role, [envelopePath]) => {
         `obtain a fresh registered attestation for ${attempt.attemptId}`,
       );
     }
+    const evidenceDirectory = join(dirname(packet), `${basename(packet, '.md')}.evidence`);
+    const attemptDirectory = join(evidenceDirectory, 'role-protocol', attempt.attemptId);
     const proofFailures = await validateEvidenceReference(
       context.root,
       envelope.nativeProofRef,
       envelope.nativeProofDigest,
+      attemptDirectory,
     );
     if (proofFailures.length > 0) {
       throw new RoleError(
@@ -833,7 +846,6 @@ const recordExternalAttestation = async (context, role, [envelopePath]) => {
         'store the native proof inside the repository Evidence directory and regenerate the attestation',
       );
     }
-    const evidenceDirectory = join(dirname(packet), `${basename(packet, '.md')}.evidence`);
     const storedPath = join(
       context.root,
       evidenceDirectory,

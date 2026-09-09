@@ -349,16 +349,19 @@ const changedPaths = git(
   .split('\n')
   .filter(Boolean)
   .sort();
-const trackedTypeScript = git(['ls-files', '*.ts', '*.tsx', '*.mts', '*.cts'], {
-  encoding: 'utf8',
-})
+const trackedModules = git(
+  ['ls-files', '*.ts', '*.tsx', '*.mts', '*.cts', '*.js', '*.jsx', '*.mjs', '*.cjs'],
+  {
+    encoding: 'utf8',
+  },
+)
   .trim()
   .split('\n')
   .filter(Boolean);
-const typeScriptSources = new Map(
-  await Promise.all(trackedTypeScript.map(async (path) => [path, await readFile(path, 'utf8')])),
+const moduleSources = new Map(
+  await Promise.all(trackedModules.map(async (path) => [path, await readFile(path, 'utf8')])),
 );
-const expectedSurfaces = deriveAttackSurfaces(typeScriptSources, changedPaths);
+const expectedSurfaces = deriveAttackSurfaces(moduleSources, changedPaths);
 const usedNonces = new Set();
 
 const candidateHeadIsValid = (headRevision) => {
@@ -677,6 +680,19 @@ const verifyRole = async (role, attempt) => {
     );
   }
   usedNonces.add(attestation.nonce);
+  for (const failure of await validateEvidenceReference(
+    root,
+    attestation.nativeProofRef,
+    attestation.nativeProofDigest,
+    join(evidenceRelative, 'role-protocol', attempt.attemptId),
+  )) {
+    reject(
+      'ROLE_NATIVE_PROOF_INVALID',
+      failure,
+      attestation.nativeProofRef,
+      `rerun the ${role} role with attempt-scoped native proof`,
+    );
+  }
   const proofBytes = await loadEvidence(role, 'native proof', attestation.nativeProofRef);
   if (proofBytes) {
     validateByteDigest(
