@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 3,
+  "traceId": "e5be252d-1fa7-4141-9b48-616a9988da9f",
+  "runId": "verify-20260909T062623Z-4653",
+  "taskId": "verify.secrets",
+  "providerId": "secret-scanner",
+  "tools": [
+    "gitleaks"
+  ],
+  "executor": "gitleaks",
+  "startedAt": "2026-09-09T06:27:08Z",
+  "startedAtEpochMs": 1788935228615,
+  "durationMs": 1179,
+  "exitCode": 0,
+  "context": {
+    "repositoryId": "f1c573ec8d35a233",
+    "worktreeId": "18180bae8c9a8c81",
+    "branch": "independent-roles",
+    "candidateRevision": "07b032802339b93d15a8a26963cd5ef834a3dbe6",
+    "workspaceDigest": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "dirty": false,
+    "agentId": "codex-role-orchestrator"
+  },
+  "output": {
+    "rawBytes": 83,
+    "modelVisibleBytes": 210,
+    "reducedBytes": 0,
+    "estimatedRawTokens": 21,
+    "estimatedModelVisibleTokens": 53,
+    "estimatedTokensAvoided": 0,
+    "tokenEstimate": {
+      "method": "utf8_bytes_divided_by_4",
+      "version": 1
+    }
+  },
+  "evidence": {
+    "ref": ".agent/logs/tool-e5be252d-1fa7-4141-9b48-616a9988da9f.log",
+    "sha256": "d6202df51798325c0476d53846e85cded72da9519699e01e379078d0f57fc2bc",
+    "redaction": {
+      "mode": "default",
+      "count": 0
+    }
+  }
+}

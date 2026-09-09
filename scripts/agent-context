@@ -14,7 +14,7 @@ base_revision="$(git -C "$worktree_root" merge-base HEAD origin/main 2>/dev/null
 
 packet=''
 if [[ -n "$branch" ]]; then
-  packet="$(rg -l --fixed-strings "Branch: \`$branch\`" "$worktree_root/.scratch" 2>/dev/null | LC_ALL=C sort | head -1 || true)"
+  packet="$(rg -l --fixed-strings --glob '*.md' --glob '!*.evidence/**' "Branch: \`$branch\`" "$worktree_root/.scratch" 2>/dev/null | LC_ALL=C sort | head -1 || true)"
 fi
 packet="${packet#"$worktree_root/"}"
 claim_file="$agent_root/claims/$branch.json"
@@ -87,6 +87,16 @@ if [[ -f "$claim_file" ]]; then
   jq --arg head "$head_revision" --argjson now "$now_ms" '{taskId,agentId,stage,claimedRevision:(.claimedRevision // .candidateRevision // null),lastStageRevision:(.lastStageRevision // .candidateRevision // null),claimedAt,expiresAtEpochMs,leaseState:(if (.expiresAtEpochMs // 0) == 0 then "legacy" elif .expiresAtEpochMs <= $now then "expired" else "active" end),currentHead:$head}' "$claim_file"
 else
   echo 'none for this branch'
+fi
+
+echo
+echo '## INDEPENDENT ROLES'
+if [[ -x "$worktree_root/scripts/agent-role" ]]; then
+  if ! PROMPTIRIS_AGENT_ROOT="$agent_root" "$worktree_root/scripts/agent-role" status; then
+    echo 'role status failed; follow the printed Next action'
+  fi
+else
+  echo 'role interface unavailable'
 fi
 
 echo

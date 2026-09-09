@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "producerId": "luna-reviewer-64b",
+  "independent": true,
+  "verdict": "changes-required",
+  "findings": [
+    {
+      "id": "ledger-lock-not-guaranteed-common-state",
+      "severity": "blocker",
+      "file": "scripts/agent-role",
+      "line": 267,
+      "summary": "Role producer locking is not genuinely guaranteed to use shared Git common state.",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-e0acc653-fafe-48c8-b61d-1f66d8228809/inputs/candidate.diff"
+    },
+    {
+      "id": "binder-lock-not-guaranteed-common-state",
+      "severity": "blocker",
+      "file": "scripts/bind-role-evidence.mjs",
+      "line": 77,
+      "summary": "The relative lock is shared only when PROMPTIRIS_AGENT_ROOT points at the common root; the override can redirect both implementations outside Git common state.",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-e0acc653-fafe-48c8-b61d-1f66d8228809/inputs/candidate.diff"
+    }
+  ],
+  "commentDecisions": [],
+  "evidence": [
+    {
+      "checkId": "reviewer.shared-common-state-ledger-lock",
+      "status": "failed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-e0acc653-fafe-48c8-b61d-1f66d8228809/inputs/candidate.diff",
+      "evidenceSha256": "01e67b64be7947ea1990b99f7bde81413783e0f69c9b5f4130b1778253cea3e1"
+    }
+  ],
+  "residualRisks": [
+    "A redirected PROMPTIRIS_AGENT_ROOT can place the supposedly shared lock outside Git common state."
+  ]
+}

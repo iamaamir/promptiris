@@ -21,6 +21,7 @@ const candidateIdentity = (evidenceDirectory) => {
     [
       'diff',
       '--raw',
+      '--abbrev=40',
       '-z',
       '--no-ext-diff',
       '--no-textconv',

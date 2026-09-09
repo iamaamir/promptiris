@@ -1,6 +1,6 @@
 # Enforce independently executed quality roles
 
-Status: ready-for-agent
+Status: in-progress
 GitHub issue: <https://github.com/iamaamir/promptiris/issues/49>
 Branch: `independent-roles`
 Parent: .scratch/role-assurance/PRD.md

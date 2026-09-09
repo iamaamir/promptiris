@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "role": "qa",
+  "binding": "unbound",
+  "verdict": "pass",
+  "observations": [
+    "happy-path status exited 0 and included roles-incomplete",
+    "invalid input exited 1 with ROLE_USAGE",
+    "retry status exited 0 and included roles-incomplete",
+    "recovery status exited 0 and included roles-incomplete",
+    "Host isolation limitation: ambientFilesystemDisabled=false; QA was restricted to the manifest-declared source-blind bundle and host executable."
+  ],
+  "procedures": {
+    "happy-path": {"exit": 0, "outputIncludes": "roles-incomplete"},
+    "invalid-input": {"exit": 1},
+    "retry": {"exit": 0},
+    "recovery": {"exit": 0, "outputIncludes": "roles-incomplete"}
+  }
+}

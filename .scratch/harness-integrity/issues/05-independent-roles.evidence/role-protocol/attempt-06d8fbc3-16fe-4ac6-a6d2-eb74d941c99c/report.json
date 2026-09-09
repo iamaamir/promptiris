@@ -1,0 +1,144 @@
+{
+  "schemaVersion": 1,
+  "role": "hardener",
+  "producerId": "luna-hardener-64b",
+  "status": "failed",
+  "surfaceCoverage": [
+    {
+      "path": ".scratch/harness-integrity/issues/05-independent-roles.md",
+      "scenario": "Challenge blocked: no deterministic passing Evidence supplied.",
+      "evidenceCheckId": "hardener.blocked.surface-1"
+    },
+    {
+      "path": "AGENTS.md",
+      "scenario": "Challenge blocked: no deterministic passing Evidence supplied.",
+      "evidenceCheckId": "hardener.blocked.surface-2"
+    },
+    {
+      "path": "docs/development/independent-role-assurance.md",
+      "scenario": "Challenge blocked: no deterministic passing Evidence supplied.",
+      "evidenceCheckId": "hardener.blocked.surface-3"
+    },
+    {
+      "path": "package.json",
+      "scenario": "The revised lint command is visible in candidate.diff, but exitCode=0 Evidence is absent from the supplied manifest; execution cannot be verified.",
+      "evidenceCheckId": "hardener.blocked.surface-4"
+    },
+    {
+      "path": "scripts/agent-context",
+      "scenario": "Challenge blocked: no deterministic passing Evidence supplied.",
+      "evidenceCheckId": "hardener.blocked.surface-5"
+    },
+    {
+      "path": "scripts/agent-role",
+      "scenario": "Challenge blocked: no deterministic passing Evidence supplied.",
+      "evidenceCheckId": "hardener.blocked.surface-6"
+    },
+    {
+      "path": "scripts/agent-work",
+      "scenario": "Challenge blocked: no deterministic passing Evidence supplied.",
+      "evidenceCheckId": "hardener.blocked.surface-7"
+    },
+    {
+      "path": "scripts/bind-role-evidence.mjs",
+      "scenario": "Challenge blocked: no deterministic passing Evidence supplied.",
+      "evidenceCheckId": "hardener.blocked.surface-8"
+    },
+    {
+      "path": "scripts/verify-role-evidence.mjs",
+      "scenario": "Challenge blocked: no deterministic passing Evidence supplied.",
+      "evidenceCheckId": "hardener.blocked.surface-9"
+    },
+    {
+      "path": "spec/schemas/quality-stage-report.schema.json",
+      "scenario": "Challenge blocked: no deterministic passing Evidence supplied.",
+      "evidenceCheckId": "hardener.blocked.surface-10"
+    },
+    {
+      "path": "spec/schemas/reviewer-report.schema.json",
+      "scenario": "Challenge blocked: no deterministic passing Evidence supplied.",
+      "evidenceCheckId": "hardener.blocked.surface-11"
+    },
+    {
+      "path": "spec/schemas/role-attempt.schema.json",
+      "scenario": "Challenge blocked: no deterministic passing Evidence supplied.",
+      "evidenceCheckId": "hardener.blocked.surface-12"
+    },
+    {
+      "path": "spec/schemas/role-attestation-envelope.schema.json",
+      "scenario": "Challenge blocked: no deterministic passing Evidence supplied.",
+      "evidenceCheckId": "hardener.blocked.surface-13"
+    },
+    {
+      "path": "spec/schemas/role-input-manifest.schema.json",
+      "scenario": "Challenge blocked: no deterministic passing Evidence supplied.",
+      "evidenceCheckId": "hardener.blocked.surface-14"
+    },
+    {
+      "path": "spec/schemas/role-ledger.schema.json",
+      "scenario": "Challenge blocked: no deterministic passing Evidence supplied.",
+      "evidenceCheckId": "hardener.blocked.surface-15"
+    },
+    {
+      "path": "tooling/capabilities.json",
+      "scenario": "Challenge blocked: no deterministic passing Evidence supplied.",
+      "evidenceCheckId": "hardener.blocked.surface-16"
+    },
+    {
+      "path": "tooling/quality/agent-context.test.sh",
+      "scenario": "Challenge blocked: no deterministic passing Evidence supplied.",
+      "evidenceCheckId": "hardener.blocked.surface-17"
+    },
+    {
+      "path": "tooling/quality/candidate-finalize.test.sh",
+      "scenario": "Challenge blocked: no deterministic passing Evidence supplied.",
+      "evidenceCheckId": "hardener.blocked.surface-18"
+    },
+    {
+      "path": "tooling/quality/quality-stage-contract.test.mjs",
+      "scenario": "Challenge blocked: no deterministic passing Evidence supplied.",
+      "evidenceCheckId": "hardener.blocked.surface-19"
+    },
+    {
+      "path": "tooling/quality/role-evidence-policy.mjs",
+      "scenario": "Challenge blocked: no deterministic passing Evidence supplied.",
+      "evidenceCheckId": "hardener.blocked.surface-20"
+    },
+    {
+      "path": "tooling/quality/role-evidence-policy.test.mjs",
+      "scenario": "Challenge blocked: no deterministic passing Evidence supplied.",
+      "evidenceCheckId": "hardener.blocked.surface-21"
+    },
+    {
+      "path": "tooling/roles/prompts/hardener.md",
+      "scenario": "Challenge blocked: no deterministic passing Evidence supplied.",
+      "evidenceCheckId": "hardener.blocked.surface-22"
+    },
+    {
+      "path": "tooling/roles/prompts/qa.md",
+      "scenario": "Challenge blocked: no deterministic passing Evidence supplied.",
+      "evidenceCheckId": "hardener.blocked.surface-23"
+    },
+    {
+      "path": "tooling/roles/prompts/reviewer.md",
+      "scenario": "Challenge blocked: no deterministic passing Evidence supplied.",
+      "evidenceCheckId": "hardener.blocked.surface-24"
+    },
+    {
+      "path": "tooling/roles/registry.json",
+      "scenario": "Challenge blocked: no deterministic passing Evidence supplied.",
+      "evidenceCheckId": "hardener.blocked.surface-25"
+    }
+  ],
+  "scenarios": [
+    "All 25 declared surfaces were challenged conceptually, but the frozen manifest contains no deterministic Evidence entries, so no challenge can be bound to passing Evidence."
+  ],
+  "evidence": [
+    {
+      "checkId": "hardener.deterministic-evidence-missing",
+      "status": "failed",
+      "evidenceRef": "input-manifest.json",
+      "evidenceSha256": "6ddd3d50b59e32809be3863e997f6a320019a2ac5bb9db56a2c9c6d70e3aaac7"
+    }
+  ]
+}

@@ -116,6 +116,12 @@
       "capabilities": ["output_reduction"],
       "requiredIn": ["candidate", "full", "ci"]
     },
+    "scripts/agent-role": {
+      "name": "Independent role controller",
+      "group": "Evidence",
+      "capabilities": ["role_assurance"],
+      "requiredIn": ["candidate", "ci"]
+    },
     "rtk": {
       "name": "RTK",
       "group": "Evidence",
@@ -343,6 +349,11 @@
       "providers": ["scripts/tool-trace", "rtk"],
       "costClass": "very_low",
       "contextClass": "low"
+    },
+    "role_assurance": {
+      "providers": ["scripts/agent-role"],
+      "costClass": "low",
+      "contextClass": "low"
     }
   },
   "executionRoles": {
@@ -374,7 +385,8 @@
       "property_testing",
       "dead_code_analysis",
       "mutation_testing",
-      "complexity_risk"
+      "complexity_risk",
+      "role_assurance"
     ],
     "orchestration": ["task_execution"]
   }

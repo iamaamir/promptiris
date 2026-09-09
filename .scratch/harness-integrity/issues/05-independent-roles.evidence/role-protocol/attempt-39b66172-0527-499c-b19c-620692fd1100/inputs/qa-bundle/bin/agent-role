@@ -1,0 +1,9 @@
+#!/usr/bin/env node
+import { spawnSync } from 'node:child_process';
+const executable = process.env.PROMPTIRIS_QA_HOST_EXECUTABLE;
+if (!executable) {
+  process.stderr.write('QA_HOST_UNAVAILABLE: Host did not provide a black-box executable.\n');
+  process.exit(1);
+}
+const result = spawnSync(executable, process.argv.slice(2), { env: { PATH: process.env.PATH ?? '' }, stdio: 'inherit' });
+process.exit(result.status ?? 1);

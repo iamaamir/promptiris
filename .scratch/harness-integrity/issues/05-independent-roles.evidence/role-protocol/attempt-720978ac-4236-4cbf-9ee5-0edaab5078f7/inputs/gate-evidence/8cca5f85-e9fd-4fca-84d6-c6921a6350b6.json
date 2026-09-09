@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 3,
+  "traceId": "8cca5f85-e9fd-4fca-84d6-c6921a6350b6",
+  "runId": "verify-20260908T183545Z-28498",
+  "taskId": "verify.build",
+  "providerId": "builder",
+  "tools": [
+    "tsc",
+    "pnpm"
+  ],
+  "executor": "pnpm",
+  "startedAt": "2026-09-08T18:35:46Z",
+  "startedAtEpochMs": 1788892546592,
+  "durationMs": 1603,
+  "exitCode": 0,
+  "context": {
+    "repositoryId": "f1c573ec8d35a233",
+    "worktreeId": "18180bae8c9a8c81",
+    "branch": "independent-roles",
+    "candidateRevision": "f9cb0b6a7908d27cf050a377fc35d04a4542a3d2",
+    "workspaceDigest": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "dirty": false,
+    "agentId": "codex-role-orchestrator"
+  },
+  "output": {
+    "rawBytes": 785,
+    "modelVisibleBytes": 202,
+    "reducedBytes": 583,
+    "estimatedRawTokens": 197,
+    "estimatedModelVisibleTokens": 51,
+    "estimatedTokensAvoided": 146,
+    "tokenEstimate": {
+      "method": "utf8_bytes_divided_by_4",
+      "version": 1
+    }
+  },
+  "evidence": {
+    "ref": ".agent/logs/tool-8cca5f85-e9fd-4fca-84d6-c6921a6350b6.log",
+    "sha256": "f4261dacb9b169e6c89424024b00592b0a87cd06643782a09ce33e556aeb12cc",
+    "redaction": {
+      "mode": "default",
+      "count": 0
+    }
+  }
+}

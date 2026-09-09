@@ -1,0 +1,187 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:promptiris:schema:harness-tool-trace:v3",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "traceId",
+    "runId",
+    "taskId",
+    "providerId",
+    "tools",
+    "executor",
+    "startedAt",
+    "startedAtEpochMs",
+    "durationMs",
+    "exitCode",
+    "context",
+    "output",
+    "evidence"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 3
+    },
+    "traceId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "runId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "taskId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "providerId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tools": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "executor": {
+      "type": "string",
+      "minLength": 1
+    },
+    "startedAt": {
+      "type": "string",
+      "minLength": 1
+    },
+    "startedAtEpochMs": {
+      "type": "number",
+      "minimum": 0
+    },
+    "durationMs": {
+      "type": "number",
+      "minimum": 0
+    },
+    "exitCode": {
+      "type": "number"
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repositoryId",
+        "worktreeId",
+        "branch",
+        "candidateRevision",
+        "workspaceDigest",
+        "dirty",
+        "agentId"
+      ],
+      "properties": {
+        "repositoryId": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{16}$"
+        },
+        "worktreeId": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{16}$"
+        },
+        "branch": {
+          "type": "string",
+          "minLength": 1
+        },
+        "candidateRevision": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "workspaceDigest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "dirty": {
+          "type": "boolean"
+        },
+        "agentId": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rawBytes",
+        "modelVisibleBytes",
+        "reducedBytes",
+        "estimatedRawTokens",
+        "estimatedModelVisibleTokens",
+        "estimatedTokensAvoided",
+        "tokenEstimate"
+      ],
+      "properties": {
+        "rawBytes": {
+          "type": "number",
+          "minimum": 0
+        },
+        "modelVisibleBytes": {
+          "type": "number",
+          "minimum": 0
+        },
+        "reducedBytes": {
+          "type": "number",
+          "minimum": 0
+        },
+        "estimatedRawTokens": {
+          "type": "number",
+          "minimum": 0
+        },
+        "estimatedModelVisibleTokens": {
+          "type": "number",
+          "minimum": 0
+        },
+        "estimatedTokensAvoided": {
+          "type": "number",
+          "minimum": 0
+        },
+        "tokenEstimate": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["method", "version"],
+          "properties": {
+            "method": {
+              "const": "utf8_bytes_divided_by_4"
+            },
+            "version": {
+              "const": 1
+            }
+          }
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref", "sha256"],
+      "properties": {
+        "ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "redaction": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode", "count"],
+          "properties": {
+            "mode": { "const": "default" },
+            "count": { "type": "integer", "minimum": 0 }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,157 @@
+{
+  "schemaVersion": 1,
+  "role": "hardener",
+  "producerId": "luna-hardener-64-r4",
+  "status": "passed",
+  "surfaceCoverage": [
+    {
+      "path": ".scratch/harness-integrity/issues/05-independent-roles.md",
+      "scenario": "Adversarial portability and integrity challenge executed against frozen inputs; no counterexample established by supplied exitCode=0 Evidence.",
+      "evidenceCheckId": "hardener.ci-portability-gates"
+    },
+    {
+      "path": "AGENTS.md",
+      "scenario": "Adversarial portability and integrity challenge executed against frozen inputs; no counterexample established by supplied exitCode=0 Evidence.",
+      "evidenceCheckId": "hardener.ci-portability-gates"
+    },
+    {
+      "path": "docs/development/independent-role-assurance.md",
+      "scenario": "Adversarial portability and integrity challenge executed against frozen inputs; no counterexample established by supplied exitCode=0 Evidence.",
+      "evidenceCheckId": "hardener.ci-portability-gates"
+    },
+    {
+      "path": "package.json",
+      "scenario": "Adversarial portability and integrity challenge executed against frozen inputs; no counterexample established by supplied exitCode=0 Evidence.",
+      "evidenceCheckId": "hardener.ci-portability-gates"
+    },
+    {
+      "path": "scripts/agent-context",
+      "scenario": "Adversarial portability and integrity challenge executed against frozen inputs; no counterexample established by supplied exitCode=0 Evidence.",
+      "evidenceCheckId": "hardener.ci-portability-gates"
+    },
+    {
+      "path": "scripts/agent-role",
+      "scenario": "Adversarial portability and integrity challenge executed against frozen inputs; no counterexample established by supplied exitCode=0 Evidence.",
+      "evidenceCheckId": "hardener.ci-portability-gates"
+    },
+    {
+      "path": "scripts/agent-work",
+      "scenario": "Adversarial portability and integrity challenge executed against frozen inputs; no counterexample established by supplied exitCode=0 Evidence.",
+      "evidenceCheckId": "hardener.ci-portability-gates"
+    },
+    {
+      "path": "scripts/bind-role-evidence.mjs",
+      "scenario": "Adversarial portability and integrity challenge executed against frozen inputs; no counterexample established by supplied exitCode=0 Evidence.",
+      "evidenceCheckId": "hardener.ci-portability-gates"
+    },
+    {
+      "path": "scripts/finalize-candidate.mjs",
+      "scenario": "Adversarial portability and integrity challenge executed against frozen inputs; no counterexample established by supplied exitCode=0 Evidence.",
+      "evidenceCheckId": "hardener.ci-portability-gates"
+    },
+    {
+      "path": "scripts/verify-role-evidence.mjs",
+      "scenario": "Adversarial portability and integrity challenge executed against frozen inputs; no counterexample established by supplied exitCode=0 Evidence.",
+      "evidenceCheckId": "hardener.ci-portability-gates"
+    },
+    {
+      "path": "spec/schemas/quality-stage-report.schema.json",
+      "scenario": "Adversarial portability and integrity challenge executed against frozen inputs; no counterexample established by supplied exitCode=0 Evidence.",
+      "evidenceCheckId": "hardener.ci-portability-gates"
+    },
+    {
+      "path": "spec/schemas/reviewer-report.schema.json",
+      "scenario": "Adversarial portability and integrity challenge executed against frozen inputs; no counterexample established by supplied exitCode=0 Evidence.",
+      "evidenceCheckId": "hardener.ci-portability-gates"
+    },
+    {
+      "path": "spec/schemas/role-attempt.schema.json",
+      "scenario": "Adversarial portability and integrity challenge executed against frozen inputs; no counterexample established by supplied exitCode=0 Evidence.",
+      "evidenceCheckId": "hardener.ci-portability-gates"
+    },
+    {
+      "path": "spec/schemas/role-attestation-envelope.schema.json",
+      "scenario": "Adversarial portability and integrity challenge executed against frozen inputs; no counterexample established by supplied exitCode=0 Evidence.",
+      "evidenceCheckId": "hardener.ci-portability-gates"
+    },
+    {
+      "path": "spec/schemas/role-input-manifest.schema.json",
+      "scenario": "Adversarial portability and integrity challenge executed against frozen inputs; no counterexample established by supplied exitCode=0 Evidence.",
+      "evidenceCheckId": "hardener.ci-portability-gates"
+    },
+    {
+      "path": "spec/schemas/role-ledger.schema.json",
+      "scenario": "Adversarial portability and integrity challenge executed against frozen inputs; no counterexample established by supplied exitCode=0 Evidence.",
+      "evidenceCheckId": "hardener.ci-portability-gates"
+    },
+    {
+      "path": "tooling/capabilities.json",
+      "scenario": "Adversarial portability and integrity challenge executed against frozen inputs; no counterexample established by supplied exitCode=0 Evidence.",
+      "evidenceCheckId": "hardener.ci-portability-gates"
+    },
+    {
+      "path": "tooling/quality/agent-context.test.sh",
+      "scenario": "Adversarial portability and integrity challenge executed against frozen inputs; no counterexample established by supplied exitCode=0 Evidence.",
+      "evidenceCheckId": "hardener.ci-portability-gates"
+    },
+    {
+      "path": "tooling/quality/candidate-finalize.test.sh",
+      "scenario": "Adversarial portability and integrity challenge executed against frozen inputs; no counterexample established by supplied exitCode=0 Evidence.",
+      "evidenceCheckId": "hardener.ci-portability-gates"
+    },
+    {
+      "path": "tooling/quality/quality-stage-contract.test.mjs",
+      "scenario": "Adversarial portability and integrity challenge executed against frozen inputs; no counterexample established by supplied exitCode=0 Evidence.",
+      "evidenceCheckId": "hardener.ci-portability-gates"
+    },
+    {
+      "path": "tooling/quality/role-evidence-policy.mjs",
+      "scenario": "Adversarial portability and integrity challenge executed against frozen inputs; no counterexample established by supplied exitCode=0 Evidence.",
+      "evidenceCheckId": "hardener.ci-portability-gates"
+    },
+    {
+      "path": "tooling/quality/role-evidence-policy.test.mjs",
+      "scenario": "Adversarial portability and integrity challenge executed against frozen inputs; no counterexample established by supplied exitCode=0 Evidence.",
+      "evidenceCheckId": "hardener.ci-portability-gates"
+    },
+    {
+      "path": "tooling/roles/prompts/hardener.md",
+      "scenario": "Adversarial portability and integrity challenge executed against frozen inputs; no counterexample established by supplied exitCode=0 Evidence.",
+      "evidenceCheckId": "hardener.ci-portability-gates"
+    },
+    {
+      "path": "tooling/roles/prompts/qa.md",
+      "scenario": "Adversarial portability and integrity challenge executed against frozen inputs; no counterexample established by supplied exitCode=0 Evidence.",
+      "evidenceCheckId": "hardener.ci-portability-gates"
+    },
+    {
+      "path": "tooling/roles/prompts/reviewer.md",
+      "scenario": "Adversarial portability and integrity challenge executed against frozen inputs; no counterexample established by supplied exitCode=0 Evidence.",
+      "evidenceCheckId": "hardener.ci-portability-gates"
+    },
+    {
+      "path": "tooling/roles/registry.json",
+      "scenario": "Adversarial portability and integrity challenge executed against frozen inputs; no counterexample established by supplied exitCode=0 Evidence.",
+      "evidenceCheckId": "hardener.ci-portability-gates"
+    }
+  ],
+  "scenarios": [
+    "Every declared surface was challenged for malformed input, boundary conditions, concurrency, stale state, hostile dependencies, permissions, resource exhaustion, recovery, Git-version/core.abbrev drift, synthetic merge checkout, permission-bit loss, symlink/tree/digest enforcement, and outer CI environment leakage. Supplied deterministic gates all report exitCode=0."
+  ],
+  "evidence": [
+    {
+      "checkId": "hardener.ci-portability-gates",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-ff022b9b-37e5-4c4a-8dfd-4e7a3d9922c4/inputs/gate-evidence/48fc9ba2-4af8-409f-9147-7e09d7a8e20c.log",
+      "evidenceSha256": "2fb83ee8b3e710df76b3d5f80036353d5332f786f8aef92cf8831a1b4a259d96"
+    }
+  ],
+  "taskId": ".scratch/harness-integrity/issues/05-independent-roles.md",
+  "baseRevision": "6cf6483a0ad65ec65311285f84109133396ab36b",
+  "candidateRevision": "sha256:884dfaed7ae39a1be2a1aa0659db000013ef4608b7dd2fb5f6dc8c028405448e",
+  "attemptId": "attempt-ff022b9b-37e5-4c4a-8dfd-4e7a3d9922c4",
+  "parentInvocationId": "pr64-ci-portable",
+  "promptDigest": "sha256:cfdc50a75dd9463f10906d4d676ed1bef51f5f5ae78a73777146a000ba28fa42",
+  "inputManifestDigest": "sha256:71d8ac6c5816b2446b33e335de076b7f0854ebe46b7f8c782f28312be89496ab",
+  "attestationDigest": "sha256:fce2e1ef722f79313865b5797124842723f0daedcf89dea321cc3c81909dfca1"
+}

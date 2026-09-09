@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "attemptId": "attempt-f1e5fb75-4103-41e0-81b5-e2759aa1d156",
+  "parentInvocationId": "pr64-ci-fix-r2",
+  "taskId": ".scratch/harness-integrity/issues/05-independent-roles.md",
+  "baseRevision": "6cf6483a0ad65ec65311285f84109133396ab36b",
+  "candidateRevision": "sha256:a2d979c450787aa9fedb558db785b13f6856c8fbdbe371642dd94536c6fc3622",
+  "implementerId": "codex-role-orchestrator",
+  "producerId": "luna-qa-64b",
+  "role": "qa",
+  "modelClass": "quick",
+  "promptId": "qa-v1",
+  "promptRef": "tooling/roles/prompts/qa.md",
+  "promptDigest": "sha256:33334901b05d3ee6f7ace889ee090c292c672be32f07ac243db0bfc8f6ab07d0",
+  "sourceAccessMode": "source-blind-bundle",
+  "inputs": [
+    {
+      "kind": "source-blind-bundle",
+      "ref": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-f1e5fb75-4103-41e0-81b5-e2759aa1d156/inputs/qa-bundle",
+      "digest": "sha256:d3c6b89ba0cff34f20be3689001de4914af52d205a23157f15399a9af2e4cec2",
+      "bundle": {
+        "root": "qa-bundle",
+        "files": [
+          {
+            "path": "bin/agent-role",
+            "digest": "sha256:29c497fbc8ea8bc2d3f165670ef5159e10c433dbc5cd3c8748a42767cb2788f0"
+          },
+          {
+            "path": "CONTRIBUTING.md",
+            "digest": "sha256:4cc5bf411f62f677d121976ec917a435f18aedcf200d722be6312239121061d9"
+          },
+          {
+            "path": "packages/core/etc/core.api.md",
+            "digest": "sha256:2e8f63e9cae710d6b432d211e8b19e6c0cae0c100dc2a8ad3c1246f1179eba81"
+          },
+          {
+            "path": "packages/observer-devtools/etc/observer-devtools.api.md",
+            "digest": "sha256:c1395359373d384f68f9f35bca6042ed2403badd440e6367b89206d9f05354c5"
+          },
+          {
+            "path": "packages/plugin-sdk/etc/plugin-sdk.api.md",
+            "digest": "sha256:63e19c355c7fafa396e0a49ae410f9037e3fa06b772864688bbce1a6d0c2cf7f"
+          },
+          {
+            "path": "packages/protocol/etc/protocol.api.md",
+            "digest": "sha256:ce7c2227097ca7ead3076e3a0556d4d712bb2be84872d414003a04b3cd28b807"
+          },
+          {
+            "path": "packages/testkit/etc/testkit.api.md",
+            "digest": "sha256:edf81e0c37ff7909bac53c8719e03671849d324ad4c46ed69fc577cbb3407048"
+          },
+          {
+            "path": "procedures.json",
+            "digest": "sha256:25448ffc9c0fc53704ad7205432e4132989af7e8037b21f38fcf9de1d25037ac"
+          },
+          {
+            "path": "PRODUCT.md",
+            "digest": "sha256:ed2a1713ae785edd93e00dcca8fac8f5e0885d7087b82fa1dfeb84b6e659ae30"
+          },
+          {
+            "path": "README.md",
+            "digest": "sha256:b020da0617d8323ff319df462c3aa4f21bf7f79a8bffd4ab2a17a2120134ca0d"
+          },
+          {
+            "path": "spec/schemas/patch.schema.json",
+            "digest": "sha256:64249ef79a11cb4ad872425309c62509a4bd0b9bd0cd5ab47b7d58e51e2c1066"
+          },
+          {
+            "path": "spec/schemas/prompt-document.schema.json",
+            "digest": "sha256:c5cb55b1b0de68de9e5a25776b6555d41630c60ecc28dad940e6b27207a0a3ea"
+          },
+          {
+            "path": "spec/schemas/quality-stage-report.schema.json",
+            "digest": "sha256:3002216a9753501c8197f46d160011d31d22bbb83ac210f85c6549fbf95c14e8"
+          },
+          {
+            "path": "spec/schemas/reviewer-report.schema.json",
+            "digest": "sha256:3be54e0e09b61392d987b550502ce66bfdfa6ae969bd459b681cb0e691f73530"
+          },
+          {
+            "path": "spec/schemas/role-attempt.schema.json",
+            "digest": "sha256:0183154c48d4e9f79f07b08f67858b2f628b431ed90646dc8193fe8629e17346"
+          },
+          {
+            "path": "spec/schemas/role-attestation-envelope.schema.json",
+            "digest": "sha256:3208095ee2391a8d76f64f728eab34e2de58a41a3f4e7cbc1fd08e3681273d53"
+          },
+          {
+            "path": "spec/schemas/role-input-manifest.schema.json",
+            "digest": "sha256:8535a3270c7e63f3a94579b64fa70c2f25ee02190b541a5253075294b16ba98e"
+          },
+          {
+            "path": "spec/schemas/role-ledger.schema.json",
+            "digest": "sha256:2107c976d3bae8f0d6bb3ed1eae3bd283c303fdf6f6c921acacfac8fa4c07288"
+          },
+          {
+            "path": "spec/schemas/run-result.schema.json",
+            "digest": "sha256:d434486aeb580d14b01240faddfa140614a4f64aac12d61ec226b422291c24d6"
+          },
+          {
+            "path": "spec/schemas/test-strategies.schema.json",
+            "digest": "sha256:6ef19284fbdeb525852b5ab41daf65cea2affb23acca88a1c8e141c53f9901a0"
+          },
+          {
+            "path": "spec/schemas/tool-trace-v3.schema.json",
+            "digest": "sha256:e26eb495c2088c0630dafa8e2ed3a873b0b164775acbe5e8a6f6458b74cca9ce"
+          },
+          {
+            "path": "spec/schemas/tool-trace.schema.json",
+            "digest": "sha256:3ae1b830a05e1022c778eeca2a487a04501763a90b42f4a9713e5f84c4ba43cc"
+          },
+          {
+            "path": "spec/schemas/work-item.schema.json",
+            "digest": "sha256:a299359289ad278808abfa76d09eda31ab3e3962a63ab357623546d7acd083fa"
+          }
+        ],
+        "capabilities": {
+          "sourceExcluded": true,
+          "gitMetadataExcluded": true,
+          "symlinksRejected": true,
+          "readOnlyFiles": true,
+          "emptyEnvironment": false,
+          "networkDisabled": false,
+          "ambientFilesystemDisabled": false
+        }
+      }
+    }
+  ],
+  "manifestDigest": "sha256:1ad371d19473e76fc5013e1004c6233d9337066e1400ed68cd1cf6ba3f6716f6"
+}

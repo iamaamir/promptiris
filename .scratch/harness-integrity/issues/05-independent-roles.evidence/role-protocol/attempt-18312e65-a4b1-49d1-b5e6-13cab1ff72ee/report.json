@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "producerId": "luna-reviewer-64-r6",
+  "independent": true,
+  "verdict": "pass",
+  "findings": [],
+  "commentDecisions": [],
+  "evidence": [],
+  "residualRisks": [
+    "Host-attested evidence depends on the integrity of the registered execution host."
+  ],
+  "taskId": ".scratch/harness-integrity/issues/05-independent-roles.md",
+  "baseRevision": "6cf6483a0ad65ec65311285f84109133396ab36b",
+  "candidateRevision": "sha256:884dfaed7ae39a1be2a1aa0659db000013ef4608b7dd2fb5f6dc8c028405448e",
+  "attemptId": "attempt-18312e65-a4b1-49d1-b5e6-13cab1ff72ee",
+  "parentInvocationId": "pr64-ci-portable",
+  "promptDigest": "sha256:9f9597af8d9b61ed615baabc3507833005687360640d34030b00350639c900d3",
+  "inputManifestDigest": "sha256:efaf483bf13f4c960e0280810c4aa24681636c7584bc34e32ab4ffbe55413a73",
+  "attestationDigest": "sha256:b2cf9c45142a4ab9ab98f721bb8047d70d054562102a9cb2de3ce41596db5bfe"
+}
