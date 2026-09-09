@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "role": "qa",
+  "producerId": "luna-qa-64-final",
+  "status": "failed",
+  "sourceBlind": true,
+  "scenarios": [
+    "Approved host status returned roles-incomplete JSON with exit 0.",
+    "Approved host invalid command returned ROLE_USAGE with exit 1.",
+    "Approved host status retry returned stable roles-incomplete JSON with exit 0.",
+    "Bundle procedure wrapper returned QA_HOST_UNAVAILABLE for status and invalid-input, preventing full procedure certification.",
+    "Cancellation, degraded-operation, and progress are not applicable to the bounded status command.",
+    "The access manifest explicitly allows ambientFilesystemDisabled=false; this is documented as a host limitation, not treated as hidden."
+  ],
+  "evidence": [
+    {
+      "checkId": "qa.host-status",
+      "status": "passed",
+      "evidenceRef": "/Users/mak/git/meta-prompt/.agent/role-attempts/independent-roles/bde2dc130d1a3002d4451d83b1be3c44804702a20a37bab9fb9b9bb86245ff2b/attempt-9d1fc3de-d962-4ed3-bc7b-87e3dcc4eee8/host/agent-role-host",
+      "evidenceSha256": "f4c48b30f122275152e2854620c133d2f63df1db3d8a221fa4142b03fc176e81"
+    },
+    {
+      "checkId": "qa.invalid-input",
+      "status": "passed",
+      "evidenceRef": "/Users/mak/git/meta-prompt/.agent/role-attempts/independent-roles/bde2dc130d1a3002d4451d83b1be3c44804702a20a37bab9fb9b9bb86245ff2b/attempt-9d1fc3de-d962-4ed3-bc7b-87e3dcc4eee8/host/agent-role-host",
+      "evidenceSha256": "f4c48b30f122275152e2854620c133d2f63df1db3d8a221fa4142b03fc176e81"
+    },
+    {
+      "checkId": "qa.bundle-wrapper",
+      "status": "failed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-9d1fc3de-d962-4ed3-bc7b-87e3dcc4eee8/inputs/qa-bundle/bin/agent-role",
+      "evidenceSha256": "d3c6b89ba0cff34f20be3689001de4914af52d205a23157f15399a9af2e4cec2"
+    },
+    {
+      "checkId": "qa.ambient-filesystem",
+      "status": "passed",
+      "evidenceRef": ".agent/role-attempts/independent-roles/bde2dc130d1a3002d4451d83b1be3c44804702a20a37bab9fb9b9bb86245ff2b/access.json",
+      "evidenceSha256": "0716cc4da4a5a7704d684d69c1ed2f13bac65797f09fc2147aa5fe17d08c199e"
+    }
+  ]
+}

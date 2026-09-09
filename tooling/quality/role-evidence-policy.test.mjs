@@ -1,6 +1,16 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { chmod, cp, mkdir, mkdtemp, readFile, symlink, writeFile } from 'node:fs/promises';
+import {
+  chmod,
+  cp,
+  mkdir,
+  mkdtemp,
+  readFile,
+  readdir,
+  rm,
+  symlink,
+  writeFile,
+} from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import test from 'node:test';
@@ -159,6 +169,10 @@ test('evidence references reject absolute and escaping paths before reading', as
   assert.deepEqual(await validateEvidenceReference('.', '../outside', digest), [
     'evidence reference is not repository-relative',
   ]);
+  assert.deepEqual(
+    await validateEvidenceReference('.', 'package.json', digest, '.scratch/task.evidence/attempt'),
+    ['evidence reference is outside its allowed directory'],
+  );
 });
 
 test('bundle validation requires an exact immutable regular-file tree', async () => {
@@ -183,6 +197,7 @@ test('attack surfaces are classified deterministically', () => {
     ['packages/x/src/value.ts', 'export const value = 1;'],
     ['packages/x/src/index.ts', "export { value } from './value.js';"],
     ['packages/x/src/consumer.ts', "import { value } from './index.js'; void value;"],
+    ['packages/x/src/legacy.cjs', "require('./consumer.js');"],
   ]);
   assert.deepEqual(
     deriveAttackSurfaces(sources, ['packages/x/src/value.ts']).map(({ path, origin }) => ({
@@ -192,6 +207,7 @@ test('attack surfaces are classified deterministically', () => {
     [
       { path: 'packages/x/src/consumer.ts', origin: 'dependent' },
       { path: 'packages/x/src/index.ts', origin: 'dependent' },
+      { path: 'packages/x/src/legacy.cjs', origin: 'dependent' },
       { path: 'packages/x/src/value.ts', origin: 'changed' },
     ],
   );
@@ -421,6 +437,21 @@ test('binding and verification require three attested independent roles', async 
   );
   run(workspace, ['scripts/finalize-candidate.mjs', 'finalize', packet], { env });
 
+  const lock = join(workspace, '.git/promptiris-locks/role-ledger.lock');
+  await mkdir(lock, { recursive: true });
+  assert.throws(() =>
+    run(
+      workspace,
+      ['scripts/agent-role', 'prepare', 'reviewer', 'blocked-reviewer', 'quick', 'blocked'],
+      { env, stdio: 'pipe' },
+    ),
+  );
+  assert.deepEqual(
+    await readdir(join(workspace, evidenceDirectory, 'role-protocol')).catch(() => []),
+    [],
+  );
+  await rm(lock, { recursive: true });
+
   for (const [index, role] of ['reviewer', 'hardener', 'qa'].entries()) {
     const producerId = `${role}-agent`;
     const attestationStrength = role === 'qa' ? 'maintainer-attested' : 'host-attested';
@@ -496,7 +527,7 @@ test('binding and verification require three attested independent roles', async 
         }),
       );
     }
-    const proofRef = `${evidenceDirectory}/${role}-proof.json`;
+    const proofRef = `${evidenceDirectory}/role-protocol/${prepared.attemptId}/native-proof.json`;
     const proof = `${JSON.stringify({ role, producerId })}\n`;
     await writeFile(join(workspace, proofRef), proof);
     const envelopePath = join(workspace, evidenceDirectory, `${role}-envelope-input.json`);

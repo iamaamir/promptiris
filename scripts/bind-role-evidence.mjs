@@ -108,6 +108,7 @@ try {
       root,
       attestation.nativeProofRef,
       attestation.nativeProofDigest,
+      join(evidenceDirectory, 'role-protocol', attempt.attemptId),
     )),
   );
   if (attestationFailures.length > 0) throw new Error(attestationFailures.join('; '));
