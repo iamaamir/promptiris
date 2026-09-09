@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "producerId": "luna-reviewer-64-r4",
+  "independent": true,
+  "verdict": "changes-required",
+  "findings": [
+    {
+      "id": "qa-readonly-permissions-not-portable",
+      "severity": "blocker",
+      "file": "tooling/quality/role-evidence-policy.mjs",
+      "line": 3125,
+      "summary": "QA bundle validation requires read-only mode bits, but Git tracks only the executable bit and normal checkouts materialize tracked regular files writable (for example 0644). A committed bundle therefore cannot reliably satisfy the required read-only permission check across environments.",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-8a6742a7-bf66-4ae2-b171-25ce0b66be45/inputs/candidate.diff"
+    }
+  ],
+  "commentDecisions": [],
+  "evidence": [
+    {
+      "checkId": "reviewer.ci-portable-qa-bundle-permissions",
+      "status": "failed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-8a6742a7-bf66-4ae2-b171-25ce0b66be45/inputs/candidate.diff",
+      "evidenceSha256": "591cbe92e67b16d4fd6c92ba129db30be3b5e20c7b154a3f9fe250d68fc9ecca"
+    }
+  ],
+  "residualRisks": [
+    "A bundle accepted before commit may fail after a fresh CI checkout because regular-file write bits are not represented by Git tree metadata."
+  ]
+}

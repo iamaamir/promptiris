@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "commands": [
+    {
+      "id": "happy-path",
+      "category": "happy-path",
+      "command": "./bin/agent-role status",
+      "expectedExit": 0,
+      "expectedOutputIncludes": "roles-incomplete",
+      "rationale": "QA itself is not bound yet, so an incomplete role state is the expected truth."
+    },
+    {
+      "id": "invalid-input",
+      "category": "invalid-input",
+      "command": "./bin/agent-role invalid",
+      "expectedExit": 1
+    },
+    {
+      "id": "retry",
+      "category": "retries",
+      "command": "./bin/agent-role status",
+      "expectedExit": 0
+    },
+    {
+      "id": "recovery",
+      "category": "recovery",
+      "command": "./bin/agent-role status",
+      "expectedExit": 0,
+      "expectedOutputIncludes": "roles-incomplete"
+    }
+  ],
+  "notApplicable": [
+    {
+      "category": "cancellation",
+      "reason": "The bounded status command exposes no cancellable operation."
+    },
+    {
+      "category": "degraded-operation",
+      "reason": "The public bounded status command has no degraded operating mode."
+    },
+    {
+      "category": "progress",
+      "reason": "The bounded status command has no intermediate progress contract."
+    }
+  ]
+}
