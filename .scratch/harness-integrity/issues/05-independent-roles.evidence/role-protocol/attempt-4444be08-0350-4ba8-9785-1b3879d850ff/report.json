@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "producerId": "luna-reviewer-64-final",
+  "independent": true,
+  "verdict": "changes-required",
+  "findings": [
+    {
+      "id": "role-lock-error-normalization",
+      "severity": "low",
+      "file": "scripts/agent-role",
+      "line": 110,
+      "summary": "Some lock acquisition failures escape as raw exceptions instead of the documented stable RoleError code, Evidence reference, and Next action.",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-4444be08-0350-4ba8-9785-1b3879d850ff/inputs/candidate.diff"
+    }
+  ],
+  "commentDecisions": [],
+  "evidence": [],
+  "residualRisks": [
+    "The lock error path is operationally less diagnosable when filesystem stat or cleanup fails during contention handling."
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "state": "roles-incomplete",
+  "candidateRevision": "sha256:e73286c1d62e3f1efb5fd4842ed2bbd4aa16c3ccd9ccec600572cc3513d8a6e4",
+  "completedRoles": [],
+  "missingRoles": [
+    "reviewer",
+    "hardener",
+    "qa"
+  ],
+  "ledgerFailures": [],
+  "unsupported": [],
+  "nextActions": [
+    "scripts/agent-role prepare reviewer <producer-id> <quick|general|frontier> <parent-id> [host-attested|maintainer-attested]",
+    "scripts/agent-role prepare hardener <producer-id> <quick|general|frontier> <parent-id> [host-attested|maintainer-attested]",
+    "scripts/agent-role prepare qa <producer-id> <quick|general|frontier> <parent-id> [host-attested|maintainer-attested]"
+  ]
+}

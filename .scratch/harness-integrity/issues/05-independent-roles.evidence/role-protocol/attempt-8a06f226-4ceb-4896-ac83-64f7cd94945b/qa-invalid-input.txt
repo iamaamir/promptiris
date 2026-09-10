@@ -1,0 +1,2 @@
+error=ROLE_USAGE
+exit=1

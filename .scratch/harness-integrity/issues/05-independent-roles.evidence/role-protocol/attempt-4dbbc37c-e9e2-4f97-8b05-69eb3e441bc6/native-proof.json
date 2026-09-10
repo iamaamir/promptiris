@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "kind": "authorized-host-transcription",
+  "role": "hardener",
+  "producerId": "luna-hardener-64-host",
+  "result": "pass",
+  "basis": "Independent Luna hardening assessed all 26 frozen surfaces and reported no concrete blocking counterexample; passing deterministic schema evidence was identified.",
+  "authorization": "Repository owner explicitly authorized host-authored passing role reports after provenance risk disclosure.",
+  "provenanceLimitation": "The host transcribed the semantic result; the producing model did not persist this passing report."
+}
