@@ -38,6 +38,8 @@ cat >"$repo/.scratch/test/issues/01-test.evidence/reviewer.json" <<'EOF'
 EOF
 
 cd "$repo"
+export PROMPTIRIS_AGENT_ROOT="$repo/.agent"
+export PROMPTIRIS_REPOSITORY_ROOT="$repo"
 if PROMPTIRIS_AGENT_ROOT="$repo/.agent" PROMPTIRIS_BASE_REVISION="$head" node scripts/finalize-candidate.mjs finalize .scratch/test/issues/01-test.md >/dev/null 2>&1; then
   echo 'expired claim unexpectedly finalized a candidate' >&2
   exit 1

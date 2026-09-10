@@ -27,6 +27,8 @@ git -C "$workspace/repo" add .
 git -C "$workspace/repo" commit -qm 'test fixture'
 
 cd "$workspace/repo"
+export PROMPTIRIS_AGENT_ROOT="$workspace/repo/.agent"
+export PROMPTIRIS_REPOSITORY_ROOT="$workspace/repo"
 PROMPTIRIS_CLAIM_LEASE_MS=5000 ./scripts/agent-work claim .scratch/test/issues/01-test.md agent-a --local >/dev/null
 grep -Fqx 'Status: in-progress' .scratch/test/issues/01-test.md
 claim="$workspace/repo/.agent/claims/isolated-task.json"
