@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:promptiris:schema:role-attestation-envelope:v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "issuer",
+    "verifierId",
+    "nativeProofRef",
+    "nativeProofDigest",
+    "subject",
+    "producerId",
+    "attemptId",
+    "parentInvocationId",
+    "role",
+    "candidateRevision",
+    "promptDigest",
+    "inputManifestDigest",
+    "sourceAccessMode",
+    "issuedAt",
+    "expiresAt",
+    "nonce",
+    "attestationStrength"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "issuer": { "type": "string", "minLength": 1 },
+    "verifierId": { "type": "string", "minLength": 1 },
+    "nativeProofRef": { "type": "string", "minLength": 1 },
+    "nativeProofDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "subject": { "type": "string", "minLength": 1 },
+    "producerId": { "type": "string", "minLength": 1 },
+    "attemptId": { "type": "string", "minLength": 1 },
+    "parentInvocationId": { "type": "string", "minLength": 1 },
+    "role": { "enum": ["reviewer", "hardener", "qa"] },
+    "candidateRevision": { "type": "string", "minLength": 1 },
+    "promptDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "inputManifestDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "sourceAccessMode": {
+      "enum": ["full", "contract-diff", "attack-surfaces", "source-blind-bundle", "none"]
+    },
+    "issuedAt": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$"
+    },
+    "expiresAt": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$"
+    },
+    "nonce": { "type": "string", "minLength": 16 },
+    "attestationStrength": { "enum": ["host-attested", "maintainer-attested", "unsupported"] }
+  }
+}

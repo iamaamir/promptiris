@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "role": "hardener",
+  "producerId": "luna-harden-final2",
+  "status": "failed",
+  "surfaceCoverage": [
+    {"path":"AGENTS.md","scenario":"Policy can weaken role verification.","evidenceCheckId":"surface-1"},
+    {"path":"docs/development/independent-role-assurance.md","scenario":"Documentation can overstate enforced guarantees.","evidenceCheckId":"surface-2"},
+    {"path":"package.json","scenario":"Quality entrypoints can bypass verification.","evidenceCheckId":"surface-3"},
+    {"path":"scripts/agent-context","scenario":"Status can hide incomplete or unsupported roles.","evidenceCheckId":"surface-4"},
+    {"path":"scripts/agent-role","scenario":"Role preparation can bind inputs to non-frozen source state.","evidenceCheckId":"surface-5"},
+    {"path":"scripts/agent-work","scenario":"Checklist can direct invalid evidence workflow.","evidenceCheckId":"surface-6"},
+    {"path":"scripts/bind-role-evidence.mjs","scenario":"Binder can accept stale or redirected evidence.","evidenceCheckId":"surface-7"},
+    {"path":"scripts/finalize-candidate.mjs","scenario":"Candidate identity can be bypassed or raced.","evidenceCheckId":"surface-8"},
+    {"path":"scripts/verify-role-evidence.mjs","scenario":"Verifier can accept forged role evidence.","evidenceCheckId":"surface-9"},
+    {"path":"spec/schemas/quality-stage-report.schema.json","scenario":"Report schema can permit unbound identity.","evidenceCheckId":"surface-10"},
+    {"path":"spec/schemas/reviewer-report.schema.json","scenario":"Reviewer can self-assert independence.","evidenceCheckId":"surface-11"},
+    {"path":"spec/schemas/role-attempt.schema.json","scenario":"Attempt history can admit invalid transitions.","evidenceCheckId":"surface-12"},
+    {"path":"spec/schemas/role-attestation-envelope.schema.json","scenario":"Attestation replay or expiry can pass.","evidenceCheckId":"surface-13"},
+    {"path":"spec/schemas/role-input-manifest.schema.json","scenario":"Manifest can omit a binding dependency.","evidenceCheckId":"surface-14"},
+    {"path":"spec/schemas/role-ledger.schema.json","scenario":"Ledger can select non-authoritative attempts.","evidenceCheckId":"surface-15"},
+    {"path":"tooling/capabilities.json","scenario":"Capabilities can claim unenforced isolation.","evidenceCheckId":"surface-16"},
+    {"path":"tooling/quality/agent-context.test.sh","scenario":"Orientation regression can hide role state.","evidenceCheckId":"surface-17"},
+    {"path":"tooling/quality/agent-work.test.sh","scenario":"Workflow regression can permit self-review.","evidenceCheckId":"surface-18"},
+    {"path":"tooling/quality/candidate-finalize.test.sh","scenario":"Finalization race can invalidate role inputs.","evidenceCheckId":"surface-19"},
+    {"path":"tooling/quality/ci-import.test.sh","scenario":"Imported identity can replace attestation.","evidenceCheckId":"surface-20"},
+    {"path":"tooling/quality/quality-stage-contract.test.mjs","scenario":"Malformed reports can evade contract checks.","evidenceCheckId":"surface-21"},
+    {"path":"tooling/quality/role-evidence-policy.mjs","scenario":"Policy helper can diverge from verifier contract.","evidenceCheckId":"surface-22"},
+    {"path":"tooling/quality/role-evidence-policy.test.mjs","scenario":"Forgery or retry regressions can remain untested.","evidenceCheckId":"surface-23"},
+    {"path":"tooling/quality/tool-trace.test.sh","scenario":"Trace can be detached from Candidate.","evidenceCheckId":"surface-24"},
+    {"path":"tooling/roles/prompts/hardener.md","scenario":"Hardener can omit concrete counterexamples.","evidenceCheckId":"surface-25"},
+    {"path":"tooling/roles/prompts/qa.md","scenario":"QA procedure can permit leakage.","evidenceCheckId":"surface-26"},
+    {"path":"tooling/roles/prompts/reviewer.md","scenario":"Reviewer can rely on forbidden narrative.","evidenceCheckId":"surface-27"},
+    {"path":"tooling/roles/registry.json","scenario":"Prompt registration can drift.","evidenceCheckId":"surface-28"}
+  ],
+  "scenarios": [
+    "HIGH: prepareInputs derives Hardener attack surfaces from trackedModuleSources(context) read from the live checkout, while candidateDiff and changedPaths are calculated from candidate.baseRevision to candidate.headRevision. The Candidate remains valid when HEAD advances as a descendant, so an unrelated post-freeze edit can change dependency imports in the live checkout and thereby add or remove derived surfaces. The Hardener then receives surfaces for content different from the frozen Candidate while all manifest Candidate fields still identify the old digest. Surface derivation must materialize/read exactly candidate.headRevision or reject any checkout drift.",
+    "LIMITATION: prior input-scope, opaque-launcher, stale-lock, transition, external-envelope, and malformed-trace findings were re-tested and are not retained as blockers/high findings under the clarified contracts and fresh diff.",
+    "LIMITATION: no deterministic commands or unauthorized policy files were inspected; this report is based solely on the authorized fresh diff and manifests."
+  ],
+  "evidence": [
+    {
+      "checkId": "hardener.surface-candidate-mismatch",
+      "status": "failed",
+      "evidenceRef": "inputs/candidate.diff",
+      "evidenceSha256": "sha256:be359db058e0e027d056804d50d1141539c63a41e1ef476fa1f022b34fbf4e5d"
+    }
+  ]
+}

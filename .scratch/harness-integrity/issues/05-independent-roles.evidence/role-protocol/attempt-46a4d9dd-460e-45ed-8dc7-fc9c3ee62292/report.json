@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "role": "hardener",
+  "producerId": "luna-harden-final3",
+  "status": "failed",
+  "surfaceCoverage": [
+    {"path":"AGENTS.md","scenario":"Policy can weaken role verification.","evidenceCheckId":"surface-1"},
+    {"path":"docs/development/independent-role-assurance.md","scenario":"Documentation can overstate enforcement.","evidenceCheckId":"surface-2"},
+    {"path":"package.json","scenario":"Quality entrypoints can bypass verification.","evidenceCheckId":"surface-3"},
+    {"path":"scripts/agent-context","scenario":"Status can hide role state.","evidenceCheckId":"surface-4"},
+    {"path":"scripts/agent-role","scenario":"Role preparation can race or misbind state.","evidenceCheckId":"surface-5"},
+    {"path":"scripts/agent-work","scenario":"Checklist can direct invalid evidence.","evidenceCheckId":"surface-6"},
+    {"path":"scripts/bind-role-evidence.mjs","scenario":"Binder lock or binding can be subverted.","evidenceCheckId":"surface-7"},
+    {"path":"scripts/finalize-candidate.mjs","scenario":"Candidate identity can be raced.","evidenceCheckId":"surface-8"},
+    {"path":"scripts/verify-role-evidence.mjs","scenario":"Verifier can accept forged evidence.","evidenceCheckId":"surface-9"},
+    {"path":"spec/schemas/quality-stage-report.schema.json","scenario":"Report schema can permit invalid output.","evidenceCheckId":"surface-10"},
+    {"path":"spec/schemas/reviewer-report.schema.json","scenario":"Reviewer can self-assert independence.","evidenceCheckId":"surface-11"},
+    {"path":"spec/schemas/role-attempt.schema.json","scenario":"Attempt transitions can be invalid.","evidenceCheckId":"surface-12"},
+    {"path":"spec/schemas/role-attestation-envelope.schema.json","scenario":"Attestation can replay or expire.","evidenceCheckId":"surface-13"},
+    {"path":"spec/schemas/role-input-manifest.schema.json","scenario":"Manifest can omit dependencies.","evidenceCheckId":"surface-14"},
+    {"path":"spec/schemas/role-ledger.schema.json","scenario":"Ledger can select wrong attempt.","evidenceCheckId":"surface-15"},
+    {"path":"tooling/capabilities.json","scenario":"Capabilities can overclaim isolation.","evidenceCheckId":"surface-16"},
+    {"path":"tooling/quality/agent-context.test.sh","scenario":"Orientation can regress.","evidenceCheckId":"surface-17"},
+    {"path":"tooling/quality/agent-work.test.sh","scenario":"Workflow can permit self-review.","evidenceCheckId":"surface-18"},
+    {"path":"tooling/quality/candidate-finalize.test.sh","scenario":"Finalize can race role setup.","evidenceCheckId":"surface-19"},
+    {"path":"tooling/quality/ci-import.test.sh","scenario":"Imported identity can replace proof.","evidenceCheckId":"surface-20"},
+    {"path":"tooling/quality/quality-stage-contract.test.mjs","scenario":"Malformed reports can evade checks.","evidenceCheckId":"surface-21"},
+    {"path":"tooling/quality/role-evidence-policy.mjs","scenario":"Policy can diverge from verifier.","evidenceCheckId":"surface-22"},
+    {"path":"tooling/quality/role-evidence-policy.test.mjs","scenario":"Forgery regressions can go untested.","evidenceCheckId":"surface-23"},
+    {"path":"tooling/quality/tool-trace.test.sh","scenario":"Trace can detach from Candidate.","evidenceCheckId":"surface-24"},
+    {"path":"tooling/roles/prompts/hardener.md","scenario":"Counterexamples can be omitted.","evidenceCheckId":"surface-25"},
+    {"path":"tooling/roles/prompts/qa.md","scenario":"QA can leak forbidden context.","evidenceCheckId":"surface-26"},
+    {"path":"tooling/roles/prompts/reviewer.md","scenario":"Reviewer can rely on forbidden narrative.","evidenceCheckId":"surface-27"},
+    {"path":"tooling/roles/registry.json","scenario":"Prompt registration can drift.","evidenceCheckId":"surface-28"}
+  ],
+  "scenarios": [
+    "HIGH: scripts/bind-role-evidence.mjs still uses acquireLock() that, on any mkdir failure, stats the lock and removes it when older than five minutes before creating a replacement. It has no owner token, lease renewal, compare-and-remove, or proof that the original writer stopped. A binder running longer than five minutes can have its lock directory deleted by a second binder; both then append/rename ledger and accepted evidence concurrently, permitting lost updates or duplicate sequence numbers. The preparation-side lock was hardened, but the binder remains an independent writer and retains the stale-lock theft race.",
+    "LIMITATION: diff, changed paths, and dependency sources now use candidate.headRevision. Missing or malformed gate traces now fail preparation or verification rather than silently passing; no blocker was found there. Optional Host isolation remains a disclosed limitation, not a leak.",
+    "LIMITATION: no deterministic tests or unauthorized policy files were inspected."
+  ],
+  "evidence": [
+    {
+      "checkId": "hardener.binder-lock-takeover",
+      "status": "failed",
+      "evidenceRef": "inputs/candidate.diff",
+      "evidenceSha256": "sha256:f1c36d64622902f2b0183a73506c212b6af24625ef59f29508eb37ec92111c1d"
+    }
+  ]
+}

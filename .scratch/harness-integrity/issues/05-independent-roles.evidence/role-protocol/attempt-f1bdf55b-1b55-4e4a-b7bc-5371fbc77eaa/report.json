@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "producerId": "luna-review-final",
+  "independent": true,
+  "verdict": "approved",
+  "findings": [],
+  "commentDecisions": [],
+  "evidence": [
+    {
+      "checkId": "reviewer.qa-source-blindness",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-f1bdf55b-1b55-4e4a-b7bc-5371fbc77eaa/inputs/candidate.diff",
+      "evidenceSha256": "68755748d27fed00c48d3e18a7e340e7b7218e630572fe4390d626900ac47164"
+    }
+  ],
+  "residualRisks": [
+    "The Host bridge remains an explicitly permitted black-box boundary; optional isolation capabilities are disclosed by the bundle capability flags. No declared QA procedure exposes a source or checkout read path."
+  ]
+}

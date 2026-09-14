@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "kind": "codex-independent-subagent",
+  "attemptId": "attempt-66e9d349-d927-4091-82e6-234ed79c3da4",
+  "producerId": "luna-qa-final4",
+  "result": "passed",
+  "basis": "Independent Luna low source-blind QA used only the generated envelope and bundle; the host reran all four declared procedures and preserved their outcomes.",
+  "hostAttestation": "Codex host transcribed the native result under the repository owner's explicit authorization.",
+  "limitations": ["Network and ambient filesystem isolation were unavailable and disclosed; no forbidden-context leak was observed."]
+}

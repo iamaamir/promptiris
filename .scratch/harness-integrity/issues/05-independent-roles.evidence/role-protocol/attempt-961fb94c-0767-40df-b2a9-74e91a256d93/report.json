@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "role": "qa",
+  "producerId": "luna-qa-final",
+  "status": "passed",
+  "sourceBlind": true,
+  "scenarios": [
+    "happy-path",
+    "invalid-input",
+    "retry",
+    "recovery"
+  ],
+  "evidence": [
+    {
+      "checkId": "qa.happy-path",
+      "status": "passed",
+      "evidenceRef": "procedure happy-path: host status",
+      "evidenceSha256": "unavailable"
+    },
+    {
+      "checkId": "qa.invalid-input",
+      "status": "passed",
+      "evidenceRef": "procedure invalid-input: host invalid",
+      "evidenceSha256": "unavailable"
+    },
+    {
+      "checkId": "qa.retry",
+      "status": "passed",
+      "evidenceRef": "procedure retry: host status",
+      "evidenceSha256": "unavailable"
+    },
+    {
+      "checkId": "qa.recovery",
+      "status": "passed",
+      "evidenceRef": "procedure recovery: host status",
+      "evidenceSha256": "unavailable"
+    }
+  ]
+}
