@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "kind": "codex-independent-subagent",
+  "role": "reviewer",
+  "producerId": "luna-review-final6",
+  "agentTask": "/root/reviewer_sep14",
+  "model": "gpt-5.6-luna",
+  "reasoningEffort": "low",
+  "candidateRevision": "sha256:853f5df7f9529b384e4412b18ea3314f89b5b7a8fb5f4004325f7602960d8f25",
+  "accessRef": ".agent/role-attempts/independent-roles/853f5df7f9529b384e4412b18ea3314f89b5b7a8fb5f4004325f7602960d8f25/attempt-dba4d578-8cd8-4209-9c21-0579b697ba1c/access.json",
+  "reportRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-dba4d578-8cd8-4209-9c21-0579b697ba1c/report.json",
+  "reportDigest": "sha256:9f1863682c75dd4adcbdb59373100a4e807c75352f0bda97c17ab4474f3c543b",
+  "outcome": "pass",
+  "findingCount": 0,
+  "hostAttestation": "The authenticated maintainer authorized Codex to transcribe the independent subagent result into host-authored evidence.",
+  "limitations": [
+    "The host attests to the returned independent result; it does not claim cryptographic identity for the model runtime."
+  ],
+  "recordedAt": "2026-09-14T10:45:57.000Z"
+}
