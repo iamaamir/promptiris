@@ -25,6 +25,9 @@ Allowed paths:
 - `package.json`
 - `scripts/agent-context`
 - `tooling/quality/agent-context.test.sh`
+- `tooling/quality/agent-work.test.sh`
+- `tooling/quality/ci-import.test.sh`
+- `tooling/quality/tool-trace.test.sh`
 - `scripts/agent-work`
 - `scripts/bind-role-evidence.mjs`
 - `scripts/finalize-candidate.mjs`
