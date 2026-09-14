@@ -26,6 +26,7 @@ const branch =
   process.env.PROMPTIRIS_BRANCH ??
   process.env.GITHUB_HEAD_REF ??
   git(['branch', '--show-current'], { encoding: 'utf8' }).trim();
+const verificationHead = git(['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
 
 if (branch === 'main') {
   process.stdout.write('Role evidence is not required on the integration branch.\n');
@@ -35,7 +36,9 @@ if (branch === 'main') {
 const baseName =
   process.env.PROMPTIRIS_BASE_REVISION ??
   (process.env.GITHUB_BASE_REF ? `origin/${process.env.GITHUB_BASE_REF}` : 'origin/main');
-const baseRevision = git(['merge-base', 'HEAD', baseName], { encoding: 'utf8' }).trim();
+const baseRevision = git(['merge-base', verificationHead, baseName], {
+  encoding: 'utf8',
+}).trim();
 const trustedMode = process.env.PROMPTIRIS_TRUSTED_MODE === 'true';
 const failures = [];
 const portableDiffArguments = Object.freeze([
@@ -100,7 +103,7 @@ const evidenceDirectory = resolve(dirname(packet), `${basename(packet, '.md')}.e
 const evidenceRelative = relative(root, evidenceDirectory);
 const candidatePathspec = ['.', `:(exclude)${evidenceRelative}/**`, ':(exclude).agent/**'];
 
-const dirty = git(['diff', '--name-only', 'HEAD', '--', ...candidatePathspec], {
+const dirty = git(['diff', '--name-only', verificationHead, '--', ...candidatePathspec], {
   encoding: 'utf8',
 }).trim();
 if (dirty) {
@@ -135,7 +138,7 @@ const candidateBytes = git([
   '--no-textconv',
   '--no-renames',
   baseRevision,
-  'HEAD',
+  verificationHead,
   '--',
   ...candidatePathspec,
 ]);
@@ -347,7 +350,7 @@ if (implementers.size === 1) {
 const diffBytes = git([
   ...portableDiffArguments,
   baseRevision,
-  'HEAD',
+  verificationHead,
   '--',
   '.',
   ':(exclude).scratch/**/*.evidence/**',
@@ -358,7 +361,7 @@ const changedPaths = git(
     '--name-only',
     '--no-renames',
     baseRevision,
-    'HEAD',
+    verificationHead,
     '--',
     '.',
     ':(exclude).scratch/**/*.evidence/**',
@@ -370,7 +373,21 @@ const changedPaths = git(
   .filter(Boolean)
   .sort();
 const trackedModules = git(
-  ['ls-files', '*.ts', '*.tsx', '*.mts', '*.cts', '*.js', '*.jsx', '*.mjs', '*.cjs'],
+  [
+    'ls-tree',
+    '-r',
+    '--name-only',
+    verificationHead,
+    '--',
+    '*.ts',
+    '*.tsx',
+    '*.mts',
+    '*.cts',
+    '*.js',
+    '*.jsx',
+    '*.mjs',
+    '*.cjs',
+  ],
   {
     encoding: 'utf8',
   },
@@ -379,7 +396,10 @@ const trackedModules = git(
   .split('\n')
   .filter(Boolean);
 const moduleSources = new Map(
-  await Promise.all(trackedModules.map(async (path) => [path, await readFile(path, 'utf8')])),
+  trackedModules.map((path) => [
+    path,
+    git(['show', `${verificationHead}:${path}`], { encoding: 'utf8' }),
+  ]),
 );
 const expectedSurfaces = deriveAttackSurfaces(moduleSources, changedPaths);
 const usedNonces = new Set();
@@ -387,7 +407,7 @@ const usedNonces = new Set();
 const candidateHeadIsValid = (headRevision) => {
   if (!/^[0-9a-f]{40}$/.test(headRevision ?? '')) return false;
   try {
-    git(['merge-base', '--is-ancestor', headRevision, 'HEAD']);
+    git(['merge-base', '--is-ancestor', headRevision, verificationHead]);
     const bytes = git([
       'diff',
       '--raw',

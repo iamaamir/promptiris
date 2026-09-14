@@ -9,6 +9,7 @@ import {
   readdir,
   rm,
   symlink,
+  utimes,
   writeFile,
 } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -456,6 +457,15 @@ test('binding and verification require three attested independent roles', async 
   assert.deepEqual(
     await readdir(join(workspace, evidenceDirectory, 'role-protocol')).catch(() => []),
     [],
+  );
+  const staleTime = new Date(Date.now() - 600_000);
+  await utimes(lock, staleTime, staleTime);
+  assert.throws(() =>
+    run(
+      workspace,
+      ['scripts/agent-role', 'prepare', 'reviewer', 'blocked-reviewer', 'quick', 'blocked'],
+      { env, stdio: 'pipe' },
+    ),
   );
   await rm(lock, { recursive: true });
 

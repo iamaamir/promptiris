@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { execFileSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
-import { mkdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { basename, dirname, join, relative, resolve } from 'node:path';
 import {
   ROLE_NAMES,
@@ -58,10 +58,7 @@ const acquireLock = async () => {
   try {
     await mkdir(lockPath);
   } catch {
-    const age = Date.now() - (await stat(lockPath)).mtimeMs;
-    if (age <= 300_000) throw new Error('role ledger is locked by another writer');
-    await rm(lockPath, { recursive: true });
-    await mkdir(lockPath);
+    throw new Error('role ledger is locked by another writer');
   }
 };
 
