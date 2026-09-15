@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "kind": "codex-independent-subagent",
+  "role": "hardener",
+  "producerId": "luna-harden-final7",
+  "agentTask": "/root/hardener_sep14",
+  "model": "gpt-5.6-luna",
+  "reasoningEffort": "low",
+  "candidateRevision": "sha256:577db3fc7f79186fcc2a41efc4ebeef653870ba0d2f1b81c8a0f5ca1b7b7505a",
+  "accessRef": ".agent/role-attempts/independent-roles/577db3fc7f79186fcc2a41efc4ebeef653870ba0d2f1b81c8a0f5ca1b7b7505a/attempt-c87af1a4-06ce-4572-b787-52c330b87c12/access.json",
+  "reportRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-c87af1a4-06ce-4572-b787-52c330b87c12/report.json",
+  "reportDigest": "sha256:d35b26b8d1574814de94dde1a245856ffb77a6616931b344a9fc22c5b612f8d5",
+  "outcome": "passed",
+  "surfaceCount": 30,
+  "hostAttestation": "The authenticated maintainer authorized Codex to transcribe the independent subagent result into host-authored evidence.",
+  "limitations": ["The host attests to the returned independent result; it does not claim cryptographic identity for the model runtime."],
+  "recordedAt": "2026-09-15T06:21:47.000Z"
+}

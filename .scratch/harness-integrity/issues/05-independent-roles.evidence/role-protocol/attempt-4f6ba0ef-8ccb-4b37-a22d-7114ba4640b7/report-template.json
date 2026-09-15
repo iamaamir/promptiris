@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "role": "qa",
+  "producerId": "luna-qa-final7",
+  "status": "failed",
+  "sourceBlind": true,
+  "scenarios": [
+    "Independent role execution has not been completed."
+  ],
+  "evidence": [
+    {
+      "checkId": "qa.incomplete",
+      "status": "failed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-4f6ba0ef-8ccb-4b37-a22d-7114ba4640b7/input-manifest.json",
+      "evidenceSha256": "46fd7ce42c70264157b83400e803ccb1178669ebf0c6212329d92f046f186813"
+    }
+  ]
+}
