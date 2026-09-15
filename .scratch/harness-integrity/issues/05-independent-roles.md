@@ -24,9 +24,14 @@ Allowed paths:
 - `docs/development/independent-role-assurance.md`
 - `package.json`
 - `scripts/agent-context`
+- `tooling/quality/agent-context.test.sh`
+- `tooling/quality/agent-work.test.sh`
+- `tooling/quality/ci-import.test.sh`
+- `tooling/quality/tool-trace.test.sh`
 - `scripts/agent-work`
 - `scripts/bind-role-evidence.mjs`
 - `scripts/finalize-candidate.mjs`
+- `scripts/issue-sync`
 - `scripts/verify-role-evidence.mjs`
 - `scripts/agent-role`
 - `spec/schemas/reviewer-report.schema.json`
@@ -38,6 +43,8 @@ Allowed paths:
 - `tooling/capabilities.json`
 - `tooling/quality/role-evidence-policy.mjs`
 - `tooling/quality/role-evidence-policy.test.mjs`
+- `tooling/quality/candidate-finalize.test.sh`
+- `tooling/quality/quality-stage-contract.test.mjs`
 - `tooling/roles/registry.json`
 - `tooling/roles/prompts/reviewer.md`
 - `tooling/roles/prompts/hardener.md`
