@@ -31,6 +31,7 @@ Allowed paths:
 - `scripts/agent-work`
 - `scripts/bind-role-evidence.mjs`
 - `scripts/finalize-candidate.mjs`
+- `scripts/issue-sync`
 - `scripts/verify-role-evidence.mjs`
 - `scripts/agent-role`
 - `spec/schemas/reviewer-report.schema.json`
