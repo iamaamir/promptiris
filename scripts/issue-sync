@@ -222,7 +222,7 @@ reconcile_labels() {
   local remote_json="$3"
   local label
   for label in $MANAGED_LABELS; do
-    if jq -e --arg label "$label" '.labels | any(.name == $label)' "$remote_json" >/dev/null; then
+    if jq -e --arg label_name "$label" '.labels | any(.name == $label_name)' "$remote_json" >/dev/null; then
       [[ "$label" == "$expected" ]] || gh issue edit "$url" --remove-label "$label" >/dev/null
     elif [[ "$label" == "$expected" ]]; then
       gh issue edit "$url" --add-label "$label" >/dev/null
@@ -411,7 +411,7 @@ check_packet() {
   }
   for managed in $MANAGED_LABELS; do
     present=false
-    jq -e --arg label "$managed" '.labels | any(.name == $label)' "$remote_json" >/dev/null && present=true
+    jq -e --arg label_name "$managed" '.labels | any(.name == $label_name)' "$remote_json" >/dev/null && present=true
     if [[ "$managed" == "$label" && "$present" != true ]] ||
        [[ "$managed" != "$label" && "$present" == true ]]; then
       echo "GitHub label drift: $packet" >&2
