@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "kind": "codex-independent-subagent",
+  "role": "qa",
+  "producerId": "luna-qa-final7",
+  "agentTask": "/root/qa_sep14",
+  "model": "gpt-5.6-luna",
+  "reasoningEffort": "low",
+  "candidateRevision": "sha256:577db3fc7f79186fcc2a41efc4ebeef653870ba0d2f1b81c8a0f5ca1b7b7505a",
+  "accessRef": ".agent/role-attempts/independent-roles/577db3fc7f79186fcc2a41efc4ebeef653870ba0d2f1b81c8a0f5ca1b7b7505a/attempt-4f6ba0ef-8ccb-4b37-a22d-7114ba4640b7/access.json",
+  "reportRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-4f6ba0ef-8ccb-4b37-a22d-7114ba4640b7/report.json",
+  "reportDigest": "sha256:de6d2bfb09543e318a1972a057fd7f1b1d76b5ff4aabe97035ab8807e8440205",
+  "outcome": "passed",
+  "procedures": ["happy-path", "invalid-input", "retry", "recovery"],
+  "maintainerAuthorization": "The authenticated maintainer approved recording source-blind conduct with ambientFilesystemDisabled=false explicitly disclosed.",
+  "limitations": ["ambientFilesystemDisabled=false", "No forbidden-context access or exposure was observed; Host enforcement is not claimed."],
+  "recordedAt": "2026-09-15T06:21:47.000Z"
+}

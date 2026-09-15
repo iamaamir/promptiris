@@ -1,0 +1,13 @@
+{
+  "state": "roles-complete",
+  "candidateRevision": "sha256:853f5df7f9529b384e4412b18ea3314f89b5b7a8fb5f4004325f7602960d8f25",
+  "completedRoles": [
+    "reviewer",
+    "hardener",
+    "qa"
+  ],
+  "missingRoles": [],
+  "ledgerFailures": [],
+  "unsupported": [],
+  "nextActions": []
+}

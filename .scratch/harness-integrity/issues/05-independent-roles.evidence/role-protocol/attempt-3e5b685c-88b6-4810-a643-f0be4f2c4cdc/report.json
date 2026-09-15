@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "producerId": "luna-reviewer-64-final",
+  "independent": true,
+  "verdict": "changes-required",
+  "findings": [
+    {
+      "id": "review-attack-surface-ts-only",
+      "severity": "high",
+      "file": "tooling/quality/role-evidence-policy.mjs",
+      "line": 269,
+      "summary": "Hardener dependency closure only follows TypeScript imports.",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-3e5b685c-88b6-4810-a643-f0be4f2c4cdc/inputs/candidate.diff",
+      "detail": "deriveAttackSurfaces skips every non-TypeScript source and only resolves relative TS-family modules. A changed module consumed by JavaScript, shell, generated-code, configuration, or other supported runtime surfaces can therefore have its dependents omitted from the declared attack surfaces. The Hardener then receives an incomplete closure while the deterministic check can still pass, violating the requirement that omitted affected surfaces are blocking.",
+      "recommendation": "Build the dependency closure across all repository-supported executable/configuration languages (or conservatively classify unknown/non-TS consumers as affected), and add a regression fixture proving a non-TS dependent of a changed file is included or causes a blocking unavailable-surface result."
+    }
+  ],
+  "commentDecisions": [],
+  "evidence": [],
+  "residualRisks": [
+    "No runtime checks were rerun; supplied deterministic Evidence was treated as valid input per the access envelope."
+  ]
+}

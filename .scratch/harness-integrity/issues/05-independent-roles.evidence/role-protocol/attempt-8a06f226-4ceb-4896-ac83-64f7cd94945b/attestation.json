@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "issuer": "promptiris.maintainer",
+  "verifierId": "promptiris.role-verifier",
+  "nativeProofRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-8a06f226-4ceb-4896-ac83-64f7cd94945b/native-proof.json",
+  "nativeProofDigest": "sha256:1d3fe5ca7ca8076664045a6300098a04726f4316e212041f679776cbf89d47f5",
+  "subject": "luna-qa-64-host",
+  "producerId": "luna-qa-64-host",
+  "attemptId": "attempt-8a06f226-4ceb-4896-ac83-64f7cd94945b",
+  "parentInvocationId": "pr64-host-final",
+  "role": "qa",
+  "candidateRevision": "sha256:e73286c1d62e3f1efb5fd4842ed2bbd4aa16c3ccd9ccec600572cc3513d8a6e4",
+  "promptDigest": "sha256:33334901b05d3ee6f7ace889ee090c292c672be32f07ac243db0bfc8f6ab07d0",
+  "inputManifestDigest": "sha256:b6dd87c86221d4c9c109d641de42d00aae5101ea5b5c8c36d974fb9d53251454",
+  "sourceAccessMode": "source-blind-bundle",
+  "issuedAt": "2026-09-10T17:18:57Z",
+  "expiresAt": "2026-09-11T17:18:57Z",
+  "nonce": "qa-host-8a06f226-final",
+  "attestationStrength": "maintainer-attested"
+}

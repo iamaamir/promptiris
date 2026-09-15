@@ -1,0 +1,9 @@
+[WARN] Unsupported engine: wanted: {"node":">=24.0.0 <25"} (current: {"node":"v26.8.1","pnpm":"11.24.0"})
+$ ast-grep test --skip-snapshot-tests --test-dir tooling/ast-grep/tests --config sgconfig.yml && ast-grep scan --config sgconfig.yml
+Running 2 tests
+
+----------- Case Details -----------
+PASS no-disabled-tests  .......
+PASS no-internal-workspace-imports  ..
+
+test result: ok. 2 passed; 0 failed;

@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 3,
+  "traceId": "8f3f35c8-9e88-4681-883c-1294b2614f9c",
+  "runId": "verify-20260909T061255Z-95436",
+  "taskId": "verify.telemetry",
+  "providerId": "telemetry-analyzer",
+  "tools": [
+    "ajv",
+    "node"
+  ],
+  "executor": "pnpm",
+  "startedAt": "2026-09-09T06:13:35Z",
+  "startedAtEpochMs": 1788934415669,
+  "durationMs": 549,
+  "exitCode": 0,
+  "context": {
+    "repositoryId": "f1c573ec8d35a233",
+    "worktreeId": "18180bae8c9a8c81",
+    "branch": "independent-roles",
+    "candidateRevision": "5e54ea2667efe32a3dea8cc4136fae0bd9a6c8fc",
+    "workspaceDigest": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "dirty": false,
+    "agentId": "codex-role-orchestrator"
+  },
+  "output": {
+    "rawBytes": 349,
+    "modelVisibleBytes": 216,
+    "reducedBytes": 133,
+    "estimatedRawTokens": 88,
+    "estimatedModelVisibleTokens": 54,
+    "estimatedTokensAvoided": 34,
+    "tokenEstimate": {
+      "method": "utf8_bytes_divided_by_4",
+      "version": 1
+    }
+  },
+  "evidence": {
+    "ref": ".agent/logs/tool-8f3f35c8-9e88-4681-883c-1294b2614f9c.log",
+    "sha256": "8752ce7c61e5b73394ee252012ae15d163490de50d70c842780f717aa13861e9",
+    "redaction": {
+      "mode": "default",
+      "count": 0
+    }
+  }
+}

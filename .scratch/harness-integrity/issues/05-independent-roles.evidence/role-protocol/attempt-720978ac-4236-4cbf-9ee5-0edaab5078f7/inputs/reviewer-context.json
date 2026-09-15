@@ -1,0 +1,277 @@
+{
+  "schemaVersion": 1,
+  "complete": true,
+  "affectedSurfaces": [
+    {
+      "path": ".scratch/harness-integrity/issues/05-independent-roles.md",
+      "class": "changed-surface",
+      "origin": "changed"
+    },
+    {
+      "path": "AGENTS.md",
+      "class": "changed-surface",
+      "origin": "changed"
+    },
+    {
+      "path": "docs/development/independent-role-assurance.md",
+      "class": "changed-surface",
+      "origin": "changed"
+    },
+    {
+      "path": "package.json",
+      "class": "changed-surface",
+      "origin": "changed"
+    },
+    {
+      "path": "scripts/agent-context",
+      "class": "verifier-or-policy",
+      "origin": "changed"
+    },
+    {
+      "path": "scripts/agent-role",
+      "class": "verifier-or-policy",
+      "origin": "changed"
+    },
+    {
+      "path": "scripts/agent-work",
+      "class": "verifier-or-policy",
+      "origin": "changed"
+    },
+    {
+      "path": "scripts/bind-role-evidence.mjs",
+      "class": "verifier-or-policy",
+      "origin": "changed"
+    },
+    {
+      "path": "scripts/verify-role-evidence.mjs",
+      "class": "verifier-or-policy",
+      "origin": "changed"
+    },
+    {
+      "path": "spec/schemas/quality-stage-report.schema.json",
+      "class": "verifier-or-policy",
+      "origin": "changed"
+    },
+    {
+      "path": "spec/schemas/reviewer-report.schema.json",
+      "class": "verifier-or-policy",
+      "origin": "changed"
+    },
+    {
+      "path": "spec/schemas/role-attempt.schema.json",
+      "class": "verifier-or-policy",
+      "origin": "changed"
+    },
+    {
+      "path": "spec/schemas/role-attestation-envelope.schema.json",
+      "class": "verifier-or-policy",
+      "origin": "changed"
+    },
+    {
+      "path": "spec/schemas/role-input-manifest.schema.json",
+      "class": "verifier-or-policy",
+      "origin": "changed"
+    },
+    {
+      "path": "spec/schemas/role-ledger.schema.json",
+      "class": "verifier-or-policy",
+      "origin": "changed"
+    },
+    {
+      "path": "tooling/capabilities.json",
+      "class": "changed-surface",
+      "origin": "changed"
+    },
+    {
+      "path": "tooling/quality/candidate-finalize.test.sh",
+      "class": "verifier-or-policy",
+      "origin": "changed"
+    },
+    {
+      "path": "tooling/quality/quality-stage-contract.test.mjs",
+      "class": "verifier-or-policy",
+      "origin": "changed"
+    },
+    {
+      "path": "tooling/quality/role-evidence-policy.mjs",
+      "class": "verifier-or-policy",
+      "origin": "changed"
+    },
+    {
+      "path": "tooling/quality/role-evidence-policy.test.mjs",
+      "class": "verifier-or-policy",
+      "origin": "changed"
+    },
+    {
+      "path": "tooling/roles/prompts/hardener.md",
+      "class": "changed-surface",
+      "origin": "changed"
+    },
+    {
+      "path": "tooling/roles/prompts/qa.md",
+      "class": "changed-surface",
+      "origin": "changed"
+    },
+    {
+      "path": "tooling/roles/prompts/reviewer.md",
+      "class": "changed-surface",
+      "origin": "changed"
+    },
+    {
+      "path": "tooling/roles/registry.json",
+      "class": "changed-surface",
+      "origin": "changed"
+    }
+  ],
+  "deterministicEvidence": [
+    {
+      "taskId": "verify.unit",
+      "providerId": "test-runner",
+      "traceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-720978ac-4236-4cbf-9ee5-0edaab5078f7/inputs/gate-evidence/017d31d8-811a-40e5-9d2e-fe8becfa2bd8.json",
+      "traceDigest": "0f8b98edd9d843692e602e33cfeb79a38dc5592339dc105ec575280ec41ba87e",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-720978ac-4236-4cbf-9ee5-0edaab5078f7/inputs/gate-evidence/017d31d8-811a-40e5-9d2e-fe8becfa2bd8.log",
+      "evidenceDigest": "d0b3ef8b1b3667bcf3a399a9880b5ec45c245bc7ce779cc9a60d1faedc60a245",
+      "dirty": false
+    },
+    {
+      "taskId": "verify.shell",
+      "providerId": "shell-linter",
+      "traceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-720978ac-4236-4cbf-9ee5-0edaab5078f7/inputs/gate-evidence/01c4fe12-cbef-431b-a71b-2cf790f6c1bb.json",
+      "traceDigest": "29c2e3de95e567c3daf58f6ae705f7871ce3681a906115607a92867f1c58a93f",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-720978ac-4236-4cbf-9ee5-0edaab5078f7/inputs/gate-evidence/01c4fe12-cbef-431b-a71b-2cf790f6c1bb.log",
+      "evidenceDigest": "cbb0a0c7d3a571ced2fe995f55a397a179e6def94470ea20b844eb1734b4faa4",
+      "dirty": false
+    },
+    {
+      "taskId": "verify.generated",
+      "providerId": "generated-diff",
+      "traceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-720978ac-4236-4cbf-9ee5-0edaab5078f7/inputs/gate-evidence/0809ba54-4376-4c59-9443-9a3d4680ec9b.json",
+      "traceDigest": "19f520e0348e73ab70d5104b11b173cb5f32f0508837a9f34223a8bd6d8da466",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-720978ac-4236-4cbf-9ee5-0edaab5078f7/inputs/gate-evidence/0809ba54-4376-4c59-9443-9a3d4680ec9b.log",
+      "evidenceDigest": "c310e947a173d4ab5e657be1b281e6b60ecfbf50e757b8ec087275e05004ffb7",
+      "dirty": false
+    },
+    {
+      "taskId": "verify.types",
+      "providerId": "type-checker",
+      "traceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-720978ac-4236-4cbf-9ee5-0edaab5078f7/inputs/gate-evidence/10ffb8a1-7575-4f4d-8084-a8d8bc477c6a.json",
+      "traceDigest": "96e353f47b9380310164fa503676bb8929fd1a5ea811c32c046e1d0004060df2",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-720978ac-4236-4cbf-9ee5-0edaab5078f7/inputs/gate-evidence/10ffb8a1-7575-4f4d-8084-a8d8bc477c6a.log",
+      "evidenceDigest": "2e3a9f1863a679abc0e3846f04a65cbdd00b98f19263a0020c877859d628f927",
+      "dirty": false
+    },
+    {
+      "taskId": "verify.lint",
+      "providerId": "linters",
+      "traceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-720978ac-4236-4cbf-9ee5-0edaab5078f7/inputs/gate-evidence/45af552f-3b31-4cb2-961a-7303ee0746dc.json",
+      "traceDigest": "ec2ae81a4704cfdc4286da9eb5d91601cc14c7767a88d5719b6e89860142423c",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-720978ac-4236-4cbf-9ee5-0edaab5078f7/inputs/gate-evidence/45af552f-3b31-4cb2-961a-7303ee0746dc.log",
+      "evidenceDigest": "ad8016396e1dee1485497e1f8e8c12de0d8f0fb985ec00d79ece79c0aa5652af",
+      "dirty": false
+    },
+    {
+      "taskId": "verify.lsp",
+      "providerId": "language-server",
+      "traceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-720978ac-4236-4cbf-9ee5-0edaab5078f7/inputs/gate-evidence/658283c5-f147-442a-8163-41d01facfab7.json",
+      "traceDigest": "9303810da58f52a06fa75ed6af6c3577c996ffe99b1ffaee5dde7d30a740feb2",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-720978ac-4236-4cbf-9ee5-0edaab5078f7/inputs/gate-evidence/658283c5-f147-442a-8163-41d01facfab7.log",
+      "evidenceDigest": "fecbd9cc73f9a7d560751b21bc5c57bf46da6b4904e9726c9c6b5137e0857204",
+      "dirty": false
+    },
+    {
+      "taskId": "verify.format",
+      "providerId": "formatters",
+      "traceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-720978ac-4236-4cbf-9ee5-0edaab5078f7/inputs/gate-evidence/68d1f706-8eda-4209-bf2d-d7e70d45fec0.json",
+      "traceDigest": "262ab98e941716182289e072b5ff240df4ec6e5508997692e898b5af2a85a8f0",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-720978ac-4236-4cbf-9ee5-0edaab5078f7/inputs/gate-evidence/68d1f706-8eda-4209-bf2d-d7e70d45fec0.log",
+      "evidenceDigest": "bbb5b43e38ba13ce9ddeaf56c1db8fc8fdb72faef82384e63f83a2f71967c4d9",
+      "dirty": false
+    },
+    {
+      "taskId": "verify.build",
+      "providerId": "builder",
+      "traceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-720978ac-4236-4cbf-9ee5-0edaab5078f7/inputs/gate-evidence/8cca5f85-e9fd-4fca-84d6-c6921a6350b6.json",
+      "traceDigest": "52e2d9d3ceca4a46a7865321cdbed6f359fcad7130bf856cc7dac47b6c0adfaf",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-720978ac-4236-4cbf-9ee5-0edaab5078f7/inputs/gate-evidence/8cca5f85-e9fd-4fca-84d6-c6921a6350b6.log",
+      "evidenceDigest": "f4261dacb9b169e6c89424024b00592b0a87cd06643782a09ce33e556aeb12cc",
+      "dirty": false
+    },
+    {
+      "taskId": "verify.integrity",
+      "providerId": "policy-verifier",
+      "traceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-720978ac-4236-4cbf-9ee5-0edaab5078f7/inputs/gate-evidence/9a66f1e3-85a5-4631-931a-ca7828fd8b1a.json",
+      "traceDigest": "23b7fb4a25c9616e31216f89487bf1ad69604b1b4055262a440aab451fce5002",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-720978ac-4236-4cbf-9ee5-0edaab5078f7/inputs/gate-evidence/9a66f1e3-85a5-4631-931a-ca7828fd8b1a.log",
+      "evidenceDigest": "7a95a643980d6b57e1b1eba74d2af1b52c8df54e67183ca408c43d995784a2a9",
+      "dirty": false
+    },
+    {
+      "taskId": "verify.secrets",
+      "providerId": "secret-scanner",
+      "traceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-720978ac-4236-4cbf-9ee5-0edaab5078f7/inputs/gate-evidence/abbf80a0-4965-4a5f-999a-cf22d2d6186c.json",
+      "traceDigest": "845fc2e556984ff4e87725c60bde81ad13b7607fc5e939517ccdd5a5d62942ac",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-720978ac-4236-4cbf-9ee5-0edaab5078f7/inputs/gate-evidence/abbf80a0-4965-4a5f-999a-cf22d2d6186c.log",
+      "evidenceDigest": "20a1662f0d6b728e8d4f8a6a911d025c3f0262d4e7df738a86872a0b3fe8d5d1",
+      "dirty": false
+    },
+    {
+      "taskId": "verify.integration",
+      "providerId": "integration-runner",
+      "traceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-720978ac-4236-4cbf-9ee5-0edaab5078f7/inputs/gate-evidence/ae197969-a8c1-4417-9c05-b85844bc9f77.json",
+      "traceDigest": "cc88020a9d2c2869f0ab35c048e2eb11ffb6140392ec01879794a65e7afcd668",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-720978ac-4236-4cbf-9ee5-0edaab5078f7/inputs/gate-evidence/ae197969-a8c1-4417-9c05-b85844bc9f77.log",
+      "evidenceDigest": "15db5e875436bd396cb8eb330ae141828eb424a88ff4ce0b85575b9b5ae0a8fd",
+      "dirty": false
+    },
+    {
+      "taskId": "verify.schema",
+      "providerId": "schema-validator",
+      "traceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-720978ac-4236-4cbf-9ee5-0edaab5078f7/inputs/gate-evidence/d7e59151-e6cd-4ef7-bdb8-b12e34242dea.json",
+      "traceDigest": "e188e41fe4fd2405a29e9d4df57de2580d46e1a2a9028eb2538b898d659ccb92",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-720978ac-4236-4cbf-9ee5-0edaab5078f7/inputs/gate-evidence/d7e59151-e6cd-4ef7-bdb8-b12e34242dea.log",
+      "evidenceDigest": "2e0912203224e2007d296be75a86cc77d4c694281bc47f36cc5d74a60365a0a0",
+      "dirty": false
+    },
+    {
+      "taskId": "verify.structural",
+      "providerId": "structural-analyzer",
+      "traceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-720978ac-4236-4cbf-9ee5-0edaab5078f7/inputs/gate-evidence/dcbc6f8a-dc17-4610-948f-6ecec24cf1db.json",
+      "traceDigest": "e6b9876c795185d554add7838175985e9fedca61acb5f4fe4141321413e4a2cd",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-720978ac-4236-4cbf-9ee5-0edaab5078f7/inputs/gate-evidence/dcbc6f8a-dc17-4610-948f-6ecec24cf1db.log",
+      "evidenceDigest": "0600d8feb81439e722eea1aec2f4cdb90ec92c03cc7baff2dbe7004349cb0ddb",
+      "dirty": false
+    },
+    {
+      "taskId": "verify.go-vet",
+      "providerId": "go-vet",
+      "traceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-720978ac-4236-4cbf-9ee5-0edaab5078f7/inputs/gate-evidence/e37204bb-6951-4574-aade-78e48db277bd.json",
+      "traceDigest": "3d0dede65fbf8040cca9412c23c72a8c1320afa9697c6234c6c618bfcc210cf3",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-720978ac-4236-4cbf-9ee5-0edaab5078f7/inputs/gate-evidence/e37204bb-6951-4574-aade-78e48db277bd.log",
+      "evidenceDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "dirty": false
+    },
+    {
+      "taskId": "verify.watcher",
+      "providerId": "event-observer",
+      "traceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-720978ac-4236-4cbf-9ee5-0edaab5078f7/inputs/gate-evidence/ec475721-5b0a-4c8a-94dd-8335888a2913.json",
+      "traceDigest": "d37e8ba0eb038d016cb63eb43abb521bed8f8f953feb2157c51660bb2bbbf667",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-720978ac-4236-4cbf-9ee5-0edaab5078f7/inputs/gate-evidence/ec475721-5b0a-4c8a-94dd-8335888a2913.log",
+      "evidenceDigest": "9783ad3791db0c747aaaaa1782405ab30081b3bf289cbd06639c95b7804f1913",
+      "dirty": false
+    },
+    {
+      "taskId": "verify.telemetry",
+      "providerId": "telemetry-analyzer",
+      "traceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-720978ac-4236-4cbf-9ee5-0edaab5078f7/inputs/gate-evidence/f84c3a01-e163-4d8a-9ac9-f6cde525a164.json",
+      "traceDigest": "91ad8fbc911d19fb0fcc4197584b6a4ed87750bc3db3f66da75af920fe5a980c",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-720978ac-4236-4cbf-9ee5-0edaab5078f7/inputs/gate-evidence/f84c3a01-e163-4d8a-9ac9-f6cde525a164.log",
+      "evidenceDigest": "6a8b9e0df5c7e80c8f3bae623e4e516731a52843e63c3e529fd1c9ba71c0b636",
+      "dirty": false
+    }
+  ],
+  "candidate": {
+    "baseRevision": "35ceba57bb72c990a54b516e04af2967a7489828",
+    "headRevision": "f9cb0b6a7908d27cf050a377fc35d04a4542a3d2",
+    "candidateRevision": "sha256:8815314f8f76a03ee028b68cdc5dd2c41e63aa51f385e7c5c7f98b3be8a4a509"
+  }
+}

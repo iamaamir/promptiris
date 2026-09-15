@@ -17,6 +17,8 @@ cat >"$workspace/source/report.json" <<'EOF'
 EOF
 
 cd "$workspace/repo"
+export PROMPTIRIS_AGENT_ROOT="$workspace/repo/.agent"
+export PROMPTIRIS_REPOSITORY_ROOT="$workspace/repo"
 ./scripts/import-ci-evidence "$workspace/source" run-42 >/dev/null
 destination="$workspace/repo/.agent/imports/run-42/traces"
 [[ -f "$destination/0-trace.json" ]]

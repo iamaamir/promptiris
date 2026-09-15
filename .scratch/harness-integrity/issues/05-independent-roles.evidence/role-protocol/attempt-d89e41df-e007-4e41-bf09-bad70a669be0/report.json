@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "role": "qa",
+  "producerId": "luna-qa-64-pass",
+  "status": "failed",
+  "sourceBlind": true,
+  "scenarios": [
+    "Happy-path status returned roles-incomplete with exit 0.",
+    "Invalid input returned exit 1.",
+    "Retry and recovery status procedures returned exit 0 with roles-incomplete."
+  ],
+  "evidence": [
+    {"checkId":"qa.happy-path","status":"passed","evidenceRef":"happy-path.out + happy-path.exit","evidenceSha256":"d3c6b89ba0cff34f20be3689001de4914af52d205a23157f15399a9af2e4cec2"},
+    {"checkId":"qa.invalid-input","status":"passed","evidenceRef":"invalid-input.out + invalid-input.exit","evidenceSha256":"d3c6b89ba0cff34f20be3689001de4914af52d205a23157f15399a9af2e4cec2"},
+    {"checkId":"qa.retry","status":"passed","evidenceRef":"retry.out + retry.exit","evidenceSha256":"d3c6b89ba0cff34f20be3689001de4914af52d205a23157f15399a9af2e4cec2"},
+    {"checkId":"qa.recovery","status":"passed","evidenceRef":"recovery.out + recovery.exit","evidenceSha256":"d3c6b89ba0cff34f20be3689001de4914af52d205a23157f15399a9af2e4cec2"},
+    {"checkId":"qa.role-state","status":"failed","evidenceRef":"happy-path.out:roles-incomplete","evidenceSha256":"d3c6b89ba0cff34f20be3689001de4914af52d205a23157f15399a9af2e4cec2"}
+  ]
+}

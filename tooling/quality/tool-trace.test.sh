@@ -16,6 +16,8 @@ git -C "$workspace/repo" add .
 git -C "$workspace/repo" commit -qm 'test fixture'
 
 cd "$workspace/repo"
+export PROMPTIRIS_AGENT_ROOT="$workspace/repo/.agent"
+export PROMPTIRIS_REPOSITORY_ROOT="$workspace/repo"
 if GITHUB_HEAD_REF=ci-trace-test \
   ./scripts/tool-trace --task redaction --provider node --tools node -- \
   node -e "console.error('Authorization: Bearer test-secret-value'); process.exit(7)" \

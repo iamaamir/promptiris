@@ -1,0 +1,162 @@
+{
+  "schemaVersion": 1,
+  "role": "hardener",
+  "producerId": "luna-hardener-64-final",
+  "status": "failed",
+  "surfaceCoverage": [
+    {
+      "path": ".scratch/harness-integrity/issues/05-independent-roles.md",
+      "scenario": "Challenged for bypasses, races, stale evidence, path/symlink attacks, retry overwrite, lock safety, and policy weakening; no independent execution evidence was available.",
+      "evidenceCheckId": "hardener.surface.1"
+    },
+    {
+      "path": "AGENTS.md",
+      "scenario": "Challenged for bypasses, races, stale evidence, path/symlink attacks, retry overwrite, lock safety, and policy weakening; no independent execution evidence was available.",
+      "evidenceCheckId": "hardener.surface.2"
+    },
+    {
+      "path": "docs/development/independent-role-assurance.md",
+      "scenario": "Challenged for bypasses, races, stale evidence, path/symlink attacks, retry overwrite, lock safety, and policy weakening; no independent execution evidence was available.",
+      "evidenceCheckId": "hardener.surface.3"
+    },
+    {
+      "path": "package.json",
+      "scenario": "Challenged for bypasses, races, stale evidence, path/symlink attacks, retry overwrite, lock safety, and policy weakening; no independent execution evidence was available.",
+      "evidenceCheckId": "hardener.surface.4"
+    },
+    {
+      "path": "scripts/agent-context",
+      "scenario": "Challenged for bypasses, races, stale evidence, path/symlink attacks, retry overwrite, lock safety, and policy weakening; no independent execution evidence was available.",
+      "evidenceCheckId": "hardener.surface.5"
+    },
+    {
+      "path": "scripts/agent-role",
+      "scenario": "Challenged for bypasses, races, stale evidence, path/symlink attacks, retry overwrite, lock safety, and policy weakening; no independent execution evidence was available.",
+      "evidenceCheckId": "hardener.surface.6"
+    },
+    {
+      "path": "scripts/agent-work",
+      "scenario": "Challenged for bypasses, races, stale evidence, path/symlink attacks, retry overwrite, lock safety, and policy weakening; no independent execution evidence was available.",
+      "evidenceCheckId": "hardener.surface.7"
+    },
+    {
+      "path": "scripts/bind-role-evidence.mjs",
+      "scenario": "Challenged for bypasses, races, stale evidence, path/symlink attacks, retry overwrite, lock safety, and policy weakening; no independent execution evidence was available.",
+      "evidenceCheckId": "hardener.surface.8"
+    },
+    {
+      "path": "scripts/verify-role-evidence.mjs",
+      "scenario": "Challenged for bypasses, races, stale evidence, path/symlink attacks, retry overwrite, lock safety, and policy weakening; no independent execution evidence was available.",
+      "evidenceCheckId": "hardener.surface.9"
+    },
+    {
+      "path": "spec/schemas/quality-stage-report.schema.json",
+      "scenario": "Challenged for bypasses, races, stale evidence, path/symlink attacks, retry overwrite, lock safety, and policy weakening; no independent execution evidence was available.",
+      "evidenceCheckId": "hardener.surface.10"
+    },
+    {
+      "path": "spec/schemas/reviewer-report.schema.json",
+      "scenario": "Challenged for bypasses, races, stale evidence, path/symlink attacks, retry overwrite, lock safety, and policy weakening; no independent execution evidence was available.",
+      "evidenceCheckId": "hardener.surface.11"
+    },
+    {
+      "path": "spec/schemas/role-attempt.schema.json",
+      "scenario": "Challenged for bypasses, races, stale evidence, path/symlink attacks, retry overwrite, lock safety, and policy weakening; no independent execution evidence was available.",
+      "evidenceCheckId": "hardener.surface.12"
+    },
+    {
+      "path": "spec/schemas/role-attestation-envelope.schema.json",
+      "scenario": "Challenged for bypasses, races, stale evidence, path/symlink attacks, retry overwrite, lock safety, and policy weakening; no independent execution evidence was available.",
+      "evidenceCheckId": "hardener.surface.13"
+    },
+    {
+      "path": "spec/schemas/role-input-manifest.schema.json",
+      "scenario": "Challenged for bypasses, races, stale evidence, path/symlink attacks, retry overwrite, lock safety, and policy weakening; no independent execution evidence was available.",
+      "evidenceCheckId": "hardener.surface.14"
+    },
+    {
+      "path": "spec/schemas/role-ledger.schema.json",
+      "scenario": "Challenged for bypasses, races, stale evidence, path/symlink attacks, retry overwrite, lock safety, and policy weakening; no independent execution evidence was available.",
+      "evidenceCheckId": "hardener.surface.15"
+    },
+    {
+      "path": "tooling/capabilities.json",
+      "scenario": "Challenged for bypasses, races, stale evidence, path/symlink attacks, retry overwrite, lock safety, and policy weakening; no independent execution evidence was available.",
+      "evidenceCheckId": "hardener.surface.16"
+    },
+    {
+      "path": "tooling/quality/agent-context.test.sh",
+      "scenario": "Challenged for bypasses, races, stale evidence, path/symlink attacks, retry overwrite, lock safety, and policy weakening; no independent execution evidence was available.",
+      "evidenceCheckId": "hardener.surface.17"
+    },
+    {
+      "path": "tooling/quality/candidate-finalize.test.sh",
+      "scenario": "Challenged for bypasses, races, stale evidence, path/symlink attacks, retry overwrite, lock safety, and policy weakening; no independent execution evidence was available.",
+      "evidenceCheckId": "hardener.surface.18"
+    },
+    {
+      "path": "tooling/quality/quality-stage-contract.test.mjs",
+      "scenario": "Challenged for bypasses, races, stale evidence, path/symlink attacks, retry overwrite, lock safety, and policy weakening; no independent execution evidence was available.",
+      "evidenceCheckId": "hardener.surface.19"
+    },
+    {
+      "path": "tooling/quality/role-evidence-policy.mjs",
+      "scenario": "Challenged for bypasses, races, stale evidence, path/symlink attacks, retry overwrite, lock safety, and policy weakening; no independent execution evidence was available.",
+      "evidenceCheckId": "hardener.surface.20"
+    },
+    {
+      "path": "tooling/quality/role-evidence-policy.test.mjs",
+      "scenario": "Challenged for bypasses, races, stale evidence, path/symlink attacks, retry overwrite, lock safety, and policy weakening; no independent execution evidence was available.",
+      "evidenceCheckId": "hardener.surface.21"
+    },
+    {
+      "path": "tooling/roles/prompts/hardener.md",
+      "scenario": "Challenged for bypasses, races, stale evidence, path/symlink attacks, retry overwrite, lock safety, and policy weakening; no independent execution evidence was available.",
+      "evidenceCheckId": "hardener.surface.22"
+    },
+    {
+      "path": "tooling/roles/prompts/qa.md",
+      "scenario": "Challenged for bypasses, races, stale evidence, path/symlink attacks, retry overwrite, lock safety, and policy weakening; no independent execution evidence was available.",
+      "evidenceCheckId": "hardener.surface.23"
+    },
+    {
+      "path": "tooling/roles/prompts/reviewer.md",
+      "scenario": "Challenged for bypasses, races, stale evidence, path/symlink attacks, retry overwrite, lock safety, and policy weakening; no independent execution evidence was available.",
+      "evidenceCheckId": "hardener.surface.24"
+    },
+    {
+      "path": "tooling/roles/registry.json",
+      "scenario": "Challenged for bypasses, races, stale evidence, path/symlink attacks, retry overwrite, lock safety, and policy weakening; no independent execution evidence was available.",
+      "evidenceCheckId": "hardener.surface.25"
+    }
+  ],
+  "scenarios": [
+    "QA bundle construction admits source-checkout scripts into the supposedly source-blind bundle.",
+    "Native proof references are validated only for repository containment, so non-Evidence repository files can be used as proof.",
+    "Independent role execution is not completed in this attempt."
+  ],
+  "evidence": [
+    {
+      "checkId": "hardener.incomplete",
+      "status": "failed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-652a1b3f-0014-4148-877e-605a2f23f3b1/input-manifest.json",
+      "evidenceSha256": "956b69e1e69609e1140bc949f51f4c322ed3a0e6371c999b1a1fcbe513ba7cf7"
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "scripts/agent-role (qaAllowedPath/createQaBundle)",
+      "failureMode": "The QA allowlist excludes only src/ and .git, so tracked scripts/ (including scripts/agent-role and other source-bearing files) are copied into qa-bundle. The delivered bundle therefore exposes source and a role-control interface to source-blind QA, violating the required read-only public-artifact boundary and enabling prompt/source leakage.",
+      "rationale": "The candidate diff explicitly filters with qaAllowedPath that permits scripts/, then copies every permitted tracked file. The generated bundle is consequently not source-blind.",
+      "correction": "Use an explicit public-artifact allowlist (docs, schemas, API reports, procedures, and the intended launcher only), reject scripts/, tooling, package source, and any executable not explicitly declared; add a fixture asserting scripts/ are absent."
+    },
+    {
+      "severity": "high",
+      "location": "scripts/agent-role (recordExternalAttestation) / validateEvidenceReference",
+      "failureMode": "nativeProofRef is accepted when it points to any regular repository file under root; it is not required to reside under the Work Item Evidence directory or attempt scope. An attester can point at tracked source/configuration as native proof, making proof provenance forgeable and bypassing the documented repository-relative Evidence requirement.",
+      "rationale": "recordExternalAttestation calls validateEvidenceReference(context.root, envelope.nativeProofRef, ...), whose visible contract only checks repository containment/digest.",
+      "correction": "Resolve and enforce nativeProofRef beneath the current Work Item evidence/attempt directory before reading, reject source and shared-state paths, and bind the stored proof reference to the attempt manifest."
+    }
+  ]
+}

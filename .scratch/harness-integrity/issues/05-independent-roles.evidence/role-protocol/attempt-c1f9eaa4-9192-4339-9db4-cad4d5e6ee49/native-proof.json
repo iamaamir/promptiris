@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "kind": "codex-independent-subagent",
+  "role": "hardener",
+  "producerId": "luna-harden-final9",
+  "agentTask": "/root/hardener_sep14",
+  "model": "gpt-5.6-luna",
+  "reasoningEffort": "low",
+  "candidateRevision": "sha256:dafdbbc3b7f59069268f1a6c217845a1e1a5942cdcbaa75de43f5a11861838a7",
+  "accessRef": ".agent/role-attempts/independent-roles/dafdbbc3b7f59069268f1a6c217845a1e1a5942cdcbaa75de43f5a11861838a7/attempt-c1f9eaa4-9192-4339-9db4-cad4d5e6ee49/access.json",
+  "reportRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-c1f9eaa4-9192-4339-9db4-cad4d5e6ee49/report.json",
+  "reportDigest": "sha256:4eb28a42d0e4e932debe4a251d51151a673f9d13a4ebe74d3a1d4cd2d70720f1",
+  "outcome": "passed",
+  "hostAuthorization": "The authenticated maintainer authorized independent low-cost model hardening and host attestation for this exact Candidate.",
+  "limitations": [
+    "The host records the independent model output and deterministic evidence; it does not claim hardware-enforced isolation."
+  ],
+  "recordedAt": "2026-09-15T06:45:50.000Z"
+}

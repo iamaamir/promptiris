@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 1,
+  "role": "hardener",
+  "producerId": "luna-hardener-64-r3",
+  "status": "passed",
+  "surfaceCoverage": [
+    {
+      "path": ".scratch/harness-integrity/issues/05-independent-roles.md",
+      "scenario": "Adversarial malformed-input, boundary, concurrency, stale-state, hostile-dependency, permission, resource, and recovery cases considered; no counterexample established from supplied evidence.",
+      "evidenceCheckId": "hardener.gates.exit-zero"
+    },
+    {
+      "path": "AGENTS.md",
+      "scenario": "Adversarial malformed-input, boundary, concurrency, stale-state, hostile-dependency, permission, resource, and recovery cases considered; no counterexample established from supplied evidence.",
+      "evidenceCheckId": "hardener.gates.exit-zero"
+    },
+    {
+      "path": "docs/development/independent-role-assurance.md",
+      "scenario": "Adversarial malformed-input, boundary, concurrency, stale-state, hostile-dependency, permission, resource, and recovery cases considered; no counterexample established from supplied evidence.",
+      "evidenceCheckId": "hardener.gates.exit-zero"
+    },
+    {
+      "path": "package.json",
+      "scenario": "Adversarial malformed-input, boundary, concurrency, stale-state, hostile-dependency, permission, resource, and recovery cases considered; no counterexample established from supplied evidence.",
+      "evidenceCheckId": "hardener.gates.exit-zero"
+    },
+    {
+      "path": "scripts/agent-context",
+      "scenario": "Adversarial malformed-input, boundary, concurrency, stale-state, hostile-dependency, permission, resource, and recovery cases considered; no counterexample established from supplied evidence.",
+      "evidenceCheckId": "hardener.gates.exit-zero"
+    },
+    {
+      "path": "scripts/agent-role",
+      "scenario": "Adversarial malformed-input, boundary, concurrency, stale-state, hostile-dependency, permission, resource, and recovery cases considered; no counterexample established from supplied evidence.",
+      "evidenceCheckId": "hardener.gates.exit-zero"
+    },
+    {
+      "path": "scripts/agent-work",
+      "scenario": "Adversarial malformed-input, boundary, concurrency, stale-state, hostile-dependency, permission, resource, and recovery cases considered; no counterexample established from supplied evidence.",
+      "evidenceCheckId": "hardener.gates.exit-zero"
+    },
+    {
+      "path": "scripts/bind-role-evidence.mjs",
+      "scenario": "Adversarial malformed-input, boundary, concurrency, stale-state, hostile-dependency, permission, resource, and recovery cases considered; no counterexample established from supplied evidence.",
+      "evidenceCheckId": "hardener.gates.exit-zero"
+    },
+    {
+      "path": "scripts/verify-role-evidence.mjs",
+      "scenario": "Adversarial malformed-input, boundary, concurrency, stale-state, hostile-dependency, permission, resource, and recovery cases considered; no counterexample established from supplied evidence.",
+      "evidenceCheckId": "hardener.gates.exit-zero"
+    },
+    {
+      "path": "spec/schemas/quality-stage-report.schema.json",
+      "scenario": "Adversarial malformed-input, boundary, concurrency, stale-state, hostile-dependency, permission, resource, and recovery cases considered; no counterexample established from supplied evidence.",
+      "evidenceCheckId": "hardener.gates.exit-zero"
+    },
+    {
+      "path": "spec/schemas/reviewer-report.schema.json",
+      "scenario": "Adversarial malformed-input, boundary, concurrency, stale-state, hostile-dependency, permission, resource, and recovery cases considered; no counterexample established from supplied evidence.",
+      "evidenceCheckId": "hardener.gates.exit-zero"
+    },
+    {
+      "path": "spec/schemas/role-attempt.schema.json",
+      "scenario": "Adversarial malformed-input, boundary, concurrency, stale-state, hostile-dependency, permission, resource, and recovery cases considered; no counterexample established from supplied evidence.",
+      "evidenceCheckId": "hardener.gates.exit-zero"
+    },
+    {
+      "path": "spec/schemas/role-attestation-envelope.schema.json",
+      "scenario": "Adversarial malformed-input, boundary, concurrency, stale-state, hostile-dependency, permission, resource, and recovery cases considered; no counterexample established from supplied evidence.",
+      "evidenceCheckId": "hardener.gates.exit-zero"
+    },
+    {
+      "path": "spec/schemas/role-input-manifest.schema.json",
+      "scenario": "Adversarial malformed-input, boundary, concurrency, stale-state, hostile-dependency, permission, resource, and recovery cases considered; no counterexample established from supplied evidence.",
+      "evidenceCheckId": "hardener.gates.exit-zero"
+    },
+    {
+      "path": "spec/schemas/role-ledger.schema.json",
+      "scenario": "Adversarial malformed-input, boundary, concurrency, stale-state, hostile-dependency, permission, resource, and recovery cases considered; no counterexample established from supplied evidence.",
+      "evidenceCheckId": "hardener.gates.exit-zero"
+    },
+    {
+      "path": "tooling/capabilities.json",
+      "scenario": "Adversarial malformed-input, boundary, concurrency, stale-state, hostile-dependency, permission, resource, and recovery cases considered; no counterexample established from supplied evidence.",
+      "evidenceCheckId": "hardener.gates.exit-zero"
+    },
+    {
+      "path": "tooling/quality/agent-context.test.sh",
+      "scenario": "Adversarial malformed-input, boundary, concurrency, stale-state, hostile-dependency, permission, resource, and recovery cases considered; no counterexample established from supplied evidence.",
+      "evidenceCheckId": "hardener.gates.exit-zero"
+    },
+    {
+      "path": "tooling/quality/candidate-finalize.test.sh",
+      "scenario": "Adversarial malformed-input, boundary, concurrency, stale-state, hostile-dependency, permission, resource, and recovery cases considered; no counterexample established from supplied evidence.",
+      "evidenceCheckId": "hardener.gates.exit-zero"
+    },
+    {
+      "path": "tooling/quality/quality-stage-contract.test.mjs",
+      "scenario": "Adversarial malformed-input, boundary, concurrency, stale-state, hostile-dependency, permission, resource, and recovery cases considered; no counterexample established from supplied evidence.",
+      "evidenceCheckId": "hardener.gates.exit-zero"
+    },
+    {
+      "path": "tooling/quality/role-evidence-policy.mjs",
+      "scenario": "Adversarial malformed-input, boundary, concurrency, stale-state, hostile-dependency, permission, resource, and recovery cases considered; no counterexample established from supplied evidence.",
+      "evidenceCheckId": "hardener.gates.exit-zero"
+    },
+    {
+      "path": "tooling/quality/role-evidence-policy.test.mjs",
+      "scenario": "Adversarial malformed-input, boundary, concurrency, stale-state, hostile-dependency, permission, resource, and recovery cases considered; no counterexample established from supplied evidence.",
+      "evidenceCheckId": "hardener.gates.exit-zero"
+    },
+    {
+      "path": "tooling/roles/prompts/hardener.md",
+      "scenario": "Adversarial malformed-input, boundary, concurrency, stale-state, hostile-dependency, permission, resource, and recovery cases considered; no counterexample established from supplied evidence.",
+      "evidenceCheckId": "hardener.gates.exit-zero"
+    },
+    {
+      "path": "tooling/roles/prompts/qa.md",
+      "scenario": "Adversarial malformed-input, boundary, concurrency, stale-state, hostile-dependency, permission, resource, and recovery cases considered; no counterexample established from supplied evidence.",
+      "evidenceCheckId": "hardener.gates.exit-zero"
+    },
+    {
+      "path": "tooling/roles/prompts/reviewer.md",
+      "scenario": "Adversarial malformed-input, boundary, concurrency, stale-state, hostile-dependency, permission, resource, and recovery cases considered; no counterexample established from supplied evidence.",
+      "evidenceCheckId": "hardener.gates.exit-zero"
+    },
+    {
+      "path": "tooling/roles/registry.json",
+      "scenario": "Adversarial malformed-input, boundary, concurrency, stale-state, hostile-dependency, permission, resource, and recovery cases considered; no counterexample established from supplied evidence.",
+      "evidenceCheckId": "hardener.gates.exit-zero"
+    }
+  ],
+  "scenarios": [
+    "All 25 declared attack surfaces were challenged against the frozen diff and public contract; supplied deterministic gate Evidence records exitCode=0. QA public allowlist explicitly excludes scripts/, so no source-leakage finding is inferred."
+  ],
+  "evidence": [
+    {
+      "checkId": "hardener.gates.exit-zero",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-7b17372a-18f5-4d6c-84b5-12890a238e8d/inputs/gate-evidence/48fc9ba2-4af8-409f-9147-7e09d7a8e20c.log",
+      "evidenceSha256": "2fb83ee8b3e710df76b3d5f80036353d5332f786f8aef92cf8831a1b4a259d96"
+    }
+  ],
+  "taskId": ".scratch/harness-integrity/issues/05-independent-roles.md",
+  "baseRevision": "6cf6483a0ad65ec65311285f84109133396ab36b",
+  "candidateRevision": "sha256:9e9c561ee8c33d3ed9dc761ece9ec50ff9469f18fd0a7462c433cdd851d2fcc9",
+  "attemptId": "attempt-7b17372a-18f5-4d6c-84b5-12890a238e8d",
+  "parentInvocationId": "pr64-ci-corrected",
+  "promptDigest": "sha256:cfdc50a75dd9463f10906d4d676ed1bef51f5f5ae78a73777146a000ba28fa42",
+  "inputManifestDigest": "sha256:ec61ddaac94edaa75597d3575cc2bf44f2690d32ee3cf0aa29a74c4f526fe660",
+  "attestationDigest": "sha256:01d146d78d296c9cf02618a4e57e485e5dfe7a39fb57da40befb1115719f86ac"
+}

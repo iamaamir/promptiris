@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "producerId": "luna-reviewer-64-r5",
+  "independent": true,
+  "verdict": "changes-required",
+  "findings": [
+    {
+      "id": "review-candidate-hash-text-decoding",
+      "severity": "high",
+      "file": "scripts/finalize-candidate.mjs",
+      "line": 1529,
+      "summary": "Candidate identity hashes decoded and trimmed raw Git bytes.",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-ef2d9b1e-df12-4838-9469-8d87ab49f625/inputs/candidate.diff",
+      "detail": "The git helper uses encoding utf8 and trim(), while the identity input is git diff --raw -z. UTF-8 decoding/re-encoding is not byte-preserving for arbitrary binary content or non-UTF-8 path bytes, and trim() removes meaningful leading/trailing bytes. Finalization and later validation can therefore compute an identity different from the frozen raw Candidate (or reject valid binary/unusual-path Candidates), undermining portable exact Candidate binding.",
+      "recommendation": "Run the raw Git operation without a text encoding or trim, retain the returned Buffer unchanged, and hash that exact byte sequence consistently in finalize, prepare, and verification. Add a regression fixture covering a binary change and a path containing non-UTF-8/whitespace boundary bytes."
+    }
+  ],
+  "commentDecisions": [],
+  "evidence": [],
+  "residualRisks": [
+    "No mechanical checks were rerun; supplied deterministic Evidence was treated as valid under the access envelope."
+  ]
+}

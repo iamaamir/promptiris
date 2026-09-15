@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "role": "hardener",
+  "producerId": "luna-harden-final",
+  "status": "failed",
+  "surfaceCoverage": [
+    {"path":"AGENTS.md","scenario":"A policy edit permits self-authored or weakly bound role evidence.","evidenceCheckId":"surface-1"},
+    {"path":"docs/development/independent-role-assurance.md","scenario":"Documented isolation or transition guarantees exceed what the implementation enforces.","evidenceCheckId":"surface-2"},
+    {"path":"package.json","scenario":"A quality script omits or bypasses an independent-role verifier.","evidenceCheckId":"surface-3"},
+    {"path":"scripts/agent-context","scenario":"Status output hides unsupported, stale, or incomplete role state.","evidenceCheckId":"surface-4"},
+    {"path":"scripts/agent-role","scenario":"A prepared manifest gives Hardener inputs outside its declared attack-surface-only boundary.","evidenceCheckId":"surface-5"},
+    {"path":"scripts/agent-work","scenario":"Checklist directs a worker to an unbound path or permits a mismatched report.","evidenceCheckId":"surface-6"},
+    {"path":"scripts/bind-role-evidence.mjs","scenario":"Binder accepts a report or attestation whose references can be redirected or whose Candidate binding is stale.","evidenceCheckId":"surface-7"},
+    {"path":"scripts/finalize-candidate.mjs","scenario":"Candidate finalization and later role binding observe different revisions.","evidenceCheckId":"surface-8"},
+    {"path":"scripts/verify-role-evidence.mjs","scenario":"Verifier accepts forged, replayed, or incomplete role Evidence.","evidenceCheckId":"surface-9"},
+    {"path":"spec/schemas/quality-stage-report.schema.json","scenario":"Schema permits identity fields or findings that binder policy does not constrain.","evidenceCheckId":"surface-10"},
+    {"path":"spec/schemas/reviewer-report.schema.json","scenario":"Reviewer report can self-assert independence without a validated attempt.","evidenceCheckId":"surface-11"},
+    {"path":"spec/schemas/role-attempt.schema.json","scenario":"Attempt transitions or sequence values admit rollback or duplicate authority.","evidenceCheckId":"surface-12"},
+    {"path":"spec/schemas/role-attestation-envelope.schema.json","scenario":"Envelope validation omits a trust, expiry, nonce, or proof binding.","evidenceCheckId":"surface-13"},
+    {"path":"spec/schemas/role-input-manifest.schema.json","scenario":"Manifest digest fails to cover a resolved input or access mode.","evidenceCheckId":"surface-14"},
+    {"path":"spec/schemas/role-ledger.schema.json","scenario":"Ledger replay selects a non-authoritative retry or loses an unsupported declaration.","evidenceCheckId":"surface-15"},
+    {"path":"tooling/capabilities.json","scenario":"Declared capabilities claim isolation that the QA bundle does not enforce.","evidenceCheckId":"surface-16"},
+    {"path":"tooling/quality/agent-context.test.sh","scenario":"Orientation regression leaves role state misleading or incomplete.","evidenceCheckId":"surface-17"},
+    {"path":"tooling/quality/agent-work.test.sh","scenario":"Role checklist regression permits a producer to review its own Candidate.","evidenceCheckId":"surface-18"},
+    {"path":"tooling/quality/candidate-finalize.test.sh","scenario":"Finalization race allows role inputs to bind to changed content.","evidenceCheckId":"surface-19"},
+    {"path":"tooling/quality/ci-import.test.sh","scenario":"Imported CI identity can be substituted for role attestation.","evidenceCheckId":"surface-20"},
+    {"path":"tooling/quality/quality-stage-contract.test.mjs","scenario":"Contract tests omit a malformed or adversarial role report.","evidenceCheckId":"surface-21"},
+    {"path":"tooling/quality/role-evidence-policy.mjs","scenario":"Policy helper has a divergent digest, selection, path, or surface-completeness rule.","evidenceCheckId":"surface-22"},
+    {"path":"tooling/quality/role-evidence-policy.test.mjs","scenario":"Policy regression leaves a known forgery or retry counterexample untested.","evidenceCheckId":"surface-23"},
+    {"path":"tooling/quality/tool-trace.test.sh","scenario":"A preserved clean trace is accepted without binding its bytes to the frozen Candidate.","evidenceCheckId":"surface-24"},
+    {"path":"tooling/roles/prompts/hardener.md","scenario":"Prompt does not require reporting a concrete counterexample for every surface.","evidenceCheckId":"surface-25"},
+    {"path":"tooling/roles/prompts/qa.md","scenario":"QA procedures allow source, environment, or launcher leakage.","evidenceCheckId":"surface-26"},
+    {"path":"tooling/roles/prompts/reviewer.md","scenario":"Reviewer can infer unavailable evidence or rely on implementer narrative.","evidenceCheckId":"surface-27"},
+    {"path":"tooling/roles/registry.json","scenario":"Registry maps a role to mutable or mismatched prompt bytes.","evidenceCheckId":"surface-28"}
+  ],
+  "scenarios": [
+    "HIGH: readCandidateTraces catches every parse, path, and digest error and silently omits the trace. A required deterministic gate can therefore be malformed or unreadable while the generated reviewer/hardener inputs still appear valid with an empty deterministicEvidence list. The acceptance requires unavailable affected Evidence to block rather than silently disappear; malformed candidate-bound traces must produce a blocking preparation failure.",
+    "LIMITATION: the clarified contracts retract the prior input-scope, opaque-launcher, frozen-revision, lock-takeover, transition, and external-envelope findings. No additional concrete QA read path is established from the authorized materials: optional Host isolation is expressly a disclosed limitation, and internal Host execution is not itself a source-leak finding."
+  ],
+  "evidence": [
+    {
+      "checkId": "hardener.malformed-trace-suppression",
+      "status": "failed",
+      "evidenceRef": "inputs/candidate.diff",
+      "evidenceSha256": "sha256:68755748d27fed00c48d3e18a7e340e7b7218e630572fe4390d626900ac47164"
+    }
+  ]
+}

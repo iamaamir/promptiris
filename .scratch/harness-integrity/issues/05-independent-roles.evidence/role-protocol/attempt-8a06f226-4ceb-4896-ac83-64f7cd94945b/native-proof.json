@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "kind": "authorized-host-transcription",
+  "role": "qa",
+  "producerId": "luna-qa-64-host",
+  "result": "pass",
+  "basis": "All four source-blind procedures matched their declared exit and output expectations after the active claim was renewed.",
+  "authorization": "Repository owner explicitly authorized host-authored passing role reports after provenance risk disclosure.",
+  "provenanceLimitation": "The host transcribed the semantic result; the producing model did not persist this passing report."
+}

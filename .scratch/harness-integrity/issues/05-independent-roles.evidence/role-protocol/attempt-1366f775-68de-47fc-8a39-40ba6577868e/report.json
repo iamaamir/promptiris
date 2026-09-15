@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "role": "qa",
+  "taskId": "05-independent-roles.evidence",
+  "baseRevision": "6cf6483a0ad65ec65311285f84109133396ab36b",
+  "candidateRevision": "sha256:e73286c1d62e3f1efb5fd4842ed2bbd4aa16c3ccd9ccec600572cc3513d8a6e4",
+  "producerId": "luna-qa-64-final",
+  "attemptId": "attempt-1366f775-68de-47fc-8a39-40ba6577868e",
+  "status": "failed",
+  "sourceBlind": true,
+  "scenarios": [
+    "Happy path status reports roles-incomplete with exit 0 and expected marker.",
+    "Invalid command exits 1 and reports ROLE_USAGE.",
+    "Retry and recovery status procedures both exit 0 and remain roles-incomplete."
+  ],
+  "evidence": [
+    {"checkId":"qa.happy-path","status":"passed","evidenceRef":"qa-bundle/procedures.json:happy-path","evidenceSha256":"d3c6b89ba0cff34f20be3689001de4914af52d205a23157f15399a9af2e4cec2"},
+    {"checkId":"qa.invalid-input","status":"passed","evidenceRef":"qa-bundle/procedures.json:invalid-input","evidenceSha256":"d3c6b89ba0cff34f20be3689001de4914af52d205a23157f15399a9af2e4cec2"},
+    {"checkId":"qa.retry-recovery","status":"passed","evidenceRef":"qa-bundle/procedures.json:retry,recovery","evidenceSha256":"d3c6b89ba0cff34f20be3689001de4914af52d205a23157f15399a9af2e4cec2"},
+    {"checkId":"qa.role-state","status":"failed","evidenceRef":"qa-bundle/procedures.json:expected roles-incomplete state","evidenceSha256":"d3c6b89ba0cff34f20be3689001de4914af52d205a23157f15399a9af2e4cec2"}
+  ]
+}

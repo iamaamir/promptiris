@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:promptiris:schema:test-strategies:v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "strategies"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "strategies": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "purpose",
+          "provider",
+          "gateMode",
+          "costClass",
+          "applicability",
+          "evidence"
+        ],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+          "purpose": { "type": "string", "minLength": 1 },
+          "provider": { "type": "string", "minLength": 1 },
+          "gateMode": { "enum": ["affected", "capability-triggered"] },
+          "costClass": { "enum": ["low", "medium", "high"] },
+          "applicability": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "evidence": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

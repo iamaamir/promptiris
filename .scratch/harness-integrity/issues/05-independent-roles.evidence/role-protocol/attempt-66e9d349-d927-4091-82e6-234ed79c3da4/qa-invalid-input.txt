@@ -1,0 +1,3 @@
+exit=1
+code=ROLE_USAGE
+message=expected a supported role command

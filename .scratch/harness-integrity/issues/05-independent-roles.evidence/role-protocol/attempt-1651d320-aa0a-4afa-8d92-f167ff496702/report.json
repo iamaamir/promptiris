@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "producerId": "luna-reviewer-64-r3",
+  "independent": true,
+  "verdict": "pass",
+  "findings": [],
+  "commentDecisions": [],
+  "evidence": [
+    {
+      "checkId": "reviewer.lock-and-proof-scope",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-1651d320-aa0a-4afa-8d92-f167ff496702/inputs/candidate.diff",
+      "evidenceSha256": "75b9d34b907bd57b7953f1d813a3b6ce478852443d1c4345f0a38c82d0933aff"
+    }
+  ],
+  "residualRisks": [
+    "Lock freshness recovery depends on filesystem timestamps; an abandoned lock can delay a retry until the stale threshold."
+  ],
+  "taskId": ".scratch/harness-integrity/issues/05-independent-roles.md",
+  "baseRevision": "6cf6483a0ad65ec65311285f84109133396ab36b",
+  "candidateRevision": "sha256:9e9c561ee8c33d3ed9dc761ece9ec50ff9469f18fd0a7462c433cdd851d2fcc9",
+  "attemptId": "attempt-1651d320-aa0a-4afa-8d92-f167ff496702",
+  "parentInvocationId": "pr64-ci-corrected",
+  "promptDigest": "sha256:9f9597af8d9b61ed615baabc3507833005687360640d34030b00350639c900d3",
+  "inputManifestDigest": "sha256:42b48d4937741c07256edbd9a3c7544d681f64cb2cfc7cf48b69c80d65c50a9f",
+  "attestationDigest": "sha256:c4199a9f09770d6043b25b2c1921298e0fb706ee789a2f04147383453fad0ead"
+}

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "host": "codex-collaboration",
+  "agentTask": "/root/qa_64_r4",
+  "producerId": "luna-qa-64-r4",
+  "role": "qa",
+  "attemptId": "attempt-85ce92e3-3b19-4a95-a32a-3c4f3855540f",
+  "sourceBlind": true,
+  "ambientFilesystemDisabled": false,
+  "outcome": "passed",
+  "observations": [
+    { "procedure": "happy-path", "exitCode": 0, "observed": "roles-incomplete" },
+    { "procedure": "invalid-input", "exitCode": 1, "observed": "ROLE_USAGE" },
+    { "procedure": "retry", "exitCode": 0, "observed": "roles-incomplete" },
+    { "procedure": "recovery", "exitCode": 0, "observed": "roles-incomplete" }
+  ]
+}

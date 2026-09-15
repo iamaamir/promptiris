@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "producerId": "luna-review-final",
+  "independent": true,
+  "verdict": "approved",
+  "findings": [],
+  "commentDecisions": [],
+  "evidence": [
+    {
+      "checkId": "reviewer.contract-diff-review",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-2e6c3be7-9875-41e0-89a4-fdac4a4c55f8/inputs/candidate.diff",
+      "evidenceSha256": "be359db058e0e027d056804d50d1141539c63a41e1ef476fa1f022b34fbf4e5d"
+    }
+  ],
+  "residualRisks": [
+    "Host-side optional isolation capabilities remain dependent on the declared Host attestation and capability disclosure."
+  ]
+}

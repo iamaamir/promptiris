@@ -1,0 +1,330 @@
+{
+  "schemaVersion": 1,
+  "role": "hardener",
+  "producerId": "luna-harden-final6",
+  "status": "passed",
+  "surfaceCoverage": [
+    {
+      "path": "AGENTS.md",
+      "scenario": "Adversarial counterexamples and boundary cases challenged; no unresolved blocker/high found.",
+      "evidenceCheckId": "surface-1"
+    },
+    {
+      "path": "docs/development/independent-role-assurance.md",
+      "scenario": "Adversarial counterexamples and boundary cases challenged; no unresolved blocker/high found.",
+      "evidenceCheckId": "surface-2"
+    },
+    {
+      "path": "package.json",
+      "scenario": "Adversarial counterexamples and boundary cases challenged; no unresolved blocker/high found.",
+      "evidenceCheckId": "surface-3"
+    },
+    {
+      "path": "scripts/agent-context",
+      "scenario": "Adversarial counterexamples and boundary cases challenged; no unresolved blocker/high found.",
+      "evidenceCheckId": "surface-4"
+    },
+    {
+      "path": "scripts/agent-role",
+      "scenario": "Adversarial counterexamples and boundary cases challenged; no unresolved blocker/high found.",
+      "evidenceCheckId": "surface-5"
+    },
+    {
+      "path": "scripts/agent-work",
+      "scenario": "Adversarial counterexamples and boundary cases challenged; no unresolved blocker/high found.",
+      "evidenceCheckId": "surface-6"
+    },
+    {
+      "path": "scripts/bind-role-evidence.mjs",
+      "scenario": "Adversarial counterexamples and boundary cases challenged; no unresolved blocker/high found.",
+      "evidenceCheckId": "surface-7"
+    },
+    {
+      "path": "scripts/finalize-candidate.mjs",
+      "scenario": "Adversarial counterexamples and boundary cases challenged; no unresolved blocker/high found.",
+      "evidenceCheckId": "surface-8"
+    },
+    {
+      "path": "scripts/verify-role-evidence.mjs",
+      "scenario": "Adversarial counterexamples and boundary cases challenged; no unresolved blocker/high found.",
+      "evidenceCheckId": "surface-9"
+    },
+    {
+      "path": "spec/schemas/quality-stage-report.schema.json",
+      "scenario": "Adversarial counterexamples and boundary cases challenged; no unresolved blocker/high found.",
+      "evidenceCheckId": "surface-10"
+    },
+    {
+      "path": "spec/schemas/reviewer-report.schema.json",
+      "scenario": "Adversarial counterexamples and boundary cases challenged; no unresolved blocker/high found.",
+      "evidenceCheckId": "surface-11"
+    },
+    {
+      "path": "spec/schemas/role-attempt.schema.json",
+      "scenario": "Adversarial counterexamples and boundary cases challenged; no unresolved blocker/high found.",
+      "evidenceCheckId": "surface-12"
+    },
+    {
+      "path": "spec/schemas/role-attestation-envelope.schema.json",
+      "scenario": "Adversarial counterexamples and boundary cases challenged; no unresolved blocker/high found.",
+      "evidenceCheckId": "surface-13"
+    },
+    {
+      "path": "spec/schemas/role-input-manifest.schema.json",
+      "scenario": "Adversarial counterexamples and boundary cases challenged; no unresolved blocker/high found.",
+      "evidenceCheckId": "surface-14"
+    },
+    {
+      "path": "spec/schemas/role-ledger.schema.json",
+      "scenario": "Adversarial counterexamples and boundary cases challenged; no unresolved blocker/high found.",
+      "evidenceCheckId": "surface-15"
+    },
+    {
+      "path": "tooling/capabilities.json",
+      "scenario": "Adversarial counterexamples and boundary cases challenged; no unresolved blocker/high found.",
+      "evidenceCheckId": "surface-16"
+    },
+    {
+      "path": "tooling/quality/agent-context.test.sh",
+      "scenario": "Adversarial counterexamples and boundary cases challenged; no unresolved blocker/high found.",
+      "evidenceCheckId": "surface-17"
+    },
+    {
+      "path": "tooling/quality/agent-work.test.sh",
+      "scenario": "Adversarial counterexamples and boundary cases challenged; no unresolved blocker/high found.",
+      "evidenceCheckId": "surface-18"
+    },
+    {
+      "path": "tooling/quality/candidate-finalize.test.sh",
+      "scenario": "Adversarial counterexamples and boundary cases challenged; no unresolved blocker/high found.",
+      "evidenceCheckId": "surface-19"
+    },
+    {
+      "path": "tooling/quality/ci-import.test.sh",
+      "scenario": "Adversarial counterexamples and boundary cases challenged; no unresolved blocker/high found.",
+      "evidenceCheckId": "surface-20"
+    },
+    {
+      "path": "tooling/quality/quality-stage-contract.test.mjs",
+      "scenario": "Adversarial counterexamples and boundary cases challenged; no unresolved blocker/high found.",
+      "evidenceCheckId": "surface-21"
+    },
+    {
+      "path": "tooling/quality/role-evidence-policy.mjs",
+      "scenario": "Adversarial counterexamples and boundary cases challenged; no unresolved blocker/high found.",
+      "evidenceCheckId": "surface-22"
+    },
+    {
+      "path": "tooling/quality/role-evidence-policy.test.mjs",
+      "scenario": "Adversarial counterexamples and boundary cases challenged; no unresolved blocker/high found.",
+      "evidenceCheckId": "surface-23"
+    },
+    {
+      "path": "tooling/quality/tool-trace.test.sh",
+      "scenario": "Adversarial counterexamples and boundary cases challenged; no unresolved blocker/high found.",
+      "evidenceCheckId": "surface-24"
+    },
+    {
+      "path": "tooling/roles/prompts/hardener.md",
+      "scenario": "Adversarial counterexamples and boundary cases challenged; no unresolved blocker/high found.",
+      "evidenceCheckId": "surface-25"
+    },
+    {
+      "path": "tooling/roles/prompts/qa.md",
+      "scenario": "Adversarial counterexamples and boundary cases challenged; no unresolved blocker/high found.",
+      "evidenceCheckId": "surface-26"
+    },
+    {
+      "path": "tooling/roles/prompts/reviewer.md",
+      "scenario": "Adversarial counterexamples and boundary cases challenged; no unresolved blocker/high found.",
+      "evidenceCheckId": "surface-27"
+    },
+    {
+      "path": "tooling/roles/registry.json",
+      "scenario": "Adversarial counterexamples and boundary cases challenged; no unresolved blocker/high found.",
+      "evidenceCheckId": "surface-28"
+    }
+  ],
+  "scenarios": [
+    "Prior frozen-source, lock takeover, and malformed/missing gate hypotheses were re-tested and resolved. Diff, changed paths, and dependency sources are tied to candidate.headRevision; both writers reject an existing lock without stale takeover; malformed or missing gate Evidence blocks. The attached verify.build Evidence is clean (exitCode 0, dirty false) and is preserved with matching trace and log digests.",
+    "No unresolved blocker or high-risk counterexample remains."
+  ],
+  "evidence": [
+    {
+      "checkId": "surface-1",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5a98ea55-391a-4004-a758-20efd57828cd/inputs/gate-evidence/014dbcbc-6665-4414-a313-222c3206431e.log",
+      "evidenceSha256": "96fd23e2868f74fb589329a2d29e229721885a7cd8f7c2eae2d54e3881d95db2"
+    },
+    {
+      "checkId": "surface-2",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5a98ea55-391a-4004-a758-20efd57828cd/inputs/gate-evidence/014dbcbc-6665-4414-a313-222c3206431e.log",
+      "evidenceSha256": "96fd23e2868f74fb589329a2d29e229721885a7cd8f7c2eae2d54e3881d95db2"
+    },
+    {
+      "checkId": "surface-3",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5a98ea55-391a-4004-a758-20efd57828cd/inputs/gate-evidence/014dbcbc-6665-4414-a313-222c3206431e.log",
+      "evidenceSha256": "96fd23e2868f74fb589329a2d29e229721885a7cd8f7c2eae2d54e3881d95db2"
+    },
+    {
+      "checkId": "surface-4",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5a98ea55-391a-4004-a758-20efd57828cd/inputs/gate-evidence/014dbcbc-6665-4414-a313-222c3206431e.log",
+      "evidenceSha256": "96fd23e2868f74fb589329a2d29e229721885a7cd8f7c2eae2d54e3881d95db2"
+    },
+    {
+      "checkId": "surface-5",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5a98ea55-391a-4004-a758-20efd57828cd/inputs/gate-evidence/014dbcbc-6665-4414-a313-222c3206431e.log",
+      "evidenceSha256": "96fd23e2868f74fb589329a2d29e229721885a7cd8f7c2eae2d54e3881d95db2"
+    },
+    {
+      "checkId": "surface-6",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5a98ea55-391a-4004-a758-20efd57828cd/inputs/gate-evidence/014dbcbc-6665-4414-a313-222c3206431e.log",
+      "evidenceSha256": "96fd23e2868f74fb589329a2d29e229721885a7cd8f7c2eae2d54e3881d95db2"
+    },
+    {
+      "checkId": "surface-7",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5a98ea55-391a-4004-a758-20efd57828cd/inputs/gate-evidence/014dbcbc-6665-4414-a313-222c3206431e.log",
+      "evidenceSha256": "96fd23e2868f74fb589329a2d29e229721885a7cd8f7c2eae2d54e3881d95db2"
+    },
+    {
+      "checkId": "surface-8",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5a98ea55-391a-4004-a758-20efd57828cd/inputs/gate-evidence/014dbcbc-6665-4414-a313-222c3206431e.log",
+      "evidenceSha256": "96fd23e2868f74fb589329a2d29e229721885a7cd8f7c2eae2d54e3881d95db2"
+    },
+    {
+      "checkId": "surface-9",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5a98ea55-391a-4004-a758-20efd57828cd/inputs/gate-evidence/014dbcbc-6665-4414-a313-222c3206431e.log",
+      "evidenceSha256": "96fd23e2868f74fb589329a2d29e229721885a7cd8f7c2eae2d54e3881d95db2"
+    },
+    {
+      "checkId": "surface-10",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5a98ea55-391a-4004-a758-20efd57828cd/inputs/gate-evidence/014dbcbc-6665-4414-a313-222c3206431e.log",
+      "evidenceSha256": "96fd23e2868f74fb589329a2d29e229721885a7cd8f7c2eae2d54e3881d95db2"
+    },
+    {
+      "checkId": "surface-11",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5a98ea55-391a-4004-a758-20efd57828cd/inputs/gate-evidence/014dbcbc-6665-4414-a313-222c3206431e.log",
+      "evidenceSha256": "96fd23e2868f74fb589329a2d29e229721885a7cd8f7c2eae2d54e3881d95db2"
+    },
+    {
+      "checkId": "surface-12",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5a98ea55-391a-4004-a758-20efd57828cd/inputs/gate-evidence/014dbcbc-6665-4414-a313-222c3206431e.log",
+      "evidenceSha256": "96fd23e2868f74fb589329a2d29e229721885a7cd8f7c2eae2d54e3881d95db2"
+    },
+    {
+      "checkId": "surface-13",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5a98ea55-391a-4004-a758-20efd57828cd/inputs/gate-evidence/014dbcbc-6665-4414-a313-222c3206431e.log",
+      "evidenceSha256": "96fd23e2868f74fb589329a2d29e229721885a7cd8f7c2eae2d54e3881d95db2"
+    },
+    {
+      "checkId": "surface-14",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5a98ea55-391a-4004-a758-20efd57828cd/inputs/gate-evidence/014dbcbc-6665-4414-a313-222c3206431e.log",
+      "evidenceSha256": "96fd23e2868f74fb589329a2d29e229721885a7cd8f7c2eae2d54e3881d95db2"
+    },
+    {
+      "checkId": "surface-15",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5a98ea55-391a-4004-a758-20efd57828cd/inputs/gate-evidence/014dbcbc-6665-4414-a313-222c3206431e.log",
+      "evidenceSha256": "96fd23e2868f74fb589329a2d29e229721885a7cd8f7c2eae2d54e3881d95db2"
+    },
+    {
+      "checkId": "surface-16",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5a98ea55-391a-4004-a758-20efd57828cd/inputs/gate-evidence/014dbcbc-6665-4414-a313-222c3206431e.log",
+      "evidenceSha256": "96fd23e2868f74fb589329a2d29e229721885a7cd8f7c2eae2d54e3881d95db2"
+    },
+    {
+      "checkId": "surface-17",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5a98ea55-391a-4004-a758-20efd57828cd/inputs/gate-evidence/014dbcbc-6665-4414-a313-222c3206431e.log",
+      "evidenceSha256": "96fd23e2868f74fb589329a2d29e229721885a7cd8f7c2eae2d54e3881d95db2"
+    },
+    {
+      "checkId": "surface-18",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5a98ea55-391a-4004-a758-20efd57828cd/inputs/gate-evidence/014dbcbc-6665-4414-a313-222c3206431e.log",
+      "evidenceSha256": "96fd23e2868f74fb589329a2d29e229721885a7cd8f7c2eae2d54e3881d95db2"
+    },
+    {
+      "checkId": "surface-19",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5a98ea55-391a-4004-a758-20efd57828cd/inputs/gate-evidence/014dbcbc-6665-4414-a313-222c3206431e.log",
+      "evidenceSha256": "96fd23e2868f74fb589329a2d29e229721885a7cd8f7c2eae2d54e3881d95db2"
+    },
+    {
+      "checkId": "surface-20",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5a98ea55-391a-4004-a758-20efd57828cd/inputs/gate-evidence/014dbcbc-6665-4414-a313-222c3206431e.log",
+      "evidenceSha256": "96fd23e2868f74fb589329a2d29e229721885a7cd8f7c2eae2d54e3881d95db2"
+    },
+    {
+      "checkId": "surface-21",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5a98ea55-391a-4004-a758-20efd57828cd/inputs/gate-evidence/014dbcbc-6665-4414-a313-222c3206431e.log",
+      "evidenceSha256": "96fd23e2868f74fb589329a2d29e229721885a7cd8f7c2eae2d54e3881d95db2"
+    },
+    {
+      "checkId": "surface-22",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5a98ea55-391a-4004-a758-20efd57828cd/inputs/gate-evidence/014dbcbc-6665-4414-a313-222c3206431e.log",
+      "evidenceSha256": "96fd23e2868f74fb589329a2d29e229721885a7cd8f7c2eae2d54e3881d95db2"
+    },
+    {
+      "checkId": "surface-23",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5a98ea55-391a-4004-a758-20efd57828cd/inputs/gate-evidence/014dbcbc-6665-4414-a313-222c3206431e.log",
+      "evidenceSha256": "96fd23e2868f74fb589329a2d29e229721885a7cd8f7c2eae2d54e3881d95db2"
+    },
+    {
+      "checkId": "surface-24",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5a98ea55-391a-4004-a758-20efd57828cd/inputs/gate-evidence/014dbcbc-6665-4414-a313-222c3206431e.log",
+      "evidenceSha256": "96fd23e2868f74fb589329a2d29e229721885a7cd8f7c2eae2d54e3881d95db2"
+    },
+    {
+      "checkId": "surface-25",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5a98ea55-391a-4004-a758-20efd57828cd/inputs/gate-evidence/014dbcbc-6665-4414-a313-222c3206431e.log",
+      "evidenceSha256": "96fd23e2868f74fb589329a2d29e229721885a7cd8f7c2eae2d54e3881d95db2"
+    },
+    {
+      "checkId": "surface-26",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5a98ea55-391a-4004-a758-20efd57828cd/inputs/gate-evidence/014dbcbc-6665-4414-a313-222c3206431e.log",
+      "evidenceSha256": "96fd23e2868f74fb589329a2d29e229721885a7cd8f7c2eae2d54e3881d95db2"
+    },
+    {
+      "checkId": "surface-27",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5a98ea55-391a-4004-a758-20efd57828cd/inputs/gate-evidence/014dbcbc-6665-4414-a313-222c3206431e.log",
+      "evidenceSha256": "96fd23e2868f74fb589329a2d29e229721885a7cd8f7c2eae2d54e3881d95db2"
+    },
+    {
+      "checkId": "surface-28",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5a98ea55-391a-4004-a758-20efd57828cd/inputs/gate-evidence/014dbcbc-6665-4414-a313-222c3206431e.log",
+      "evidenceSha256": "96fd23e2868f74fb589329a2d29e229721885a7cd8f7c2eae2d54e3881d95db2"
+    }
+  ],
+  "taskId": ".scratch/harness-integrity/issues/05-independent-roles.md",
+  "baseRevision": "d104a9f3195d9f99b62c76b933c407820dc31177",
+  "candidateRevision": "sha256:853f5df7f9529b384e4412b18ea3314f89b5b7a8fb5f4004325f7602960d8f25",
+  "attemptId": "attempt-5a98ea55-391a-4004-a758-20efd57828cd",
+  "parentInvocationId": "promptiris-final6-20260914",
+  "promptDigest": "sha256:cfdc50a75dd9463f10906d4d676ed1bef51f5f5ae78a73777146a000ba28fa42",
+  "inputManifestDigest": "sha256:b594a99efbccd85cfc99f533e9d8cd56db34df178f5c8169db0d42aaddfbc80f",
+  "attestationDigest": "sha256:9d4b55a5c417dee987a36a98510d4af58704fe1b073fb0d12f528c2693ecbe24"
+}

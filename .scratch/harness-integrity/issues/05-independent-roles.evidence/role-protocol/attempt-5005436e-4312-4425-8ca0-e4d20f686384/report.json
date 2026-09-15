@@ -1,0 +1,329 @@
+{
+  "schemaVersion": 1,
+  "role": "hardener",
+  "producerId": "luna-harden-final4",
+  "status": "passed",
+  "surfaceCoverage": [
+    {
+      "path": "AGENTS.md",
+      "scenario": "Challenged policy binding.",
+      "evidenceCheckId": "surface-1"
+    },
+    {
+      "path": "docs/development/independent-role-assurance.md",
+      "scenario": "Challenged documented guarantees.",
+      "evidenceCheckId": "surface-2"
+    },
+    {
+      "path": "package.json",
+      "scenario": "Challenged quality entrypoints.",
+      "evidenceCheckId": "surface-3"
+    },
+    {
+      "path": "scripts/agent-context",
+      "scenario": "Challenged role status.",
+      "evidenceCheckId": "surface-4"
+    },
+    {
+      "path": "scripts/agent-role",
+      "scenario": "Challenged preparation and state races.",
+      "evidenceCheckId": "surface-5"
+    },
+    {
+      "path": "scripts/agent-work",
+      "scenario": "Challenged role workflow.",
+      "evidenceCheckId": "surface-6"
+    },
+    {
+      "path": "scripts/bind-role-evidence.mjs",
+      "scenario": "Challenged binder locking and binding.",
+      "evidenceCheckId": "surface-7"
+    },
+    {
+      "path": "scripts/finalize-candidate.mjs",
+      "scenario": "Challenged Candidate freezing.",
+      "evidenceCheckId": "surface-8"
+    },
+    {
+      "path": "scripts/verify-role-evidence.mjs",
+      "scenario": "Challenged verifier snapshot consistency.",
+      "evidenceCheckId": "surface-9"
+    },
+    {
+      "path": "spec/schemas/quality-stage-report.schema.json",
+      "scenario": "Challenged report constraints.",
+      "evidenceCheckId": "surface-10"
+    },
+    {
+      "path": "spec/schemas/reviewer-report.schema.json",
+      "scenario": "Challenged reviewer identity.",
+      "evidenceCheckId": "surface-11"
+    },
+    {
+      "path": "spec/schemas/role-attempt.schema.json",
+      "scenario": "Challenged attempt transitions.",
+      "evidenceCheckId": "surface-12"
+    },
+    {
+      "path": "spec/schemas/role-attestation-envelope.schema.json",
+      "scenario": "Challenged attestation trust.",
+      "evidenceCheckId": "surface-13"
+    },
+    {
+      "path": "spec/schemas/role-input-manifest.schema.json",
+      "scenario": "Challenged manifest binding.",
+      "evidenceCheckId": "surface-14"
+    },
+    {
+      "path": "spec/schemas/role-ledger.schema.json",
+      "scenario": "Challenged ledger authority.",
+      "evidenceCheckId": "surface-15"
+    },
+    {
+      "path": "tooling/capabilities.json",
+      "scenario": "Challenged capability disclosure.",
+      "evidenceCheckId": "surface-16"
+    },
+    {
+      "path": "tooling/quality/agent-context.test.sh",
+      "scenario": "Challenged orientation regression.",
+      "evidenceCheckId": "surface-17"
+    },
+    {
+      "path": "tooling/quality/agent-work.test.sh",
+      "scenario": "Challenged workflow regression.",
+      "evidenceCheckId": "surface-18"
+    },
+    {
+      "path": "tooling/quality/candidate-finalize.test.sh",
+      "scenario": "Challenged finalization race.",
+      "evidenceCheckId": "surface-19"
+    },
+    {
+      "path": "tooling/quality/ci-import.test.sh",
+      "scenario": "Challenged imported identity.",
+      "evidenceCheckId": "surface-20"
+    },
+    {
+      "path": "tooling/quality/quality-stage-contract.test.mjs",
+      "scenario": "Challenged malformed reports.",
+      "evidenceCheckId": "surface-21"
+    },
+    {
+      "path": "tooling/quality/role-evidence-policy.mjs",
+      "scenario": "Challenged policy invariants.",
+      "evidenceCheckId": "surface-22"
+    },
+    {
+      "path": "tooling/quality/role-evidence-policy.test.mjs",
+      "scenario": "Challenged forgery and retry cases.",
+      "evidenceCheckId": "surface-23"
+    },
+    {
+      "path": "tooling/quality/tool-trace.test.sh",
+      "scenario": "Challenged trace Candidate binding.",
+      "evidenceCheckId": "surface-24"
+    },
+    {
+      "path": "tooling/roles/prompts/hardener.md",
+      "scenario": "Challenged counterexample obligations.",
+      "evidenceCheckId": "surface-25"
+    },
+    {
+      "path": "tooling/roles/prompts/qa.md",
+      "scenario": "Challenged QA leakage rules.",
+      "evidenceCheckId": "surface-26"
+    },
+    {
+      "path": "tooling/roles/prompts/reviewer.md",
+      "scenario": "Challenged reviewer input rules.",
+      "evidenceCheckId": "surface-27"
+    },
+    {
+      "path": "tooling/roles/registry.json",
+      "scenario": "Challenged prompt registration.",
+      "evidenceCheckId": "surface-28"
+    }
+  ],
+  "scenarios": [
+    "All prior hypotheses were re-tested against the fresh diff. Diff, changed paths, and dependency sources are read from candidate.headRevision; verifier snapshot consistency is bound to one verification head; both preparation and binder locks reject existing locks without stale takeover; malformed or missing gate evidence blocks rather than passing; optional Host limitations remain explicitly disclosed. No unresolved blocker or high-risk counterexample was found."
+  ],
+  "evidence": [
+    {
+      "checkId": "surface-1",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5005436e-4312-4425-8ca0-e4d20f686384/inputs/candidate.diff",
+      "evidenceSha256": "3667b610479ae804a723575bc2bfd447fa2acb42c8682e99ade8e10b8606f4d2"
+    },
+    {
+      "checkId": "surface-2",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5005436e-4312-4425-8ca0-e4d20f686384/inputs/candidate.diff",
+      "evidenceSha256": "3667b610479ae804a723575bc2bfd447fa2acb42c8682e99ade8e10b8606f4d2"
+    },
+    {
+      "checkId": "surface-3",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5005436e-4312-4425-8ca0-e4d20f686384/inputs/candidate.diff",
+      "evidenceSha256": "3667b610479ae804a723575bc2bfd447fa2acb42c8682e99ade8e10b8606f4d2"
+    },
+    {
+      "checkId": "surface-4",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5005436e-4312-4425-8ca0-e4d20f686384/inputs/candidate.diff",
+      "evidenceSha256": "3667b610479ae804a723575bc2bfd447fa2acb42c8682e99ade8e10b8606f4d2"
+    },
+    {
+      "checkId": "surface-5",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5005436e-4312-4425-8ca0-e4d20f686384/inputs/candidate.diff",
+      "evidenceSha256": "3667b610479ae804a723575bc2bfd447fa2acb42c8682e99ade8e10b8606f4d2"
+    },
+    {
+      "checkId": "surface-6",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5005436e-4312-4425-8ca0-e4d20f686384/inputs/candidate.diff",
+      "evidenceSha256": "3667b610479ae804a723575bc2bfd447fa2acb42c8682e99ade8e10b8606f4d2"
+    },
+    {
+      "checkId": "surface-7",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5005436e-4312-4425-8ca0-e4d20f686384/inputs/candidate.diff",
+      "evidenceSha256": "3667b610479ae804a723575bc2bfd447fa2acb42c8682e99ade8e10b8606f4d2"
+    },
+    {
+      "checkId": "surface-8",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5005436e-4312-4425-8ca0-e4d20f686384/inputs/candidate.diff",
+      "evidenceSha256": "3667b610479ae804a723575bc2bfd447fa2acb42c8682e99ade8e10b8606f4d2"
+    },
+    {
+      "checkId": "surface-9",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5005436e-4312-4425-8ca0-e4d20f686384/inputs/candidate.diff",
+      "evidenceSha256": "3667b610479ae804a723575bc2bfd447fa2acb42c8682e99ade8e10b8606f4d2"
+    },
+    {
+      "checkId": "surface-10",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5005436e-4312-4425-8ca0-e4d20f686384/inputs/candidate.diff",
+      "evidenceSha256": "3667b610479ae804a723575bc2bfd447fa2acb42c8682e99ade8e10b8606f4d2"
+    },
+    {
+      "checkId": "surface-11",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5005436e-4312-4425-8ca0-e4d20f686384/inputs/candidate.diff",
+      "evidenceSha256": "3667b610479ae804a723575bc2bfd447fa2acb42c8682e99ade8e10b8606f4d2"
+    },
+    {
+      "checkId": "surface-12",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5005436e-4312-4425-8ca0-e4d20f686384/inputs/candidate.diff",
+      "evidenceSha256": "3667b610479ae804a723575bc2bfd447fa2acb42c8682e99ade8e10b8606f4d2"
+    },
+    {
+      "checkId": "surface-13",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5005436e-4312-4425-8ca0-e4d20f686384/inputs/candidate.diff",
+      "evidenceSha256": "3667b610479ae804a723575bc2bfd447fa2acb42c8682e99ade8e10b8606f4d2"
+    },
+    {
+      "checkId": "surface-14",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5005436e-4312-4425-8ca0-e4d20f686384/inputs/candidate.diff",
+      "evidenceSha256": "3667b610479ae804a723575bc2bfd447fa2acb42c8682e99ade8e10b8606f4d2"
+    },
+    {
+      "checkId": "surface-15",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5005436e-4312-4425-8ca0-e4d20f686384/inputs/candidate.diff",
+      "evidenceSha256": "3667b610479ae804a723575bc2bfd447fa2acb42c8682e99ade8e10b8606f4d2"
+    },
+    {
+      "checkId": "surface-16",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5005436e-4312-4425-8ca0-e4d20f686384/inputs/candidate.diff",
+      "evidenceSha256": "3667b610479ae804a723575bc2bfd447fa2acb42c8682e99ade8e10b8606f4d2"
+    },
+    {
+      "checkId": "surface-17",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5005436e-4312-4425-8ca0-e4d20f686384/inputs/candidate.diff",
+      "evidenceSha256": "3667b610479ae804a723575bc2bfd447fa2acb42c8682e99ade8e10b8606f4d2"
+    },
+    {
+      "checkId": "surface-18",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5005436e-4312-4425-8ca0-e4d20f686384/inputs/candidate.diff",
+      "evidenceSha256": "3667b610479ae804a723575bc2bfd447fa2acb42c8682e99ade8e10b8606f4d2"
+    },
+    {
+      "checkId": "surface-19",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5005436e-4312-4425-8ca0-e4d20f686384/inputs/candidate.diff",
+      "evidenceSha256": "3667b610479ae804a723575bc2bfd447fa2acb42c8682e99ade8e10b8606f4d2"
+    },
+    {
+      "checkId": "surface-20",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5005436e-4312-4425-8ca0-e4d20f686384/inputs/candidate.diff",
+      "evidenceSha256": "3667b610479ae804a723575bc2bfd447fa2acb42c8682e99ade8e10b8606f4d2"
+    },
+    {
+      "checkId": "surface-21",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5005436e-4312-4425-8ca0-e4d20f686384/inputs/candidate.diff",
+      "evidenceSha256": "3667b610479ae804a723575bc2bfd447fa2acb42c8682e99ade8e10b8606f4d2"
+    },
+    {
+      "checkId": "surface-22",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5005436e-4312-4425-8ca0-e4d20f686384/inputs/candidate.diff",
+      "evidenceSha256": "3667b610479ae804a723575bc2bfd447fa2acb42c8682e99ade8e10b8606f4d2"
+    },
+    {
+      "checkId": "surface-23",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5005436e-4312-4425-8ca0-e4d20f686384/inputs/candidate.diff",
+      "evidenceSha256": "3667b610479ae804a723575bc2bfd447fa2acb42c8682e99ade8e10b8606f4d2"
+    },
+    {
+      "checkId": "surface-24",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5005436e-4312-4425-8ca0-e4d20f686384/inputs/candidate.diff",
+      "evidenceSha256": "3667b610479ae804a723575bc2bfd447fa2acb42c8682e99ade8e10b8606f4d2"
+    },
+    {
+      "checkId": "surface-25",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5005436e-4312-4425-8ca0-e4d20f686384/inputs/candidate.diff",
+      "evidenceSha256": "3667b610479ae804a723575bc2bfd447fa2acb42c8682e99ade8e10b8606f4d2"
+    },
+    {
+      "checkId": "surface-26",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5005436e-4312-4425-8ca0-e4d20f686384/inputs/candidate.diff",
+      "evidenceSha256": "3667b610479ae804a723575bc2bfd447fa2acb42c8682e99ade8e10b8606f4d2"
+    },
+    {
+      "checkId": "surface-27",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5005436e-4312-4425-8ca0-e4d20f686384/inputs/candidate.diff",
+      "evidenceSha256": "3667b610479ae804a723575bc2bfd447fa2acb42c8682e99ade8e10b8606f4d2"
+    },
+    {
+      "checkId": "surface-28",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-5005436e-4312-4425-8ca0-e4d20f686384/inputs/candidate.diff",
+      "evidenceSha256": "3667b610479ae804a723575bc2bfd447fa2acb42c8682e99ade8e10b8606f4d2"
+    }
+  ],
+  "taskId": ".scratch/harness-integrity/issues/05-independent-roles.md",
+  "baseRevision": "d104a9f3195d9f99b62c76b933c407820dc31177",
+  "candidateRevision": "sha256:853f5df7f9529b384e4412b18ea3314f89b5b7a8fb5f4004325f7602960d8f25",
+  "attemptId": "attempt-5005436e-4312-4425-8ca0-e4d20f686384",
+  "parentInvocationId": "promptiris-final4-20260914",
+  "promptDigest": "sha256:cfdc50a75dd9463f10906d4d676ed1bef51f5f5ae78a73777146a000ba28fa42",
+  "inputManifestDigest": "sha256:37efcf8832d602e70a9f7871f5992969122dc45bc70c223938a1d3c3d25374ec",
+  "attestationDigest": "sha256:e2d20fbd679c26bcde9eb4b344f45c526f9da4a47ac910808a487c36405e0fd0"
+}

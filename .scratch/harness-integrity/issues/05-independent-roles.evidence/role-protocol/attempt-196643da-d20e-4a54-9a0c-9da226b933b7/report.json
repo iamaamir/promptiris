@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "role": "qa",
+  "producerId": "luna-qa-final8",
+  "status": "passed",
+  "sourceBlind": true,
+  "scenarios": [
+    "happy-path",
+    "invalid-input",
+    "retry",
+    "recovery"
+  ],
+  "evidence": [
+    {
+      "checkId": "qa.happy-path",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-196643da-d20e-4a54-9a0c-9da226b933b7/evidence/happy-path.out",
+      "evidenceSha256": "2d15359ff69351ae83c84c7d9720f2390a448a382e439a0bf171a017d3369c65"
+    },
+    {
+      "checkId": "qa.invalid-input",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-196643da-d20e-4a54-9a0c-9da226b933b7/evidence/invalid-input.out",
+      "evidenceSha256": "dd2112cf5a79e6bb46ccf73e032a3433b7d860b03abe3b4db9af6f7cc4edd31f"
+    },
+    {
+      "checkId": "qa.retry",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-196643da-d20e-4a54-9a0c-9da226b933b7/evidence/retry.out",
+      "evidenceSha256": "2d15359ff69351ae83c84c7d9720f2390a448a382e439a0bf171a017d3369c65"
+    },
+    {
+      "checkId": "qa.recovery",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-196643da-d20e-4a54-9a0c-9da226b933b7/evidence/recovery.out",
+      "evidenceSha256": "2d15359ff69351ae83c84c7d9720f2390a448a382e439a0bf171a017d3369c65"
+    }
+  ],
+  "taskId": ".scratch/harness-integrity/issues/05-independent-roles.md",
+  "baseRevision": "40260e2ed3f3ca9251e47c3fd3ec235df2bec4ee",
+  "candidateRevision": "sha256:408f2747861e0bcf7a8a41431381e4fb0a60d9e6e7b602e9ebee194a1bed0f7a",
+  "attemptId": "attempt-196643da-d20e-4a54-9a0c-9da226b933b7",
+  "parentInvocationId": "promptiris-final8-20260915",
+  "promptDigest": "sha256:33334901b05d3ee6f7ace889ee090c292c672be32f07ac243db0bfc8f6ab07d0",
+  "inputManifestDigest": "sha256:5e3f9def0e4046571333177c8f3cae905f30a2b31088a23d67882ed13ec8e191",
+  "attestationDigest": "sha256:3ec1400eb2901061ac1514566f02855901026eed7d6a96dd200b99f5f2e45de0"
+}

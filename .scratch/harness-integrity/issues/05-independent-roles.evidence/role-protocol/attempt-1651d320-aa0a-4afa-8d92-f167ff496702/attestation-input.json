@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "issuer": "promptiris.host",
+  "verifierId": "promptiris.role-verifier",
+  "nativeProofRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-1651d320-aa0a-4afa-8d92-f167ff496702/native-proof.json",
+  "nativeProofDigest": "sha256:1d135d642bcc94518b0d3d78a90b69bc91d81839cbbb9b8c3c8f10e5cd4cee9d",
+  "subject": "luna-reviewer-64-r3",
+  "producerId": "luna-reviewer-64-r3",
+  "attemptId": "attempt-1651d320-aa0a-4afa-8d92-f167ff496702",
+  "parentInvocationId": "pr64-ci-corrected",
+  "role": "reviewer",
+  "candidateRevision": "sha256:9e9c561ee8c33d3ed9dc761ece9ec50ff9469f18fd0a7462c433cdd851d2fcc9",
+  "promptDigest": "sha256:9f9597af8d9b61ed615baabc3507833005687360640d34030b00350639c900d3",
+  "inputManifestDigest": "sha256:42b48d4937741c07256edbd9a3c7544d681f64cb2cfc7cf48b69c80d65c50a9f",
+  "sourceAccessMode": "contract-diff",
+  "issuedAt": "2026-09-09T06:35:00.000Z",
+  "expiresAt": "2026-09-10T06:35:00.000Z",
+  "nonce": "reviewer-64-r3-1651d320",
+  "attestationStrength": "host-attested"
+}

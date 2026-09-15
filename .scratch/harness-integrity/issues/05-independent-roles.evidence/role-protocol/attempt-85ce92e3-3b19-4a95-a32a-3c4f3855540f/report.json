@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "role": "qa",
+  "producerId": "luna-qa-64-r4",
+  "status": "passed",
+  "sourceBlind": true,
+  "scenarios": [
+    "happy-path",
+    "invalid-input",
+    "retry",
+    "recovery",
+    "ambientFilesystemDisabled=false"
+  ],
+  "evidence": [
+    {
+      "checkId": "qa.happy-path",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-85ce92e3-3b19-4a95-a32a-3c4f3855540f/qa-happy-path.txt",
+      "evidenceSha256": "66597d27cff74973f47d92bf187d8ca0a7dcb230c125ba37297deb24cfe726dc"
+    },
+    {
+      "checkId": "qa.invalid-input",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-85ce92e3-3b19-4a95-a32a-3c4f3855540f/qa-invalid-input.txt",
+      "evidenceSha256": "dd2112cf5a79e6bb46ccf73e032a3433b7d860b03abe3b4db9af6f7cc4edd31f"
+    },
+    {
+      "checkId": "qa.retry",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-85ce92e3-3b19-4a95-a32a-3c4f3855540f/qa-retry.txt",
+      "evidenceSha256": "66597d27cff74973f47d92bf187d8ca0a7dcb230c125ba37297deb24cfe726dc"
+    },
+    {
+      "checkId": "qa.recovery",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-85ce92e3-3b19-4a95-a32a-3c4f3855540f/qa-recovery.txt",
+      "evidenceSha256": "66597d27cff74973f47d92bf187d8ca0a7dcb230c125ba37297deb24cfe726dc"
+    }
+  ],
+  "taskId": ".scratch/harness-integrity/issues/05-independent-roles.md",
+  "baseRevision": "6cf6483a0ad65ec65311285f84109133396ab36b",
+  "candidateRevision": "sha256:884dfaed7ae39a1be2a1aa0659db000013ef4608b7dd2fb5f6dc8c028405448e",
+  "attemptId": "attempt-85ce92e3-3b19-4a95-a32a-3c4f3855540f",
+  "parentInvocationId": "pr64-ci-portable",
+  "promptDigest": "sha256:33334901b05d3ee6f7ace889ee090c292c672be32f07ac243db0bfc8f6ab07d0",
+  "inputManifestDigest": "sha256:f1e5b2e7e65587c364398ca4ab464b1add249fad78373b5e0197363a9c8bccff",
+  "attestationDigest": "sha256:899bddf2d84640e1949626e6e5c723b1f8bac38992f415ec2c71843cfe60d20b"
+}

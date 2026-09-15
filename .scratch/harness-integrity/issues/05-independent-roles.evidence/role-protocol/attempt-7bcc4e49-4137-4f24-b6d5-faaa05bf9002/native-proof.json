@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "kind": "codex-independent-subagent",
+  "attemptId": "attempt-7bcc4e49-4137-4f24-b6d5-faaa05bf9002",
+  "producerId": "luna-review-final4",
+  "result": "approved",
+  "basis": "Independent Luna low Reviewer read only the generated access envelope and persisted the report.",
+  "hostAttestation": "Codex host transcribed the native result under the repository owner's explicit authorization.",
+  "limitations": ["Host identity is attested rather than cryptographically proven by this repository."]
+}

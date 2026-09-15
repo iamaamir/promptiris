@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "producerId": "luna-review-final",
+  "independent": true,
+  "verdict": "changes-required",
+  "findings": [
+    {
+      "id": "verifier-surfaces-follow-head",
+      "severity": "blocker",
+      "file": "scripts/verify-role-evidence.mjs",
+      "line": 1862,
+      "summary": "Verifier derives changedPaths from baseRevision..HEAD and reads module sources from the current checkout (lines 1862-1890), while role preparation derives them from candidate.headRevision. Thus verification is not pinned to the frozen Candidate: any later checkout change can alter expected attack surfaces and module closure, and the verifier may accept/reject evidence for a different revision. These Git-derived inputs must use candidate.headRevision throughout.",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-940d1341-c202-4521-be25-fbe384278988/inputs/candidate.diff"
+    }
+  ],
+  "commentDecisions": [],
+  "evidence": [
+    {
+      "checkId": "reviewer.frozen-candidate-input-binding",
+      "status": "failed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-940d1341-c202-4521-be25-fbe384278988/inputs/candidate.diff",
+      "evidenceSha256": "f1c36d64622902f2b0183a73506c212b6af24625ef59f29508eb37ec92111c1d"
+    }
+  ],
+  "residualRisks": [
+    "Role evidence cannot be trusted across post-prepare checkout movement until verifier-side diff and module-source inputs are read from candidate.headRevision."
+  ]
+}

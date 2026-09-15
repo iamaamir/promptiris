@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "producerId": "luna11-reviewer-49",
+  "independent": true,
+  "verdict": "pass",
+  "findings": [],
+  "commentDecisions": [],
+  "evidence": [
+    {
+      "checkId": "reviewer.contract-diff",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-720978ac-4236-4cbf-9ee5-0edaab5078f7/input-manifest.json",
+      "evidenceSha256": "9b31583a3b704bcfcdc2a606fad8027f7d334973c9e050858af5f2f597295ca8"
+    }
+  ],
+  "residualRisks": [
+    "The Host limitation ambientFilesystemDisabled=false remains disclosed; no forbidden-context leak is evidenced in the supplied Candidate inputs."
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "role": "qa",
+  "producerId": "luna-qa-64-host",
+  "status": "passed",
+  "sourceBlind": true,
+  "scenarios": [
+    "Happy path returned the expected roles-incomplete state with exit 0.",
+    "Invalid input returned ROLE_USAGE with exit 1.",
+    "Retry and recovery returned the expected roles-incomplete state with exit 0.",
+    "ambientFilesystemDisabled=false remains an explicit host limitation.",
+    "The authorized host transcribed this report from the source-blind QA results."
+  ],
+  "evidence": [
+    {
+      "checkId": "qa.happy-path",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-8a06f226-4ceb-4896-ac83-64f7cd94945b/qa-happy-path.txt",
+      "evidenceSha256": "85897823da141e18d3a12cc527d127349923836e39a7ba96e09d1292fac080bb"
+    },
+    {
+      "checkId": "qa.invalid-input",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-8a06f226-4ceb-4896-ac83-64f7cd94945b/qa-invalid-input.txt",
+      "evidenceSha256": "e3b78fec7f356425ad6c8850cda0ebfdb592c7d7474515171816dc525219f433"
+    },
+    {
+      "checkId": "qa.retry",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-8a06f226-4ceb-4896-ac83-64f7cd94945b/qa-retry.txt",
+      "evidenceSha256": "85897823da141e18d3a12cc527d127349923836e39a7ba96e09d1292fac080bb"
+    },
+    {
+      "checkId": "qa.recovery",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-8a06f226-4ceb-4896-ac83-64f7cd94945b/qa-recovery.txt",
+      "evidenceSha256": "85897823da141e18d3a12cc527d127349923836e39a7ba96e09d1292fac080bb"
+    }
+  ],
+  "taskId": ".scratch/harness-integrity/issues/05-independent-roles.md",
+  "baseRevision": "6cf6483a0ad65ec65311285f84109133396ab36b",
+  "candidateRevision": "sha256:e73286c1d62e3f1efb5fd4842ed2bbd4aa16c3ccd9ccec600572cc3513d8a6e4",
+  "attemptId": "attempt-8a06f226-4ceb-4896-ac83-64f7cd94945b",
+  "parentInvocationId": "pr64-host-final",
+  "promptDigest": "sha256:33334901b05d3ee6f7ace889ee090c292c672be32f07ac243db0bfc8f6ab07d0",
+  "inputManifestDigest": "sha256:b6dd87c86221d4c9c109d641de42d00aae5101ea5b5c8c36d974fb9d53251454",
+  "attestationDigest": "sha256:0dcb7d4888f160afdca5d297a31e809672ad6ddcd7f165237bbf908880cbbbca"
+}

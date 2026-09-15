@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "producerId": "luna-review-final4",
+  "independent": true,
+  "verdict": "approved",
+  "findings": [],
+  "commentDecisions": [],
+  "evidence": [
+    {
+      "checkId": "reviewer.frozen-candidate-input-binding",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-7bcc4e49-4137-4f24-b6d5-faaa05bf9002/inputs/candidate.diff",
+      "evidenceSha256": "3667b610479ae804a723575bc2bfd447fa2acb42c8682e99ade8e10b8606f4d2"
+    }
+  ],
+  "residualRisks": [
+    "Host-side optional isolation capabilities remain dependent on declared Host attestation and capability disclosure."
+  ],
+  "taskId": ".scratch/harness-integrity/issues/05-independent-roles.md",
+  "baseRevision": "d104a9f3195d9f99b62c76b933c407820dc31177",
+  "candidateRevision": "sha256:853f5df7f9529b384e4412b18ea3314f89b5b7a8fb5f4004325f7602960d8f25",
+  "attemptId": "attempt-7bcc4e49-4137-4f24-b6d5-faaa05bf9002",
+  "parentInvocationId": "promptiris-final4-20260914",
+  "promptDigest": "sha256:9f9597af8d9b61ed615baabc3507833005687360640d34030b00350639c900d3",
+  "inputManifestDigest": "sha256:bbba91efd448ff2c995426b3130f049d705de2de1831e17bc177ee06f35e2e5e",
+  "attestationDigest": "sha256:3a091ca9714d01f3265ea0380041a8b9a3bea0beee0071b105cfbb75e0c9830d"
+}

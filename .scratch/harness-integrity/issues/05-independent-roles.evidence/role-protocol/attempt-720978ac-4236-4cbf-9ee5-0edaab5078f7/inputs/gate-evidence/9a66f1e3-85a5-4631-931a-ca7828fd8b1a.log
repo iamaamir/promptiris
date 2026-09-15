@@ -1,0 +1,14 @@
+[WARN] Unsupported engine: wanted: {"node":">=24.0.0 <25"} (current: {"node":"v26.8.1","pnpm":"11.24.0"})
+$ node scripts/quality-integrity.mjs
+Protected verifier changes require CODEOWNER review:
+package.json
+scripts/agent-work
+scripts/verify-role-evidence.mjs
+spec/schemas/quality-stage-report.schema.json
+spec/schemas/reviewer-report.schema.json
+spec/schemas/role-attempt.schema.json
+spec/schemas/role-attestation-envelope.schema.json
+spec/schemas/role-input-manifest.schema.json
+spec/schemas/role-ledger.schema.json
+tooling/capabilities.json
+Integrity policy passed for 24 changed files.

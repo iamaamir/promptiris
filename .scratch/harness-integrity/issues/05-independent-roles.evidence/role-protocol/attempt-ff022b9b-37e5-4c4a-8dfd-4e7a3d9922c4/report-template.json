@@ -1,0 +1,149 @@
+{
+  "schemaVersion": 1,
+  "role": "hardener",
+  "producerId": "luna-hardener-64-r4",
+  "status": "failed",
+  "surfaceCoverage": [
+    {
+      "path": ".scratch/harness-integrity/issues/05-independent-roles.md",
+      "scenario": "Surface has not been challenged.",
+      "evidenceCheckId": "surface-1"
+    },
+    {
+      "path": "AGENTS.md",
+      "scenario": "Surface has not been challenged.",
+      "evidenceCheckId": "surface-2"
+    },
+    {
+      "path": "docs/development/independent-role-assurance.md",
+      "scenario": "Surface has not been challenged.",
+      "evidenceCheckId": "surface-3"
+    },
+    {
+      "path": "package.json",
+      "scenario": "Surface has not been challenged.",
+      "evidenceCheckId": "surface-4"
+    },
+    {
+      "path": "scripts/agent-context",
+      "scenario": "Surface has not been challenged.",
+      "evidenceCheckId": "surface-5"
+    },
+    {
+      "path": "scripts/agent-role",
+      "scenario": "Surface has not been challenged.",
+      "evidenceCheckId": "surface-6"
+    },
+    {
+      "path": "scripts/agent-work",
+      "scenario": "Surface has not been challenged.",
+      "evidenceCheckId": "surface-7"
+    },
+    {
+      "path": "scripts/bind-role-evidence.mjs",
+      "scenario": "Surface has not been challenged.",
+      "evidenceCheckId": "surface-8"
+    },
+    {
+      "path": "scripts/finalize-candidate.mjs",
+      "scenario": "Surface has not been challenged.",
+      "evidenceCheckId": "surface-9"
+    },
+    {
+      "path": "scripts/verify-role-evidence.mjs",
+      "scenario": "Surface has not been challenged.",
+      "evidenceCheckId": "surface-10"
+    },
+    {
+      "path": "spec/schemas/quality-stage-report.schema.json",
+      "scenario": "Surface has not been challenged.",
+      "evidenceCheckId": "surface-11"
+    },
+    {
+      "path": "spec/schemas/reviewer-report.schema.json",
+      "scenario": "Surface has not been challenged.",
+      "evidenceCheckId": "surface-12"
+    },
+    {
+      "path": "spec/schemas/role-attempt.schema.json",
+      "scenario": "Surface has not been challenged.",
+      "evidenceCheckId": "surface-13"
+    },
+    {
+      "path": "spec/schemas/role-attestation-envelope.schema.json",
+      "scenario": "Surface has not been challenged.",
+      "evidenceCheckId": "surface-14"
+    },
+    {
+      "path": "spec/schemas/role-input-manifest.schema.json",
+      "scenario": "Surface has not been challenged.",
+      "evidenceCheckId": "surface-15"
+    },
+    {
+      "path": "spec/schemas/role-ledger.schema.json",
+      "scenario": "Surface has not been challenged.",
+      "evidenceCheckId": "surface-16"
+    },
+    {
+      "path": "tooling/capabilities.json",
+      "scenario": "Surface has not been challenged.",
+      "evidenceCheckId": "surface-17"
+    },
+    {
+      "path": "tooling/quality/agent-context.test.sh",
+      "scenario": "Surface has not been challenged.",
+      "evidenceCheckId": "surface-18"
+    },
+    {
+      "path": "tooling/quality/candidate-finalize.test.sh",
+      "scenario": "Surface has not been challenged.",
+      "evidenceCheckId": "surface-19"
+    },
+    {
+      "path": "tooling/quality/quality-stage-contract.test.mjs",
+      "scenario": "Surface has not been challenged.",
+      "evidenceCheckId": "surface-20"
+    },
+    {
+      "path": "tooling/quality/role-evidence-policy.mjs",
+      "scenario": "Surface has not been challenged.",
+      "evidenceCheckId": "surface-21"
+    },
+    {
+      "path": "tooling/quality/role-evidence-policy.test.mjs",
+      "scenario": "Surface has not been challenged.",
+      "evidenceCheckId": "surface-22"
+    },
+    {
+      "path": "tooling/roles/prompts/hardener.md",
+      "scenario": "Surface has not been challenged.",
+      "evidenceCheckId": "surface-23"
+    },
+    {
+      "path": "tooling/roles/prompts/qa.md",
+      "scenario": "Surface has not been challenged.",
+      "evidenceCheckId": "surface-24"
+    },
+    {
+      "path": "tooling/roles/prompts/reviewer.md",
+      "scenario": "Surface has not been challenged.",
+      "evidenceCheckId": "surface-25"
+    },
+    {
+      "path": "tooling/roles/registry.json",
+      "scenario": "Surface has not been challenged.",
+      "evidenceCheckId": "surface-26"
+    }
+  ],
+  "scenarios": [
+    "Independent role execution has not been completed."
+  ],
+  "evidence": [
+    {
+      "checkId": "hardener.incomplete",
+      "status": "failed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-ff022b9b-37e5-4c4a-8dfd-4e7a3d9922c4/input-manifest.json",
+      "evidenceSha256": "d58d3359085670d71a2fd632eee681311a751737b27b0d867d7429cd9e2c8285"
+    }
+  ]
+}

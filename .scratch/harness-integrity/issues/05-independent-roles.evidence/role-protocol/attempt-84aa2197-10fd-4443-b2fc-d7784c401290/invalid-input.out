@@ -1,0 +1,3 @@
+ROLE_USAGE: expected a supported role command
+Evidence: none
+Next: scripts/agent-role <prepare|record|unsupported|external|status> [role]

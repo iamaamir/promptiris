@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "kind": "codex-independent-subagent",
+  "attemptId": "attempt-5005436e-4312-4425-8ca0-e4d20f686384",
+  "producerId": "luna-harden-final4",
+  "result": "passed",
+  "basis": "Independent Luna low Hardener challenged all 28 declared surfaces and persisted the report.",
+  "hostAttestation": "Codex host transcribed the native result under the repository owner's explicit authorization.",
+  "limitations": ["Host identity is attested rather than cryptographically proven by this repository."]
+}

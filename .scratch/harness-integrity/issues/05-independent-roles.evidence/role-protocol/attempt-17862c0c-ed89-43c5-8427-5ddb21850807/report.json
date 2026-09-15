@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "producerId": "luna-review-final9",
+  "independent": true,
+  "verdict": "pass",
+  "findings": [],
+  "commentDecisions": [],
+  "evidence": [
+    {
+      "checkId": "reviewer.frozen-ci-gate",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-17862c0c-ed89-43c5-8427-5ddb21850807/inputs/gate-evidence/83620c83-108f-4644-8eb8-986a0a972ef6.json",
+      "evidenceSha256": "4a91faa5de3eb119d3f3b9c94c297dd066b811f6965b4531c194b872be68d682"
+    },
+    {
+      "checkId": "reviewer.frozen-ci-log",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-17862c0c-ed89-43c5-8427-5ddb21850807/inputs/gate-evidence/83620c83-108f-4644-8eb8-986a0a972ef6.log",
+      "evidenceSha256": "a5cea61925aae2ec86ca3359d06a653d07ea5494cca87d428031213f24ec5f77"
+    }
+  ],
+  "residualRisks": [],
+  "taskId": ".scratch/harness-integrity/issues/05-independent-roles.md",
+  "baseRevision": "40260e2ed3f3ca9251e47c3fd3ec235df2bec4ee",
+  "candidateRevision": "sha256:dafdbbc3b7f59069268f1a6c217845a1e1a5942cdcbaa75de43f5a11861838a7",
+  "attemptId": "attempt-17862c0c-ed89-43c5-8427-5ddb21850807",
+  "parentInvocationId": "promptiris-final9-20260915",
+  "promptDigest": "sha256:9f9597af8d9b61ed615baabc3507833005687360640d34030b00350639c900d3",
+  "inputManifestDigest": "sha256:a8f8095cf9e72aa1fa0dd7b3ac84bdce6c88ca1cc6c566acd085b7e48cb0bb8f",
+  "attestationDigest": "sha256:88c994e2bd160176adcfd5954555b00e0f7e4e204d6369f2b881b5620d4f6f04"
+}

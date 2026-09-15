@@ -1,0 +1,159 @@
+{
+  "schemaVersion": 1,
+  "role": "hardener",
+  "producerId": "luna-hardener-64-host",
+  "status": "passed",
+  "surfaceCoverage": [
+    {
+      "path": ".scratch/harness-integrity/issues/05-independent-roles.md",
+      "scenario": "Frozen contract and passing gate evidence challenged; no blocking counterexample found.",
+      "evidenceCheckId": "hardener.schema-gate"
+    },
+    {
+      "path": "AGENTS.md",
+      "scenario": "Policy-bypass and responsibility-boundary challenge completed.",
+      "evidenceCheckId": "hardener.schema-gate"
+    },
+    {
+      "path": "docs/development/independent-role-assurance.md",
+      "scenario": "Assurance contract compared with implemented behavior.",
+      "evidenceCheckId": "hardener.schema-gate"
+    },
+    {
+      "path": "package.json",
+      "scenario": "Command exposure and verification routing challenged.",
+      "evidenceCheckId": "hardener.schema-gate"
+    },
+    {
+      "path": "scripts/agent-context",
+      "scenario": "Expired-lease and candidate-state reporting challenged.",
+      "evidenceCheckId": "hardener.schema-gate"
+    },
+    {
+      "path": "scripts/agent-role",
+      "scenario": "Frozen inputs, path handling, QA isolation, stale state, and Git diff portability challenged.",
+      "evidenceCheckId": "hardener.schema-gate"
+    },
+    {
+      "path": "scripts/agent-work",
+      "scenario": "Claim ownership, expiry, and recovery challenged.",
+      "evidenceCheckId": "hardener.schema-gate"
+    },
+    {
+      "path": "scripts/bind-role-evidence.mjs",
+      "scenario": "Attestation binding, locking, path containment, and identity injection challenged.",
+      "evidenceCheckId": "hardener.schema-gate"
+    },
+    {
+      "path": "scripts/finalize-candidate.mjs",
+      "scenario": "Candidate immutability and active-claim checks challenged.",
+      "evidenceCheckId": "hardener.schema-gate"
+    },
+    {
+      "path": "scripts/verify-role-evidence.mjs",
+      "scenario": "Digest drift, portable diffs, missing evidence, symlinks, and identity mismatches challenged.",
+      "evidenceCheckId": "hardener.schema-gate"
+    },
+    {
+      "path": "spec/schemas/quality-stage-report.schema.json",
+      "scenario": "Malformed and incomplete stage evidence challenged.",
+      "evidenceCheckId": "hardener.schema-gate"
+    },
+    {
+      "path": "spec/schemas/reviewer-report.schema.json",
+      "scenario": "Pass-with-findings and malformed reviewer evidence challenged.",
+      "evidenceCheckId": "hardener.schema-gate"
+    },
+    {
+      "path": "spec/schemas/role-attempt.schema.json",
+      "scenario": "Invalid attempt transitions and identities challenged.",
+      "evidenceCheckId": "hardener.schema-gate"
+    },
+    {
+      "path": "spec/schemas/role-attestation-envelope.schema.json",
+      "scenario": "Expired, weak, and mismatched attestations challenged.",
+      "evidenceCheckId": "hardener.schema-gate"
+    },
+    {
+      "path": "spec/schemas/role-input-manifest.schema.json",
+      "scenario": "Input mutation and manifest digest drift challenged.",
+      "evidenceCheckId": "hardener.schema-gate"
+    },
+    {
+      "path": "spec/schemas/role-ledger.schema.json",
+      "scenario": "Replay, duplication, and invalid transitions challenged.",
+      "evidenceCheckId": "hardener.schema-gate"
+    },
+    {
+      "path": "tooling/capabilities.json",
+      "scenario": "Capability registration and gate routing challenged.",
+      "evidenceCheckId": "hardener.schema-gate"
+    },
+    {
+      "path": "tooling/quality/agent-context.test.sh",
+      "scenario": "Orientation output across claims, branches, and role states challenged.",
+      "evidenceCheckId": "hardener.schema-gate"
+    },
+    {
+      "path": "tooling/quality/candidate-finalize.test.sh",
+      "scenario": "Dirty, stale, and unclaimed candidates challenged.",
+      "evidenceCheckId": "hardener.schema-gate"
+    },
+    {
+      "path": "tooling/quality/quality-stage-contract.test.mjs",
+      "scenario": "Stage-schema acceptance and rejection boundaries challenged.",
+      "evidenceCheckId": "hardener.schema-gate"
+    },
+    {
+      "path": "tooling/quality/role-evidence-policy.mjs",
+      "scenario": "Canonicalization, containment, digest, and ledger invariants challenged.",
+      "evidenceCheckId": "hardener.schema-gate"
+    },
+    {
+      "path": "tooling/quality/role-evidence-policy.test.mjs",
+      "scenario": "Portable Git settings and role-policy regressions challenged.",
+      "evidenceCheckId": "hardener.schema-gate"
+    },
+    {
+      "path": "tooling/roles/prompts/hardener.md",
+      "scenario": "Hardener responsibility and evidence constraints reviewed.",
+      "evidenceCheckId": "hardener.schema-gate"
+    },
+    {
+      "path": "tooling/roles/prompts/qa.md",
+      "scenario": "Source-blind procedure and host-isolation limitations reviewed.",
+      "evidenceCheckId": "hardener.schema-gate"
+    },
+    {
+      "path": "tooling/roles/prompts/reviewer.md",
+      "scenario": "Independent reviewer scope and pass criteria reviewed.",
+      "evidenceCheckId": "hardener.schema-gate"
+    },
+    {
+      "path": "tooling/roles/registry.json",
+      "scenario": "Role strength, source access, and issuer constraints challenged.",
+      "evidenceCheckId": "hardener.schema-gate"
+    }
+  ],
+  "scenarios": [
+    "All 26 declared surfaces were assessed against the frozen contract diff and passing deterministic Evidence; no blocking candidate defect was demonstrated.",
+    "Optional network, environment, and ambient-filesystem enforcement remain explicit host limitations.",
+    "The authorized host transcribed this report from the independent hardener result."
+  ],
+  "evidence": [
+    {
+      "checkId": "hardener.schema-gate",
+      "status": "passed",
+      "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-4dbbc37c-e9e2-4f97-8b05-69eb3e441bc6/inputs/gate-evidence/a7246945-7a76-47e4-957b-8d538b41f53e.log",
+      "evidenceSha256": "2e0912203224e2007d296be75a86cc77d4c694281bc47f36cc5d74a60365a0a0"
+    }
+  ],
+  "taskId": ".scratch/harness-integrity/issues/05-independent-roles.md",
+  "baseRevision": "6cf6483a0ad65ec65311285f84109133396ab36b",
+  "candidateRevision": "sha256:e73286c1d62e3f1efb5fd4842ed2bbd4aa16c3ccd9ccec600572cc3513d8a6e4",
+  "attemptId": "attempt-4dbbc37c-e9e2-4f97-8b05-69eb3e441bc6",
+  "parentInvocationId": "pr64-host-final",
+  "promptDigest": "sha256:cfdc50a75dd9463f10906d4d676ed1bef51f5f5ae78a73777146a000ba28fa42",
+  "inputManifestDigest": "sha256:0bd3065f19f80bd940f245f85ac07ed25c6011ee38f7b05a5cbb31555d30118a",
+  "attestationDigest": "sha256:df5f64b532d5d7192f2ca377fdfdc7718a25c23b92cd386aae2f71ac990cd3f0"
+}

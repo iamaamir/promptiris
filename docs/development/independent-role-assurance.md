@@ -1,0 +1,26 @@
+# Independent role assurance
+
+Independent role Evidence proves that Reviewer, Hardener, and source-blind QA were distinct executions against one frozen Candidate. A hand-authored report containing `independent: true` is not proof.
+
+## Point-of-action workflow
+
+1. Freeze committed implementation with `pnpm candidate:finalize -- PACKET`.
+2. Inspect missing roles with `scripts/agent-role status`.
+3. Prepare a role with `scripts/agent-role prepare ROLE PRODUCER_ID MODEL_CLASS PARENT_ID [host-attested|maintainer-attested]`. The default is `host-attested`; select `maintainer-attested` only when the authenticated maintainer will supply the fallback proof.
+4. Give the independent invocation only the returned absolute `accessRef`. That Host envelope resolves every allowed input, the registered manifest, the safe failing `reportTemplateRef`, and `reportRef`; workers never guess a repository or shared-state root. The worker copies the template to `reportRef` and replaces its placeholders; binder-owned identity fields are never hand-authored.
+5. If the Host cannot provide required isolation, run `scripts/agent-role unsupported ROLE REASON`. The Candidate becomes `needs-independent-roles`; a self-authored substitute cannot pass.
+6. The Host writes a native proof and normalized attestation envelope. Register it with `scripts/agent-role external ROLE ENVELOPE`.
+7. The role writes only its unbound report. Run `pnpm candidate:bind-role ROLE`; the binder injects Candidate, attempt, manifest, prompt, and attestation identity.
+8. Commit the accepted evidence directory and run `pnpm quality:roles`.
+
+Every command failure prints a stable code, an Evidence reference, and an exact next action. `scripts/agent-context` embeds compact role status so a replacement agent does not reconstruct it from conversation history.
+
+## State and trust
+
+Volatile access envelopes, Host bridges, and ledgers-in-progress live under shared `.agent/role-attempts/` state. Frozen role inputs, accepted ledgers, manifests, attestations, native proofs, and reports live under the Work Item evidence directory and are committed. Each attempt may transition only `reserved -> running -> completed|failed|invalidated`; a completed attempt may become `superseded` or `invalidated`. A changed Candidate selects a new content-addressed ledger, making old attempts non-authoritative.
+
+The portable verifier checks prompt bytes, contiguous transitions, distinct identities, Candidate and manifest bindings, issuer/verifier registration, issuer-to-strength authorization, validity windows, nonce reuse, proof and report digests, Hardener surface completeness, preserved clean gate traces, and QA isolation declarations. Reviewer and Hardener inputs preserve the exact trace and reduced-log bytes under their attempt-scoped Evidence directories; the verifier binds each trace to the Candidate implementation revision before accepting it. Host attestations describe what their Host enforced; the repository does not claim to cryptographically prove another Host's internals.
+
+Native proofs must be repository-relative Evidence files with the declared digest. Absolute and parent-traversal paths are rejected before file access.
+
+QA receives a read-only bundle of public documentation, schemas, API reports, a Host-bridged black-box launcher, and machine-readable procedures. The launcher contains no source-checkout path. Source, Git metadata, and symlinks are excluded. The binder and portable verifier require the exact declared file set, per-file digests, read-only permissions, and committed bundle Evidence. Procedures exercise every applicable QA category and preserve deterministic reasons for inapplicable categories. Required bundle isolation must pass. Optional network, environment, and ambient-filesystem enforcement remain explicit limitations: unavailable enforcement stays visible, while an actual forbidden-context leak still fails QA.
