@@ -1,0 +1,202 @@
+{
+  "schemaVersion": 1,
+  "attemptId": "attempt-f7ff0904-f21e-46e7-8c78-4b0cebf82ad6",
+  "parentInvocationId": "promptiris-final8-20260915",
+  "taskId": ".scratch/harness-integrity/issues/05-independent-roles.md",
+  "baseRevision": "40260e2ed3f3ca9251e47c3fd3ec235df2bec4ee",
+  "candidateRevision": "sha256:408f2747861e0bcf7a8a41431381e4fb0a60d9e6e7b602e9ebee194a1bed0f7a",
+  "implementerId": "codex-role-orchestrator",
+  "producerId": "luna-review-final8",
+  "role": "reviewer",
+  "modelClass": "quick",
+  "promptId": "reviewer-v1",
+  "promptRef": "tooling/roles/prompts/reviewer.md",
+  "promptDigest": "sha256:9f9597af8d9b61ed615baabc3507833005687360640d34030b00350639c900d3",
+  "sourceAccessMode": "contract-diff",
+  "inputs": [
+    {
+      "kind": "work-item",
+      "ref": ".scratch/harness-integrity/issues/05-independent-roles.md",
+      "digest": "sha256:0768a7fc19ef33520efc117e2aa92f0520a9c842f416be2c7b47b6be29abea66"
+    },
+    {
+      "kind": "candidate-diff",
+      "ref": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-f7ff0904-f21e-46e7-8c78-4b0cebf82ad6/inputs/candidate.diff",
+      "digest": "sha256:c11fc5ca428fe1de38a7e4667aaea553cc7771cb2d6df359e1f7d1164c7fc802"
+    },
+    {
+      "kind": "reviewer-context",
+      "ref": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-f7ff0904-f21e-46e7-8c78-4b0cebf82ad6/inputs/reviewer-context.json",
+      "digest": "sha256:55e6d8b97cfea19c0881f6d3208d4d9a86b28d4b28a65774d66bc7e5109a77d8",
+      "context": {
+        "schemaVersion": 1,
+        "complete": true,
+        "affectedSurfaces": [
+          {
+            "path": "AGENTS.md",
+            "class": "changed-surface",
+            "origin": "changed"
+          },
+          {
+            "path": "docs/development/independent-role-assurance.md",
+            "class": "changed-surface",
+            "origin": "changed"
+          },
+          {
+            "path": "package.json",
+            "class": "changed-surface",
+            "origin": "changed"
+          },
+          {
+            "path": "scripts/agent-context",
+            "class": "verifier-or-policy",
+            "origin": "changed"
+          },
+          {
+            "path": "scripts/agent-role",
+            "class": "verifier-or-policy",
+            "origin": "changed"
+          },
+          {
+            "path": "scripts/agent-work",
+            "class": "verifier-or-policy",
+            "origin": "changed"
+          },
+          {
+            "path": "scripts/bind-role-evidence.mjs",
+            "class": "verifier-or-policy",
+            "origin": "changed"
+          },
+          {
+            "path": "scripts/finalize-candidate.mjs",
+            "class": "verifier-or-policy",
+            "origin": "changed"
+          },
+          {
+            "path": "scripts/issue-sync",
+            "class": "verifier-or-policy",
+            "origin": "changed"
+          },
+          {
+            "path": "scripts/verify-role-evidence.mjs",
+            "class": "verifier-or-policy",
+            "origin": "changed"
+          },
+          {
+            "path": "spec/schemas/quality-stage-report.schema.json",
+            "class": "verifier-or-policy",
+            "origin": "changed"
+          },
+          {
+            "path": "spec/schemas/reviewer-report.schema.json",
+            "class": "verifier-or-policy",
+            "origin": "changed"
+          },
+          {
+            "path": "spec/schemas/role-attempt.schema.json",
+            "class": "verifier-or-policy",
+            "origin": "changed"
+          },
+          {
+            "path": "spec/schemas/role-attestation-envelope.schema.json",
+            "class": "verifier-or-policy",
+            "origin": "changed"
+          },
+          {
+            "path": "spec/schemas/role-input-manifest.schema.json",
+            "class": "verifier-or-policy",
+            "origin": "changed"
+          },
+          {
+            "path": "spec/schemas/role-ledger.schema.json",
+            "class": "verifier-or-policy",
+            "origin": "changed"
+          },
+          {
+            "path": "tooling/capabilities.json",
+            "class": "changed-surface",
+            "origin": "changed"
+          },
+          {
+            "path": "tooling/quality/agent-context.test.sh",
+            "class": "verifier-or-policy",
+            "origin": "changed"
+          },
+          {
+            "path": "tooling/quality/agent-work.test.sh",
+            "class": "verifier-or-policy",
+            "origin": "changed"
+          },
+          {
+            "path": "tooling/quality/candidate-finalize.test.sh",
+            "class": "verifier-or-policy",
+            "origin": "changed"
+          },
+          {
+            "path": "tooling/quality/ci-import.test.sh",
+            "class": "verifier-or-policy",
+            "origin": "changed"
+          },
+          {
+            "path": "tooling/quality/quality-stage-contract.test.mjs",
+            "class": "verifier-or-policy",
+            "origin": "changed"
+          },
+          {
+            "path": "tooling/quality/role-evidence-policy.mjs",
+            "class": "verifier-or-policy",
+            "origin": "changed"
+          },
+          {
+            "path": "tooling/quality/role-evidence-policy.test.mjs",
+            "class": "verifier-or-policy",
+            "origin": "changed"
+          },
+          {
+            "path": "tooling/quality/tool-trace.test.sh",
+            "class": "verifier-or-policy",
+            "origin": "changed"
+          },
+          {
+            "path": "tooling/roles/prompts/hardener.md",
+            "class": "changed-surface",
+            "origin": "changed"
+          },
+          {
+            "path": "tooling/roles/prompts/qa.md",
+            "class": "changed-surface",
+            "origin": "changed"
+          },
+          {
+            "path": "tooling/roles/prompts/reviewer.md",
+            "class": "changed-surface",
+            "origin": "changed"
+          },
+          {
+            "path": "tooling/roles/registry.json",
+            "class": "changed-surface",
+            "origin": "changed"
+          }
+        ],
+        "deterministicEvidence": [
+          {
+            "taskId": "verify.build",
+            "providerId": "builder",
+            "exitCode": 0,
+            "traceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-f7ff0904-f21e-46e7-8c78-4b0cebf82ad6/inputs/gate-evidence/13d48de3-786e-4166-baaa-5973d1bb66d8.json",
+            "traceDigest": "10813517f9246a171b0aadc68f7403ca07f0ff6b9facb719c5ecf6543ecc1245",
+            "evidenceRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-f7ff0904-f21e-46e7-8c78-4b0cebf82ad6/inputs/gate-evidence/13d48de3-786e-4166-baaa-5973d1bb66d8.log",
+            "evidenceDigest": "96fd23e2868f74fb589329a2d29e229721885a7cd8f7c2eae2d54e3881d95db2",
+            "dirty": false
+          }
+        ],
+        "candidate": {
+          "baseRevision": "40260e2ed3f3ca9251e47c3fd3ec235df2bec4ee",
+          "headRevision": "feb61a7f0ac3dd7d61c93438087b5e469cd60f57",
+          "candidateRevision": "sha256:408f2747861e0bcf7a8a41431381e4fb0a60d9e6e7b602e9ebee194a1bed0f7a"
+        }
+      }
+    }
+  ],
+  "manifestDigest": "sha256:c64453373fff7cfaff8bcea6340e763d43474b28e1f03630d0c7582e1fdd6d90"
+}
