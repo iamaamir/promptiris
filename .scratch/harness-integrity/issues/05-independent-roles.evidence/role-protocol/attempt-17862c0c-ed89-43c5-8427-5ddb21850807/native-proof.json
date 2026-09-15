@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "kind": "codex-independent-subagent",
+  "role": "reviewer",
+  "producerId": "luna-review-final9",
+  "agentTask": "/root/reviewer_sep14",
+  "model": "gpt-5.6-luna",
+  "reasoningEffort": "low",
+  "candidateRevision": "sha256:dafdbbc3b7f59069268f1a6c217845a1e1a5942cdcbaa75de43f5a11861838a7",
+  "accessRef": ".agent/role-attempts/independent-roles/dafdbbc3b7f59069268f1a6c217845a1e1a5942cdcbaa75de43f5a11861838a7/attempt-17862c0c-ed89-43c5-8427-5ddb21850807/access.json",
+  "reportRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-17862c0c-ed89-43c5-8427-5ddb21850807/report.json",
+  "reportDigest": "sha256:ec2404574c0a6feb16f91ce6cc673b109cf8ff8d98392581ad489eb4e22c7815",
+  "outcome": "passed",
+  "hostAuthorization": "The authenticated maintainer authorized independent low-cost model review and host attestation for this exact Candidate.",
+  "limitations": [
+    "The host records the independent model output and deterministic evidence; it does not claim hardware-enforced isolation."
+  ],
+  "recordedAt": "2026-09-15T06:45:50.000Z"
+}

@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "issuer": "promptiris.maintainer",
+  "verifierId": "promptiris.role-verifier",
+  "nativeProofRef": ".scratch/harness-integrity/issues/05-independent-roles.evidence/role-protocol/attempt-3fdc7a9b-98e4-4ad7-a87b-899c9a8084a3/native-proof.json",
+  "nativeProofDigest": "sha256:75d1f92795d77581b95316e3764ba968a1d442f5d4a1f01a4ec5f48328aca67a",
+  "subject": "luna-qa-final9",
+  "producerId": "luna-qa-final9",
+  "attemptId": "attempt-3fdc7a9b-98e4-4ad7-a87b-899c9a8084a3",
+  "parentInvocationId": "promptiris-final9-20260915",
+  "role": "qa",
+  "candidateRevision": "sha256:dafdbbc3b7f59069268f1a6c217845a1e1a5942cdcbaa75de43f5a11861838a7",
+  "promptDigest": "sha256:33334901b05d3ee6f7ace889ee090c292c672be32f07ac243db0bfc8f6ab07d0",
+  "inputManifestDigest": "sha256:33546fcd57e601b57fe1afe1488ea3c658f09789160e7568f452060749698181",
+  "sourceAccessMode": "source-blind-bundle",
+  "issuedAt": "2026-09-15T06:45:50.000Z",
+  "expiresAt": "2026-10-15T06:45:50.000Z",
+  "nonce": "qa-final9-3fdc7a9b-20260915",
+  "attestationStrength": "maintainer-attested"
+}
