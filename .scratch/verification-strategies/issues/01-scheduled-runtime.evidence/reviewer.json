@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "producerId": "reviewer.scheduled-runtime.recheck",
+  "independent": true,
+  "verdict": "pass",
+  "findings": [],
+  "commentDecisions": [],
+  "evidence": [
+    {
+      "checkId": "requirement-correctness",
+      "status": "passed",
+      "evidenceRef": ".scratch/verification-strategies/issues/01-scheduled-runtime.evidence/test-results.txt",
+      "evidenceSha256": "15f5de182d43d653b67bbeaad5c7f6c1b147fc30ad5fae6f101c6b093c4d6884"
+    },
+    {
+      "checkId": "functional-correctness",
+      "status": "passed",
+      "evidenceRef": ".scratch/verification-strategies/issues/01-scheduled-runtime.evidence/test-results.txt",
+      "evidenceSha256": "15f5de182d43d653b67bbeaad5c7f6c1b147fc30ad5fae6f101c6b093c4d6884"
+    },
+    {
+      "checkId": "edge-cases",
+      "status": "passed",
+      "evidenceRef": ".scratch/verification-strategies/issues/01-scheduled-runtime.evidence/test-results.txt",
+      "evidenceSha256": "15f5de182d43d653b67bbeaad5c7f6c1b147fc30ad5fae6f101c6b093c4d6884"
+    },
+    {
+      "checkId": "test-quality",
+      "status": "passed",
+      "evidenceRef": ".scratch/verification-strategies/issues/01-scheduled-runtime.evidence/test-results.txt",
+      "evidenceSha256": "15f5de182d43d653b67bbeaad5c7f6c1b147fc30ad5fae6f101c6b093c4d6884"
+    },
+    {
+      "checkId": "race-conditions",
+      "status": "passed",
+      "evidenceRef": ".scratch/verification-strategies/issues/01-scheduled-runtime.evidence/test-results.txt",
+      "evidenceSha256": "15f5de182d43d653b67bbeaad5c7f6c1b147fc30ad5fae6f101c6b093c4d6884"
+    },
+    {
+      "checkId": "error-handling",
+      "status": "passed",
+      "evidenceRef": ".scratch/verification-strategies/issues/01-scheduled-runtime.evidence/test-results.txt",
+      "evidenceSha256": "15f5de182d43d653b67bbeaad5c7f6c1b147fc30ad5fae6f101c6b093c4d6884"
+    },
+    {
+      "checkId": "code-quality",
+      "status": "passed",
+      "evidenceRef": ".scratch/verification-strategies/issues/01-scheduled-runtime.evidence/test-results.txt",
+      "evidenceSha256": "15f5de182d43d653b67bbeaad5c7f6c1b147fc30ad5fae6f101c6b093c4d6884"
+    },
+    {
+      "checkId": "security",
+      "status": "passed",
+      "evidenceRef": ".scratch/verification-strategies/issues/01-scheduled-runtime.evidence/test-results.txt",
+      "evidenceSha256": "15f5de182d43d653b67bbeaad5c7f6c1b147fc30ad5fae6f101c6b093c4d6884"
+    },
+    {
+      "checkId": "backwards-compatibility",
+      "status": "passed",
+      "evidenceRef": ".scratch/verification-strategies/issues/01-scheduled-runtime.evidence/test-results.txt",
+      "evidenceSha256": "15f5de182d43d653b67bbeaad5c7f6c1b147fc30ad5fae6f101c6b093c4d6884"
+    }
+  ],
+  "residualRisks": [
+    "The NativeChildHandle duck-type accepts a structurally compatible handle but a malicious injected transport could craft a non-child-process object; mitigated by the seam being @internal.",
+    "The injected transport validates cwd/env/stdio at the interface level only; a fake transport not exercising shell expansion can not test native-plugin's shell:false guarantee.",
+    "8 surviving Stryker mutants in native-plugin.ts are equivalent-to-context (waitForExit/timer cleanup and error-listener no-ops) and do not represent meaningful coverage gaps."
+  ],
+  "taskId": ".scratch/verification-strategies/issues/01-scheduled-runtime.md",
+  "baseRevision": "f0c2e6a912f4de0565019fcbd167c8244f627a0a",
+  "candidateRevision": "sha256:5399fa89ca8a4008620b2d4303888bf1ed33f1373add22501ff842a0bf9b5389"
+}

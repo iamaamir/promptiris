@@ -1,6 +1,6 @@
 # Add deterministic scheduling for runtime concurrency
 
-Status: ready-for-agent
+Status: in-progress
 GitHub issue: <https://github.com/iamaamir/promptiris/issues/30>
 Branch: `scheduled-runtime`
 Parent: .scratch/verification-strategies/PRD.md

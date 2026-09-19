@@ -1,0 +1,1 @@
+dist/native-plugin.d.ts - exports only defineNativePlugin and NativePluginOptions

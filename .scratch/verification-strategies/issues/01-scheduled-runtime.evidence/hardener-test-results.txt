@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /Users/mak/git/meta-prompt-scheduled-runtime/apps/runtime-node
+
+
+ Test Files  5 passed (5)
+      Tests  90 passed (90)
+   Start at  03:15:18
+   Duration  6.66s (transform 209ms, setup 0ms, import 488ms, tests 6.54s, environment 0ms)
+

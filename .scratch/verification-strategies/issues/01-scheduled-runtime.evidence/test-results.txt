@@ -1,0 +1,44 @@
+scheduled-runtime candidate verification - role evidence
+Base revision: 7beebfbd680835c2db6b04cf4b07f4006ab48853
+Head revision: (candidate worktree)
+Date: 2026-09-02
+
+apps/runtime-node (native-plugin + native transport injection):
+  86 tests passed across 5 files
+  native-plugin.test.ts: 28 passed (real subprocess integration tests + in-memory fake transport smoke test)
+  In-memory fake transport smoke test proves injectable NativeTransport seam without a subprocess
+
+Coverage (apps/runtime-node):
+  Statements   : 96.37% (346/359)
+  Branches     : 93.51% (245/262)
+  Functions    : 98.79% (82/83)
+  Lines        : 99% (300/303)
+
+Mutation testing (apps/runtime-node/src/native-plugin.ts):
+  92.57% (survived 8, uncovered 5, ignored 80)
+  Overall mutation score: 95.39% (threshold: 90%)
+
+Other gates (candidate profile):
+  format: clean (Prettier)
+  build: clean (tsc)
+  lint: clean (ESLint max-warnings 0, markdownlint)
+  shell: clean (shellcheck)
+  integrity: clean (Work Item path firewall, mutation registration, forbidden additions)
+  schema: clean (AJV)
+  generated: clean (cmp)
+  types: clean (tsc)
+  unit: 86 passed (apps/runtime-node), 39 protocol, 36 plugin-sdk, 196 core, 97 observer-devtools
+  go-vet: clean
+  integration: pass
+  lsp: pass (TypeScript and Go LSP symbol queries)
+  structural: clean (ast-grep, no violations)
+  telemetry: clean (AJV)
+  watcher: pass
+  secrets: pass (gitleaks)
+
+TypeScript typecheck: clean
+ESLint: clean (max-warnings 0)
+Prettier: clean
+API Extractor: completed successfully
+CRAP: 0 violations across 329 functions
+ast-grep structural scan: passed, no violations
